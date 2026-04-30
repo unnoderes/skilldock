@@ -1,0 +1,44 @@
+## npx add-mcp list-agents
+
+ █████╗ ██████╗ ██████╗       ███╗   ███╗ ██████╗██████╗ 
+██╔══██╗██╔══██╗██╔══██╗      ████╗ ████║██╔════╝██╔══██╗
+███████║██║  ██║██║  ██║█████╗██╔████╔██║██║     ██████╔╝
+██╔══██║██║  ██║██║  ██║╚════╝██║╚██╔╝██║██║     ██╔═══╝ 
+██║  ██║██████╔╝██████╔╝      ██║ ╚═╝ ██║╚██████╗██║     
+╚═╝  ╚═╝╚═════╝ ╚═════╝       ╚═╝     ╚═╝ ╚═════╝╚═╝     
+
+Supported agents:
+
+  Argument            MCP Client              Aliases         Local  Global
+  ------------------  ----------------------  --------------  -----  ------
+  antigravity         Antigravity                               -     ✓  
+  cline               Cline VSCode Extension  cline-vscode      -     ✓  
+  cline-cli           Cline CLI                                 -     ✓  
+  claude-code         Claude Code                               ✓     ✓  
+  claude-desktop      Claude Desktop                            -     ✓  
+  codex               Codex                                     ✓     ✓  
+  cursor              Cursor                                    ✓     ✓  
+  gemini-cli          Gemini CLI              gemini            ✓     ✓  
+  goose               Goose                                     -     ✓  
+  github-copilot-cli  GitHub Copilot CLI                        ✓     ✓  
+  mcporter            MCPorter                                  ✓     ✓  
+  opencode            OpenCode                                  ✓     ✓  
+  vscode              VS Code                 github-copilot    ✓     ✓  
+  zed                 Zed                                       ✓     ✓  
+
+
+## npx add-mcp list --json
+error: unknown option '--json'
+
+## npx add-mcp list
+
+ █████╗ ██████╗ ██████╗       ███╗   ███╗ ██████╗██████╗ 
+██╔══██╗██╔══██╗██╔══██╗      ████╗ ████║██╔════╝██╔══██╗
+███████║██║  ██║██║  ██║█████╗██╔████╔██║██║     ██████╔╝
+██╔══██║██║  ██║██║  ██║╚════╝██║╚██╔╝██║██║     ██╔═══╝ 
+██║  ██║██████╔╝██████╔╝      ██║ ╚═╝ ██║╚██████╗██║     
+╚═╝  ╚═╝╚═════╝ ╚═════╝       ╚═╝     ╚═╝ ╚═════╝╚═╝     
+
+│
+●  No agents detected in this project. Use -g for global or -a to target a specific agent.
+

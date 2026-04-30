@@ -1,0 +1,79 @@
+## npx skills --help
+
+Usage: skills <command> [options]
+
+Manage Skills:
+  add <package>        Add a skill package (alias: a)
+                       e.g. vercel-labs/agent-skills
+                            https://github.com/vercel-labs/agent-skills
+  remove [skills]      Remove installed skills
+  list, ls             List installed skills
+  find [query]         Search for skills interactively
+
+Updates:
+  update [skills...]   Update skills to latest versions (alias: upgrade)
+
+Update Options:
+  -g, --global           Update global skills only
+  -p, --project          Update project skills only
+  -y, --yes              Skip scope prompt (auto-detect: project if in a project, else global)
+
+Project:
+  experimental_install Restore skills from skills-lock.json
+  init [name]          Initialize a skill (creates <name>/SKILL.md or ./SKILL.md)
+  experimental_sync    Sync skills from node_modules into agent directories
+
+Add Options:
+  -g, --global           Install skill globally (user-level) instead of project-level
+  -a, --agent <agents>   Specify agents to install to (use '*' for all agents)
+  -s, --skill <skills>   Specify skill names to install (use '*' for all skills)
+  -l, --list             List available skills in the repository without installing
+  -y, --yes              Skip confirmation prompts
+  --copy                 Copy files instead of symlinking to agent directories
+  --all                  Shorthand for --skill '*' --agent '*' -y
+  --full-depth           Search all subdirectories even when a root SKILL.md exists
+
+Remove Options:
+  -g, --global           Remove from global scope
+  -a, --agent <agents>   Remove from specific agents (use '*' for all agents)
+  -s, --skill <skills>   Specify skills to remove (use '*' for all skills)
+  -y, --yes              Skip confirmation prompts
+  --all                  Shorthand for --skill '*' --agent '*' -y
+  
+Experimental Sync Options:
+  -a, --agent <agents>   Specify agents to install to (use '*' for all agents)
+  -y, --yes              Skip confirmation prompts
+
+List Options:
+  -g, --global           List global skills (default: project)
+  -a, --agent <agents>   Filter by specific agents
+  --json                 Output as JSON (machine-readable, no ANSI codes)
+
+Options:
+  --help, -h        Show this help message
+  --version, -v     Show version number
+
+Examples:
+  $ skills add vercel-labs/agent-skills
+  $ skills add vercel-labs/agent-skills -g
+  $ skills add vercel-labs/agent-skills --agent claude-code cursor
+  $ skills add vercel-labs/agent-skills --skill pr-review commit
+  $ skills remove                        # interactive remove
+  $ skills remove web-design             # remove by name
+  $ skills rm --global frontend-design
+  $ skills list                          # list project skills
+  $ skills ls -g                         # list global skills
+  $ skills ls -a claude-code             # filter by agent
+  $ skills ls --json                      # JSON output
+  $ skills find                          # interactive search
+  $ skills find typescript               # search by keyword
+  $ skills update
+  $ skills update my-skill             # update a single skill
+  $ skills update -g                    # update global skills only
+  $ skills experimental_install            # restore from skills-lock.json
+  $ skills init my-skill
+  $ skills experimental_sync              # sync from node_modules
+  $ skills experimental_sync -y           # sync without prompts
+
+Discover more skills at https://skills.sh/
+

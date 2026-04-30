@@ -1,0 +1,67 @@
+## versions
+skills: 1.5.3
+add-mcp: 1.8.0
+
+## skills list --json
+[]
+
+## skills list -g --json
+[
+  {
+    "name": "vibekanban",
+    "path": "/home/unnode/.agents/skills/vibekanban",
+    "scope": "global",
+    "agents": [
+      "Claude Code",
+      "Junie"
+    ]
+  },
+  {
+    "name": "agents-layout",
+    "path": "/home/unnode/.factory/skills/agents-layout",
+    "scope": "global",
+    "agents": [
+      "Droid"
+    ]
+  },
+  {
+    "name": "short-video-cover",
+    "path": "/home/unnode/.factory/skills/cover_skill",
+    "scope": "global",
+    "agents": [
+      "Droid"
+    ]
+  },
+  {
+    "name": "html-image-export",
+    "path": "/home/unnode/.factory/skills/html-image-export",
+    "scope": "global",
+    "agents": [
+      "Droid"
+    ]
+  },
+  {
+    "name": "init-video-project",
+    "path": "/home/unnode/.factory/skills/init-video-project",
+    "scope": "global",
+    "agents": [
+      "Droid"
+    ]
+  },
+  {
+    "name": "short-video-frames",
+    "path": "/home/unnode/.factory/skills/short-video-frames",
+    "scope": "global",
+    "agents": [
+      "Droid"
+    ]
+  },
+  {
+    "name": "tts-video",
+    "path": "/home/unnode/.factory/skills/tts-video-skill",
+    "scope": "global",
+    "agents": [
+      "Droid"
+    ]
+  }
+]

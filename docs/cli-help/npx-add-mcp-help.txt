@@ -1,0 +1,39 @@
+## npx add-mcp --help
+npm warn exec The following package was not found and will be installed: add-mcp@1.8.0
+Usage: add-mcp [options] [command] [target]
+
+Install MCP servers for coding agents (Claude Code, Cursor, VS Code, OpenCode,
+Codex, and more — run list-agents for the full list)
+
+Arguments:
+  target                      MCP server URL (remote) or package name (local
+                              stdio)
+
+Options:
+  -V, --version               output the version number
+  -g, --global                Install globally (user-level) instead of
+                              project-level
+  -a, --agent <agent>         Specify agents to install to (default: [])
+  -n, --name <name>           Server name (auto-inferred from target if not
+                              provided)
+  -t, --transport <type>      Transport type for remote servers (http, sse)
+  --type <type>               Alias for --transport
+  --header <header>           HTTP header for remote servers (repeatable, 'Key:
+                              Value') (default: [])
+  --env <env>                 Environment variable for local stdio servers
+                              (repeatable, 'KEY=VALUE') (default: [])
+  -y, --yes                   Skip confirmation prompts
+  --all                       Install to all agents
+  --gitignore                 Add generated project config files to .gitignore
+  -h, --help                  display help for command
+
+Commands:
+  list-agents                 List all supported coding agents
+  find [options] [keyword]    Find MCP servers from curated registry data (omit
+                              keyword to browse)
+  search [options] [keyword]  Alias for find
+  list [options]              List installed MCP servers across detected agents
+  remove [options] <query>    Remove an MCP server from agent configurations
+  sync [options]              Synchronize server names and installations across
+                              all detected agents
+  unify [options]             Alias for sync

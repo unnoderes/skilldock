@@ -1,0 +1,9 @@
+## npx add-mcp list --help
+Usage: add-mcp list [options]
+
+List installed MCP servers across detected agents
+
+Options:
+  -g, --global         List global configs instead of project-level
+  -a, --agent <agent>  Filter to specific agent(s) (default: [])
+  -h, --help           display help for command

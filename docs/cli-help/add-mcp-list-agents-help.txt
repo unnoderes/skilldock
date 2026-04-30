@@ -1,0 +1,7 @@
+## npx add-mcp list-agents --help
+Usage: add-mcp list-agents [options]
+
+List all supported coding agents
+
+Options:
+  -h, --help  display help for command

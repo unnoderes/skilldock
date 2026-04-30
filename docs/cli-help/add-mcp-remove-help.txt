@@ -1,0 +1,10 @@
+## npx add-mcp remove --help
+Usage: add-mcp remove [options] <query>
+
+Remove an MCP server from agent configurations
+
+Options:
+  -g, --global         Remove from global configs instead of project-level
+  -a, --agent <agent>  Filter to specific agent(s) (default: [])
+  -y, --yes            Remove all matches without prompting
+  -h, --help           display help for command

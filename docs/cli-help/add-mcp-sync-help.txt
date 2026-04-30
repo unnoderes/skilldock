@@ -1,0 +1,9 @@
+## npx add-mcp sync --help
+Usage: add-mcp sync [options]
+
+Synchronize server names and installations across all detected agents
+
+Options:
+  -g, --global  Sync global configs instead of project-level
+  -y, --yes     Skip confirmation prompts
+  -h, --help    display help for command

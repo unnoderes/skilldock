@@ -1,0 +1,13 @@
+## npx add-mcp find --help
+Usage: add-mcp find [options] [keyword]
+
+Find MCP servers from curated registry data (omit keyword to browse)
+
+Options:
+  -g, --global         Install globally (user-level) instead of project-level
+  -a, --agent <agent>  Specify agents to install to (default: [])
+  -n, --name <name>    Server name override (defaults to catalog entry name)
+  -y, --yes            Skip confirmation prompts
+  --all                Install to all agents
+  --gitignore          Add generated project config files to .gitignore
+  -h, --help           display help for command
