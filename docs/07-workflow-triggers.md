@@ -49,16 +49,64 @@
 优先保证 MVP 闭环，不扩范围。
 ```
 
+## Coding Agent 完成任务后的强制收尾模板
+
+```txt
+你已完成代码生成任务。现在必须执行收尾流程：
+
+1. 检查变更：
+   - git status --short --branch
+   - git diff
+
+2. 运行验证：
+   - pnpm typecheck
+   - 如涉及构建链路或前端产物：pnpm build
+
+3. 提交：
+   - git add <必要文件>
+   - git commit -m "<type(scope): summary>"
+
+4. 推送：
+   - git push -u origin <当前任务分支>
+
+5. 输出 PR 信息：
+   - PR base: main
+   - PR head: <当前任务分支>
+   - Title: <PR 标题>
+   - Body: 说明改动、验证命令、风险、禁止直接合并的分支（如有）
+
+禁止：
+- 不允许只停留在本地分支。
+- 不允许直接 push 到 main。
+- 不允许 force push。
+- 不允许提交 node_modules、dist、.env、token/key/secret/password。
+```
+
 ## Merge Reconcile 触发提示模板
 
 ```txt
 你是 SkillDock Merge / Release Orchestrator Agent。
-任务：整理本地与远程分支，禁止直接合并旧基线分支，只在最新 origin/main 上重做最小必要修复。
-写入范围：当前集成分支 + 必要 docs。
-约束：
-- 不在脏 main 上开发或合并
-- 不 force push
-- 不删除远程分支，除非用户明确确认
-- 不 cherry-pick 会带回旧代码的提交
-完成后运行 pnpm install、pnpm typecheck、pnpm build，并准备 PR 信息。
+
+任务：整理本地与远程分支，判断哪些已合并、哪些可归档、哪些禁止直接合并；只在最新 origin/main 的干净分支上做最小必要修复。
+
+必须执行：
+- git fetch --all --prune
+- git branch -a --sort=-committerdate
+- git log --oneline --graph --decorate --all -n 40
+- 对每个候选分支输出：是否已在 origin/main、是否可直接合并、风险、建议动作
+
+禁止：
+- 不在脏 main 上开发或合并。
+- 不直接 merge 旧基线分支。
+- 不 cherry-pick 会带回旧代码的提交。
+- 不 force push。
+- 不删除远程分支，除非用户明确确认。
+
+完成标准：
+- pnpm typecheck 通过。
+- pnpm build 通过。
+- commit 已创建。
+- 分支已 push。
+- 已提供 PR base/head/title/body 或 PR 链接。
 ```
+
