@@ -37,3 +37,10 @@ PM 合并结论并安排下一步
 3. Backend：增加 add-mcp list-agents 结构化/原始输出接口。
 4. Frontend：增加 MCP 页面原始输出展示。
 5. Reviewer：检查是否存在任意命令执行风险。
+
+## 2026-05-01 Merge / Release Orchestrator 补充
+
+- Merge Orchestrator 只在最新 `origin/main` 的干净 worktree 上做集成，不在脏 `main` 或旧任务分支上直接合并。
+- 对 tree 已等价于 `origin/main` 的分支，标记为“已合并，可归档”。
+- 对基于旧主线且可能回退 `apps/web/**` 或其他已上线文件的分支，标记为“禁止直接合并”。
+- 所有完成的代码任务必须走：commit → push → PR。

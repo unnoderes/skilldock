@@ -16,7 +16,7 @@ type InstallSkillPayload = {
   packageName: string;
   scope: Scope;
   agents: string[];
-  skills: string[];
+  skillNames: string[];
   copy: boolean;
   all: boolean;
   yes: true;
@@ -32,7 +32,7 @@ type RemoveSkillPayload = {
 
 type UpdateSkillPayload = {
   scope: Scope;
-  skillNames: string[];
+  names: string[];
   yes: true;
 };
 
@@ -207,7 +207,7 @@ function App() {
       packageName: installPackageName.trim(),
       scope: skillsScope,
       agents: splitLines(installAgents),
-      skills: splitLines(installSkills),
+      skillNames: splitLines(installSkills),
       copy: installCopy,
       all: installAll,
       yes: true,
@@ -218,7 +218,7 @@ function App() {
       `包：${payload.packageName}`,
       `范围：${payload.scope}`,
       `Agents：${payload.agents.join(", ") || "默认"}`,
-      `Skills：${payload.skills.join(", ") || "全部/CLI默认"}`,
+      `Skills：${payload.skillNames.join(", ") || "全部/CLI默认"}`,
       `选项：${[payload.copy ? "copy" : null, payload.all ? "all" : null].filter(Boolean).join(", ") || "无"}`,
     ])) return;
 
@@ -256,13 +256,13 @@ function App() {
     event.preventDefault();
     const payload: UpdateSkillPayload = {
       scope: skillsScope,
-      skillNames: splitLines(updateSkillNames),
+      names: splitLines(updateSkillNames),
       yes: true,
     };
 
     if (!confirmWrite("确认更新 Skill？", [
       `范围：${payload.scope}`,
-      `Skills：${payload.skillNames.join(", ") || "全部"}`,
+      `Skills：${payload.names.join(", ") || "全部"}`,
     ])) return;
 
     await runWrite("Skills update", "/api/skills/update", payload, async () => {

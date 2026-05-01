@@ -33,3 +33,12 @@ pnpm dev
 
 - Web: http://127.0.0.1:5173
 - Server: http://127.0.0.1:3301
+
+## 2026-05-01 Merge Reconcile
+
+- 当前集成分支：`chore/phase2-merge-reconcile`
+- 已合并到 `origin/main`：`origin/feat/skills-mcp-mvp-ui`
+- 禁止直接合并：`vk/2585-skilldock-backen`、`origin/vk/2585-skilldock-backen`、`feat/skills-mcp-mvp-ui`、`vk/1c3c-frontend-backend`、`main`、`vk/2784-skilldock-review`、`vk/6e62-skilldock-fronte`、`vk/5dc8-skilldock-merge`
+- 处理策略：对旧基线分支只提取有效修复意图，在最新 `origin/main` 上手动重做最小改动。
+- 本次最小修复：对齐 Skills install/update payload 字段名，避免前后端 contract 不一致。
+- 验证目标：`pnpm install`、`pnpm typecheck`、`pnpm build`。
