@@ -48,3 +48,17 @@
 每个任务包含：目标、写入范围、验收标准、禁止事项。
 优先保证 MVP 闭环，不扩范围。
 ```
+
+## Merge Reconcile 触发提示模板
+
+```txt
+你是 SkillDock Merge / Release Orchestrator Agent。
+任务：整理本地与远程分支，禁止直接合并旧基线分支，只在最新 origin/main 上重做最小必要修复。
+写入范围：当前集成分支 + 必要 docs。
+约束：
+- 不在脏 main 上开发或合并
+- 不 force push
+- 不删除远程分支，除非用户明确确认
+- 不 cherry-pick 会带回旧代码的提交
+完成后运行 pnpm install、pnpm typecheck、pnpm build，并准备 PR 信息。
+```
