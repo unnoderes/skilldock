@@ -48,6 +48,9 @@ feat, fix, docs, chore, refactor, test, build, ci
 - Frontend Agent 优先改 `apps/web/**`。
 - Reviewer Agent 默认只读，除非明确要求修复。
 - 合并前必须看 `git diff`。
+- 完成代码任务后必须 commit 并 push 到远程任务分支。
+- 必须提供 PR base/head/title/body；不允许只停留在本地分支。
+- 旧基线分支如会回退 `origin/main`，禁止直接 merge，只能在最新 `origin/main` 上重做最小修复。
 
 ## 合并前检查
 
@@ -74,13 +77,44 @@ pnpm build
 ## 建议合并流程
 
 ```txt
-创建任务分支
+基于 origin/main 创建任务分支
   ↓
 实现最小改动
   ↓
+git diff
+  ↓
 pnpm typecheck
   ↓
-Reviewer 检查 diff
+必要时 pnpm build
+  ↓
+git commit
+  ↓
+git push -u origin <task-branch>
+  ↓
+创建 PR：base=main, head=<task-branch>
+  ↓
+Reviewer 检查 diff / 类型 / 构建 / 边界
   ↓
 合并回 main
+```
+
+## 当前分支清理建议（2026-05-02）
+
+已合入或已被主线覆盖，用户确认后可清理：
+
+```txt
+origin/chore/phase2-merge-reconcile
+origin/feat/skills-mcp-mvp-ui
+origin/vk/2585-skilldock-backen
+```
+
+本地旧工作分支不建议直接合并，用户确认后可归档/删除：
+
+```txt
+feat/skills-mcp-mvp-ui
+vk/1c3c-frontend-backend
+vk/2585-skilldock-backen
+vk/2784-skilldock-review
+vk/5dc8-skilldock-merge
+vk/6e62-skilldock-fronte
 ```

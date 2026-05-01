@@ -89,6 +89,9 @@ docs          # 设计与流程文档
 - One agent = one task branch when running parallel work.
 - Avoid overlapping write scopes across agents.
 - Before merge: inspect `git diff` and run `pnpm typecheck`.
+- Every coding task must end with commit + push to its task branch.
+- If the task is intended for `main`, provide PR base/head/title/body; do not leave completed work only in a local branch.
+- Do not merge old-base branches directly if they would revert current `origin/main`; reapply the minimal fix on a fresh branch from `origin/main` instead.
 - See `docs/09-version-control.md`.
 
 ## Definition of Done
@@ -97,4 +100,7 @@ docs          # 设计与流程文档
 - 没有重复实现 CLI 已有能力。
 - `pnpm typecheck` 通过。
 - 如涉及构建链路，`pnpm build` 通过。
+- 已 commit 到任务分支。
+- 已 push 到远程任务分支。
+- 已提供 PR 链接或 PR 创建信息。
 - 关键变更已更新相关 docs。
