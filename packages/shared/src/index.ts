@@ -25,6 +25,13 @@ export type CommandResult = {
   durationMs: number;
 };
 
+export type OperationLogEntry = {
+  id: string;
+  timestamp: string;
+  source: string;
+  result: CommandResult;
+};
+
 export type SkillRecord = {
   name: string;
   path?: string;
@@ -86,4 +93,12 @@ export type McpAddRequest = {
 
 export type McpCommandResponse = {
   result: CommandResult;
+};
+
+export type LogsListQuery = {
+  limit?: number;
+};
+
+export type LogsListResponse = {
+  logs: OperationLogEntry[];
 };

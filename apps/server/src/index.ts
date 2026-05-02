@@ -1,12 +1,18 @@
 import cors from "@fastify/cors";
 import { execa } from "execa";
 import Fastify from "fastify";
+import crypto from "node:crypto";
+import { appendFile, mkdir, readFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { z, ZodError } from "zod";
 import type {
   AppStatus,
   CliName,
   CommandResult,
+  LogsListResponse,
   McpCommandResponse,
+  OperationLogEntry,
   SkillRecord,
   SkillsCommandResponse,
   SkillsListResponse,
@@ -17,6 +23,10 @@ await server.register(cors, { origin: true });
 
 const PORT = Number(process.env.SKILLDOCK_SERVER_PORT ?? 3301);
 const HOST = process.env.SKILLDOCK_SERVER_HOST ?? "127.0.0.1";
+const LOG_DIRECTORY = path.join(os.homedir(), ".skilldock", "logs");
+const LOG_FILE_PATH = path.join(LOG_DIRECTORY, "operations.jsonl");
+const DEFAULT_LOG_LIMIT = 50;
+const MAX_LOG_LIMIT = 100;
 
 const scopeSchema = z.enum(["project", "global"]);
 const updateScopeSchema = z.enum(["project", "global", "auto"]);
@@ -34,6 +44,10 @@ const skillsListQuerySchema = z.object({
 
 const mcpListQuerySchema = z.object({
   scope: scopeSchema.default("project"),
+});
+
+const logsListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(MAX_LOG_LIMIT).default(DEFAULT_LOG_LIMIT),
 });
 
 const skillsInstallBodySchema = z.object({
@@ -125,21 +139,55 @@ function redactArgs(args: string[]): string[] {
   return args.map((arg) => redact(arg));
 }
 
-async function runCli(command: "npx", args: string[]): Promise<CommandResult> {
-  const started = Date.now();
+async function ensureLogDirectory(): Promise<void> {
+  await mkdir(LOG_DIRECTORY, { recursive: true });
+}
+
+async function appendOperationLog(entry: OperationLogEntry): Promise<void> {
+  await ensureLogDirectory();
+  await appendFile(LOG_FILE_PATH, `${JSON.stringify(entry)}\n`, "utf8");
+}
+
+async function readRecentOperationLogs(limit: number): Promise<OperationLogEntry[]> {
   try {
-    const result = await execa(command, args, { reject: false, stripFinalNewline: false });
-    return {
+    const content = await readFile(LOG_FILE_PATH, "utf8");
+    return content
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .flatMap((line) => {
+        try {
+          return [JSON.parse(line) as OperationLogEntry];
+        } catch {
+          return [];
+        }
+      })
+      .slice(-limit)
+      .reverse();
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
+}
+
+async function runCli(command: "npx", args: string[], source = "unknown"): Promise<CommandResult> {
+  const started = Date.now();
+  let result: CommandResult;
+  try {
+    const execution = await execa(command, args, { reject: false, stripFinalNewline: false });
+    result = {
       command,
       args: redactArgs(args),
-      exitCode: result.exitCode ?? 0,
-      stdout: redact(result.stdout),
-      stderr: redact(result.stderr),
+      exitCode: execution.exitCode ?? 0,
+      stdout: redact(execution.stdout),
+      stderr: redact(execution.stderr),
       durationMs: Date.now() - started,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return {
+    result = {
       command,
       args: redactArgs(args),
       exitCode: 1,
@@ -148,6 +196,21 @@ async function runCli(command: "npx", args: string[]): Promise<CommandResult> {
       durationMs: Date.now() - started,
     };
   }
+
+  const entry: OperationLogEntry = {
+    id: crypto.randomUUID(),
+    timestamp: new Date().toISOString(),
+    source,
+    result,
+  };
+
+  try {
+    await appendOperationLog(entry);
+  } catch (error) {
+    server.log.error({ err: error, source }, "failed to persist operation log");
+  }
+
+  return result;
 }
 
 function pushRepeatedFlag(args: string[], flag: string, values: string[]): void {
@@ -157,7 +220,7 @@ function pushRepeatedFlag(args: string[], flag: string, values: string[]): void 
 }
 
 async function cliStatus(name: CliName): Promise<AppStatus["cli"][number]> {
-  const result = await runCli("npx", [name, "--version"]);
+  const result = await runCli("npx", [name, "--version"], `GET /api/status (${name})`);
   const version = result.stdout.trim() || result.stderr.trim();
   return {
     name,
@@ -183,7 +246,10 @@ server.setErrorHandler((error, request, reply) => {
 });
 
 server.get("/api/status", async (): Promise<AppStatus> => {
-  const cli = await Promise.all([cliStatus("skills"), cliStatus("add-mcp")]);
+  const cli = await Promise.all([
+    cliStatus("skills"),
+    cliStatus("add-mcp"),
+  ]);
   return {
     name: "SkillDock",
     ok: true,
@@ -196,7 +262,7 @@ server.get("/api/skills/list", async (request): Promise<SkillsListResponse> => {
   const query = skillsListQuerySchema.parse(request.query);
   const args = ["skills", "list", "--json"];
   if (query.scope === "global") args.push("--global");
-  const result = await runCli("npx", args);
+  const result = await runCli("npx", args, "GET /api/skills/list");
   let skills: SkillRecord[] = [];
   if (result.exitCode === 0 && result.stdout.trim()) {
     skills = JSON.parse(result.stdout) as SkillRecord[];
@@ -215,7 +281,7 @@ server.post("/api/skills/install", async (request): Promise<SkillsCommandRespons
   pushRepeatedFlag(args, "--agent", body.agents);
   pushRepeatedFlag(args, "--skill", body.skillNames);
 
-  return { result: await runCli("npx", args) };
+  return { result: await runCli("npx", args, "POST /api/skills/install") };
 });
 
 server.post("/api/skills/remove", async (request): Promise<SkillsCommandResponse> => {
@@ -228,7 +294,7 @@ server.post("/api/skills/remove", async (request): Promise<SkillsCommandResponse
   pushRepeatedFlag(args, "--agent", body.agents);
   pushRepeatedFlag(args, "--skill", body.skillNames);
 
-  return { result: await runCli("npx", args) };
+  return { result: await runCli("npx", args, "POST /api/skills/remove") };
 });
 
 server.post("/api/skills/update", async (request): Promise<SkillsCommandResponse> => {
@@ -238,17 +304,17 @@ server.post("/api/skills/update", async (request): Promise<SkillsCommandResponse
   if (body.scope === "global") args.push("--global");
   if (body.scope === "project") args.push("--project");
 
-  return { result: await runCli("npx", args) };
+  return { result: await runCli("npx", args, "POST /api/skills/update") };
 });
 
-server.post("/api/skills/help", async (): Promise<CommandResult> => runCli("npx", ["skills", "--help"]));
-server.post("/api/mcp/help", async (): Promise<CommandResult> => runCli("npx", ["add-mcp", "--help"]));
-server.get("/api/mcp/list-agents", async (): Promise<CommandResult> => runCli("npx", ["add-mcp", "list-agents"]));
+server.post("/api/skills/help", async (): Promise<CommandResult> => runCli("npx", ["skills", "--help"], "POST /api/skills/help"));
+server.post("/api/mcp/help", async (): Promise<CommandResult> => runCli("npx", ["add-mcp", "--help"], "POST /api/mcp/help"));
+server.get("/api/mcp/list-agents", async (): Promise<CommandResult> => runCli("npx", ["add-mcp", "list-agents"], "GET /api/mcp/list-agents"));
 server.get("/api/mcp/list", async (request): Promise<CommandResult> => {
   const query = mcpListQuerySchema.parse(request.query);
   const args = ["add-mcp", "list"];
   if (query.scope === "global") args.push("--global");
-  return runCli("npx", args);
+  return runCli("npx", args, "GET /api/mcp/list");
 });
 
 server.post("/api/mcp/add", async (request): Promise<McpCommandResponse> => {
@@ -264,7 +330,14 @@ server.post("/api/mcp/add", async (request): Promise<McpCommandResponse> => {
   pushRepeatedFlag(args, "--header", body.headers);
   pushRepeatedFlag(args, "--env", body.env);
 
-  return { result: await runCli("npx", args) };
+  return { result: await runCli("npx", args, "POST /api/mcp/add") };
+});
+
+server.get("/api/logs", async (request): Promise<LogsListResponse> => {
+  const query = logsListQuerySchema.parse(request.query);
+  return {
+    logs: await readRecentOperationLogs(query.limit),
+  };
 });
 
 server.get("/healthz", async () => ({ ok: true }));
