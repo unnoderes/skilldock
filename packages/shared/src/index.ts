@@ -32,6 +32,40 @@ export type OperationLogEntry = {
   result: CommandResult;
 };
 
+export type TaskStatus = "queued" | "running" | "succeeded" | "failed";
+
+export type TaskOutputChunk = {
+  timestamp: string;
+  stream: "stdout" | "stderr" | "system";
+  text: string;
+};
+
+export type TaskRecord = {
+  id: string;
+  source: string;
+  status: TaskStatus;
+  createdAt: string;
+  startedAt?: string;
+  finishedAt?: string;
+  output: TaskOutputChunk[];
+  result?: CommandResult;
+  error?: string;
+  operationLogId?: string;
+};
+
+export type TaskStartResponse = {
+  taskId: string;
+};
+
+export type TaskGetResponse = {
+  task: TaskRecord;
+};
+
+export type TaskStreamEvent =
+  | { type: "snapshot"; task: TaskRecord }
+  | { type: "chunk"; taskId: string; chunk: TaskOutputChunk }
+  | { type: "status"; task: TaskRecord };
+
 export type SkillRecord = {
   name: string;
   path?: string;

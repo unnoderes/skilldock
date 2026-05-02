@@ -40,7 +40,7 @@
 仍未完成 / 后续卡：
 
 - [x] 命令执行日志持久化（server 端 JSONL 落盘与最近日志查询）
-- [ ] 基础任务状态 / 输出流
+- [x] 基础任务状态 / 输出流
 - [ ] 真实 CLI smoke test 与操作手册补充
 
 分支处理状态：
@@ -67,3 +67,20 @@ pnpm dev
 - 处理策略：对旧基线分支只提取有效修复意图，在最新 `origin/main` 上手动重做最小改动。
 - 本次最小修复：对齐 Skills install/update payload 字段名，避免前后端 contract 不一致。
 - 验证目标：`pnpm install`、`pnpm typecheck`、`pnpm build`。
+
+
+## 2026-05-02 TaskStream-07
+
+已完成：
+
+- [x] 4 个写操作 API 改为异步 task 启动，返回 `taskId`
+- [x] 新增 `GET /api/tasks/:id` 与 `GET /api/tasks/:id/stream`
+- [x] server 以内存 Map 保存最近 task，并对 stdout/stderr/system 做脱敏
+- [x] web 展示 task id、status、输出流、最终 `CommandResult`、`operationLogId`
+- [x] task 完成后继续写入 `~/.skilldock/logs/operations.jsonl`
+
+MVP 限制：
+
+- task active state 仅保存在当前 server 进程内
+- 浏览器实时输出优先使用 SSE，断开后回退短轮询
+- 不提供取消、重试、复杂调度

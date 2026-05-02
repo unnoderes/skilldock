@@ -1,6 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import type { AppStatus, CommandResult, SkillRecord } from "@skilldock/shared";
+import type {
+  AppStatus,
+  CommandResult,
+  SkillRecord,
+  TaskGetResponse,
+  TaskOutputChunk,
+  TaskRecord,
+  TaskStartResponse,
+  TaskStreamEvent,
+} from "@skilldock/shared";
 import "./styles.css";
 
 type Scope = "project" | "global";
@@ -10,6 +19,12 @@ type ResultState = {
   title: string;
   result: CommandResult;
   error?: string;
+};
+
+type TaskViewState = {
+  title: string;
+  task: TaskRecord;
+  transport: "sse" | "polling";
 };
 
 type InstallSkillPayload = {
@@ -91,6 +106,20 @@ function normalizeResult(payload: unknown): CommandResult {
   return payload as CommandResult;
 }
 
+function mergeTaskChunk(task: TaskRecord, chunk: TaskOutputChunk): TaskRecord {
+  const nextOutput = [...task.output, chunk];
+  return { ...task, output: nextOutput };
+}
+
+function isTaskFinished(task: TaskRecord): boolean {
+  return task.status === "succeeded" || task.status === "failed";
+}
+
+function formatTime(value?: string): string {
+  if (!value) return "-";
+  return new Date(value).toLocaleString();
+}
+
 function App() {
   const [status, setStatus] = useState<AppStatus | null>(null);
   const [skillsScope, setSkillsScope] = useState<Scope>("project");
@@ -102,6 +131,10 @@ function App() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<ResultState | null>(null);
+  const [activeTask, setActiveTask] = useState<TaskViewState | null>(null);
+
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const pollingTimerRef = useRef<number | null>(null);
 
   const [installPackageName, setInstallPackageName] = useState("");
   const [installAgents, setInstallAgents] = useState("");
@@ -128,6 +161,15 @@ function App() {
     if (!skills) return "加载中...";
     return `${skills.skills.length} 个 ${skillsScope === "project" ? "项目" : "全局"} Skills`;
   }, [skills, skillsScope]);
+
+  function stopTaskWatch() {
+    eventSourceRef.current?.close();
+    eventSourceRef.current = null;
+    if (pollingTimerRef.current !== null) {
+      window.clearInterval(pollingTimerRef.current);
+      pollingTimerRef.current = null;
+    }
+  }
 
   async function refreshStatus() {
     setStatus(await readJson<AppStatus>("/api/status"));
@@ -168,8 +210,72 @@ function App() {
     }
   }
 
+  async function fetchTask(taskId: string) {
+    const response = await readJson<TaskGetResponse>(`/api/tasks/${taskId}`);
+    return response.task;
+  }
+
+  function startPollingTask(taskId: string, title: string) {
+    stopTaskWatch();
+    pollingTimerRef.current = window.setInterval(() => {
+      void fetchTask(taskId)
+        .then((task) => {
+          setActiveTask({ title, task, transport: "polling" });
+          if (isTaskFinished(task)) {
+            stopTaskWatch();
+            void refreshStatus();
+            if (title.startsWith("Skills")) void refreshSkills();
+            if (title.startsWith("MCP")) void refreshMcp();
+          }
+        })
+        .catch((error) => {
+          const message = error instanceof Error ? error.message : String(error);
+          setPageError(message);
+        });
+    }, 1200);
+  }
+
+  function watchTask(taskId: string, title: string) {
+    stopTaskWatch();
+    const eventSource = new EventSource(`/api/tasks/${taskId}/stream`);
+    eventSourceRef.current = eventSource;
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data) as TaskStreamEvent;
+      setActiveTask((current) => {
+        if (data.type === "snapshot" || data.type === "status") {
+          return { title, task: data.task, transport: "sse" };
+        }
+
+        if (data.type === "chunk") {
+          const baseTask = current?.task?.id === taskId
+            ? current.task
+            : {
+              id: taskId,
+              source: title,
+              status: "running",
+              createdAt: new Date().toISOString(),
+              output: [],
+            } satisfies TaskRecord;
+          return { title, task: mergeTaskChunk(baseTask, data.chunk), transport: "sse" };
+        }
+
+        return current;
+      });
+    };
+
+    eventSource.onerror = () => {
+      eventSource.close();
+      if (eventSourceRef.current === eventSource) {
+        eventSourceRef.current = null;
+      }
+      startPollingTask(taskId, title);
+    };
+  }
+
   useEffect(() => {
     void load();
+    return () => stopTaskWatch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -185,14 +291,21 @@ function App() {
 
   async function runWrite<TPayload>(title: string, url: string, payload: TPayload, onDone?: () => Promise<void>) {
     setBusy(title);
+    setLastResult(null);
     try {
-      const response = await readJson<unknown>(url, {
+      const response = await readJson<TaskStartResponse>(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      setLastResult({ title, result: normalizeResult(response) });
-      if (onDone) await onDone();
+
+      const task = await fetchTask(response.taskId);
+      setActiveTask({ title, task, transport: "sse" });
+      watchTask(response.taskId, title);
+
+      if (isTaskFinished(task)) {
+        if (onDone) await onDone();
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       setLastResult({ title, result: emptyResult, error: message });
@@ -200,6 +313,28 @@ function App() {
       setBusy(null);
     }
   }
+
+  useEffect(() => {
+    if (!activeTask || !isTaskFinished(activeTask.task)) return;
+    setLastResult({
+      title: activeTask.title,
+      result: activeTask.task.result ?? emptyResult,
+      error: activeTask.task.error,
+    });
+  }, [activeTask]);
+
+  useEffect(() => {
+    if (!activeTask || !isTaskFinished(activeTask.task)) return;
+    void refreshStatus();
+    if (activeTask.title.startsWith("Skills")) {
+      void refreshSkills();
+    }
+    if (activeTask.title.startsWith("MCP")) {
+      void refreshMcp();
+    }
+    stopTaskWatch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTask?.task.status]);
 
   async function handleSkillInstall(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -222,10 +357,7 @@ function App() {
       `选项：${[payload.copy ? "copy" : null, payload.all ? "all" : null].filter(Boolean).join(", ") || "无"}`,
     ])) return;
 
-    await runWrite("Skills install", "/api/skills/install", payload, async () => {
-      await refreshSkills();
-      await refreshStatus();
-    });
+    await runWrite("Skills install", "/api/skills/install", payload);
   }
 
   async function handleSkillRemove(event: React.FormEvent<HTMLFormElement>) {
@@ -246,10 +378,7 @@ function App() {
       `全部删除：${payload.all ? "是" : "否"}`,
     ])) return;
 
-    await runWrite("Skills remove", "/api/skills/remove", payload, async () => {
-      await refreshSkills();
-      await refreshStatus();
-    });
+    await runWrite("Skills remove", "/api/skills/remove", payload);
   }
 
   async function handleSkillUpdate(event: React.FormEvent<HTMLFormElement>) {
@@ -265,10 +394,7 @@ function App() {
       `Skills：${payload.names.join(", ") || "全部"}`,
     ])) return;
 
-    await runWrite("Skills update", "/api/skills/update", payload, async () => {
-      await refreshSkills();
-      await refreshStatus();
-    });
+    await runWrite("Skills update", "/api/skills/update", payload);
   }
 
   async function handleMcpAdd(event: React.FormEvent<HTMLFormElement>) {
@@ -297,10 +423,7 @@ function App() {
       `Env：${payload.env.length}`,
     ])) return;
 
-    await runWrite("MCP add", "/api/mcp/add", payload, async () => {
-      await refreshMcp();
-      await refreshStatus();
-    });
+    await runWrite("MCP add", "/api/mcp/add", payload);
   }
 
   return (
@@ -317,7 +440,7 @@ function App() {
       </header>
 
       {pageError ? <section className="banner error">页面加载异常：{pageError}</section> : null}
-      {busy ? <section className="banner info">执行中：{busy}</section> : null}
+      {busy ? <section className="banner info">提交中：{busy}</section> : null}
 
       <section className="grid twoCols">
         <article className="card">
@@ -336,9 +459,9 @@ function App() {
         <article className="card">
           <div className="sectionHeader">
             <h2>最近一次写操作</h2>
-            <span className="meta">stdout / stderr / exitCode / durationMs</span>
+            <span className="meta">task id / status / output / result</span>
           </div>
-          {lastResult ? <ResultPanel state={lastResult} /> : <p className="muted">尚未执行写操作。</p>}
+          {activeTask ? <TaskPanel state={activeTask} /> : lastResult ? <ResultPanel state={lastResult} /> : <p className="muted">尚未执行写操作。</p>}
         </article>
       </section>
 
@@ -508,6 +631,40 @@ function FormCard({ title, description, children }: React.PropsWithChildren<{ ti
       <p className="muted small">{description}</p>
       {children}
     </section>
+  );
+}
+
+function TaskPanel({ state }: { state: TaskViewState }) {
+  const { task, title, transport } = state;
+  const output = task.output.length ? task.output : [{ timestamp: task.createdAt, stream: "system", text: "任务已创建，等待输出..." } satisfies TaskOutputChunk];
+
+  return (
+    <div className="taskPanel">
+      <div className="taskSummary">
+        <div>
+          <strong>{title}</strong>
+          <p className="muted small">source: {task.source}</p>
+        </div>
+        <span className={`taskBadge ${task.status}`}>{task.status}</span>
+      </div>
+
+      <div className="taskMetaGrid">
+        <span>taskId: {task.id}</span>
+        <span>stream: {transport}</span>
+        <span>created: {formatTime(task.createdAt)}</span>
+        <span>started: {formatTime(task.startedAt)}</span>
+        <span>finished: {formatTime(task.finishedAt)}</span>
+        <span>operationLogId: {task.operationLogId ?? "-"}</span>
+      </div>
+
+      <div className="taskStreams">
+        <h3>输出流</h3>
+        <pre>{output.map((chunk) => `[${new Date(chunk.timestamp).toLocaleTimeString()}] [${chunk.stream}] ${chunk.text}`).join("")}</pre>
+      </div>
+
+      {task.error ? <p className="errorText">错误：{task.error}</p> : null}
+      {task.result ? <ResultPanel state={{ title: `${title} result`, result: task.result, error: task.error }} compact={false} /> : null}
+    </div>
   );
 }
 
