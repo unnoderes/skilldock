@@ -110,3 +110,30 @@
 - 已提供 PR base/head/title/body 或 PR 链接。
 ```
 
+## Runtime / Reviewer Smoke 触发提示模板
+
+```txt
+你是 SkillDock Reviewer / Release Smoke Agent。
+
+任务：基于 `docs/11-runtime-smoke.md` 执行最小 runtime smoke。
+
+至少检查：
+- `GET /healthz`
+- `GET /api/status`
+- `GET /api/skills/list?scope=project`
+- `GET /api/mcp/list?scope=project`
+- `GET /api/logs?limit=5`
+- 如执行写操作，必须记录 `taskId`，并验证 `/api/tasks/:id`、`/api/tasks/:id/stream`、`operationLogId`
+
+约束：
+- 默认先做只读检查
+- 写操作必须 opt-in，优先使用可安全失败的测试目标
+- 不使用真实 token / key / secret / password
+- 不提交 `~/.skilldock/logs/**`
+
+输出：
+- 执行环境
+- 通过项 / 失败项
+- task / logs / redaction 结果
+- 是否命中当前 MVP 限制
+```

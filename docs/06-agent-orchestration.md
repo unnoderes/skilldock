@@ -58,7 +58,9 @@ PM 合并结论并安排下一步
    - 结果：写操作返回 `taskId`，新增 `GET /api/tasks/:id` 与 `GET /api/tasks/:id/stream`，web 展示 task 状态、输出流、最终结果。
    - 限制：task active state 仅保存在当前 server 进程内，不提供取消、重试、复杂队列。
 3. `RuntimeSmoke-08`：真实 CLI smoke test 与操作手册补充。
+   - 状态：已完成。
    - 写入范围：`docs/**`
+   - 结果：新增 `docs/11-runtime-smoke.md`，覆盖 read-only API、TaskStream、operation logs、Web UI、redaction 与 cleanup。
    - 验收：记录可重复的手工验证步骤与结果，不提交本地密钥或机器路径。
 
 ## Merge / Release 规则补充

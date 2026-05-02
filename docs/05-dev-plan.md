@@ -41,7 +41,7 @@
 
 - [x] 命令执行日志持久化（server 端 JSONL 落盘与最近日志查询）
 - [x] 基础任务状态 / 输出流
-- [ ] 真实 CLI smoke test 与操作手册补充
+- [x] 真实 CLI smoke test 与操作手册补充
 
 分支处理状态：
 
@@ -84,3 +84,17 @@ MVP 限制：
 - task active state 仅保存在当前 server 进程内
 - 浏览器实时输出优先使用 SSE，断开后回退短轮询
 - 不提供取消、重试、复杂调度
+
+## 2026-05-02 RuntimeSmoke-08
+
+已完成：
+
+- [x] 新增 `docs/11-runtime-smoke.md`，覆盖 read-only API、TaskStream、operation logs、Web UI、redaction 检查
+- [x] README 增加 runtime smoke 文档入口
+- [x] 明确区分只读检查与 opt-in 写操作检查
+- [x] 明确 TaskStream MVP 限制：task active state 仅保存在当前 server 进程内
+
+验证目标：
+
+- `pnpm typecheck`
+- `pnpm build`
