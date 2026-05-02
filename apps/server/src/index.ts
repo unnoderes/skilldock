@@ -11,11 +11,14 @@ import type {
   CliName,
   CommandResult,
   LogsListResponse,
-  McpCommandResponse,
   OperationLogEntry,
   SkillRecord,
-  SkillsCommandResponse,
   SkillsListResponse,
+  TaskGetResponse,
+  TaskOutputChunk,
+  TaskRecord,
+  TaskStartResponse,
+  TaskStreamEvent,
 } from "@skilldock/shared";
 
 const server = Fastify({ logger: true });
@@ -27,6 +30,8 @@ const LOG_DIRECTORY = path.join(os.homedir(), ".skilldock", "logs");
 const LOG_FILE_PATH = path.join(LOG_DIRECTORY, "operations.jsonl");
 const DEFAULT_LOG_LIMIT = 50;
 const MAX_LOG_LIMIT = 100;
+const MAX_TASKS = 100;
+const MAX_TASK_OUTPUT_CHUNKS = 400;
 
 const scopeSchema = z.enum(["project", "global"]);
 const updateScopeSchema = z.enum(["project", "global", "auto"]);
@@ -48,6 +53,10 @@ const mcpListQuerySchema = z.object({
 
 const logsListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(MAX_LOG_LIMIT).default(DEFAULT_LOG_LIMIT),
+});
+
+const taskParamsSchema = z.object({
+  id: z.string().uuid(),
 });
 
 const skillsInstallBodySchema = z.object({
@@ -143,9 +152,26 @@ async function ensureLogDirectory(): Promise<void> {
   await mkdir(LOG_DIRECTORY, { recursive: true });
 }
 
-async function appendOperationLog(entry: OperationLogEntry): Promise<void> {
+async function appendOperationLog(entry: OperationLogEntry): Promise<OperationLogEntry> {
   await ensureLogDirectory();
   await appendFile(LOG_FILE_PATH, `${JSON.stringify(entry)}\n`, "utf8");
+  return entry;
+}
+
+async function persistOperationLog(source: string, result: CommandResult): Promise<OperationLogEntry | undefined> {
+  const entry: OperationLogEntry = {
+    id: crypto.randomUUID(),
+    timestamp: new Date().toISOString(),
+    source,
+    result,
+  };
+
+  try {
+    return await appendOperationLog(entry);
+  } catch (error) {
+    server.log.error({ err: error, source }, "failed to persist operation log");
+    return undefined;
+  }
 }
 
 async function readRecentOperationLogs(limit: number): Promise<OperationLogEntry[]> {
@@ -170,6 +196,14 @@ async function readRecentOperationLogs(limit: number): Promise<OperationLogEntry
     }
     throw error;
   }
+}
+
+function cloneTask(task: TaskRecord): TaskRecord {
+  return {
+    ...task,
+    output: task.output.map((chunk) => ({ ...chunk })),
+    result: task.result ? { ...task.result, args: [...task.result.args] } : undefined,
+  };
 }
 
 async function runCli(command: "npx", args: string[], source = "unknown"): Promise<CommandResult> {
@@ -197,20 +231,170 @@ async function runCli(command: "npx", args: string[], source = "unknown"): Promi
     };
   }
 
-  const entry: OperationLogEntry = {
+  await persistOperationLog(source, result);
+  return result;
+}
+
+const tasks = new Map<string, TaskRecord>();
+const taskSubscribers = new Map<string, Set<(event: TaskStreamEvent) => void>>();
+
+function pruneTasks(): void {
+  while (tasks.size > MAX_TASKS) {
+    const oldestId = tasks.keys().next().value;
+    if (!oldestId) return;
+    tasks.delete(oldestId);
+    taskSubscribers.delete(oldestId);
+  }
+}
+
+function getTaskOrThrow(id: string): TaskRecord {
+  const task = tasks.get(id);
+  if (!task) {
+    const error = new Error(`task ${id} not found`);
+    (error as Error & { statusCode?: number }).statusCode = 404;
+    throw error;
+  }
+  return task;
+}
+
+function emitTaskEvent(taskId: string, event: TaskStreamEvent): void {
+  const listeners = taskSubscribers.get(taskId);
+  if (!listeners?.size) return;
+  for (const listener of listeners) {
+    listener(event);
+  }
+}
+
+function updateTask(taskId: string, updater: (task: TaskRecord) => void): TaskRecord {
+  const task = getTaskOrThrow(taskId);
+  updater(task);
+  pruneTasks();
+  emitTaskEvent(taskId, { type: "status", task: cloneTask(task) });
+  return task;
+}
+
+function createTask(source: string): TaskRecord {
+  const task: TaskRecord = {
     id: crypto.randomUUID(),
-    timestamp: new Date().toISOString(),
     source,
-    result,
+    status: "queued",
+    createdAt: new Date().toISOString(),
+    output: [],
+  };
+  tasks.set(task.id, task);
+  pruneTasks();
+  return task;
+}
+
+function appendTaskChunk(taskId: string, stream: TaskOutputChunk["stream"], text: string): void {
+  const redactedText = redact(text);
+  if (!redactedText) return;
+
+  const task = getTaskOrThrow(taskId);
+  const chunk: TaskOutputChunk = {
+    timestamp: new Date().toISOString(),
+    stream,
+    text: redactedText,
   };
 
-  try {
-    await appendOperationLog(entry);
-  } catch (error) {
-    server.log.error({ err: error, source }, "failed to persist operation log");
+  task.output.push(chunk);
+  if (task.output.length > MAX_TASK_OUTPUT_CHUNKS) {
+    task.output.splice(0, task.output.length - MAX_TASK_OUTPUT_CHUNKS);
   }
 
-  return result;
+  emitTaskEvent(taskId, { type: "chunk", taskId, chunk });
+}
+
+function subscribeToTask(taskId: string, listener: (event: TaskStreamEvent) => void): () => void {
+  const listeners = taskSubscribers.get(taskId) ?? new Set();
+  listeners.add(listener);
+  taskSubscribers.set(taskId, listeners);
+  return () => {
+    const current = taskSubscribers.get(taskId);
+    if (!current) return;
+    current.delete(listener);
+    if (current.size === 0) {
+      taskSubscribers.delete(taskId);
+    }
+  };
+}
+
+async function runCliTask(command: "npx", args: string[], source: string, taskId: string): Promise<void> {
+  updateTask(taskId, (task) => {
+    task.status = "running";
+    task.startedAt = new Date().toISOString();
+  });
+  appendTaskChunk(taskId, "system", `Starting ${command} ${redactArgs(args).join(" ")}`);
+
+  const started = Date.now();
+  let result: CommandResult;
+
+  try {
+    const subprocess = execa(command, args, {
+      reject: false,
+      stripFinalNewline: false,
+    });
+
+    subprocess.stdout?.on("data", (chunk) => appendTaskChunk(taskId, "stdout", String(chunk)));
+    subprocess.stderr?.on("data", (chunk) => appendTaskChunk(taskId, "stderr", String(chunk)));
+
+    const execution = await subprocess;
+    result = {
+      command,
+      args: redactArgs(args),
+      exitCode: execution.exitCode ?? 0,
+      stdout: redact(execution.stdout),
+      stderr: redact(execution.stderr),
+      durationMs: Date.now() - started,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    result = {
+      command,
+      args: redactArgs(args),
+      exitCode: 1,
+      stdout: "",
+      stderr: redact(message),
+      durationMs: Date.now() - started,
+    };
+    appendTaskChunk(taskId, "system", `Execution error: ${result.stderr}`);
+  }
+
+  if (result.stdout) appendTaskChunk(taskId, "stdout", result.stdout);
+  if (result.stderr) appendTaskChunk(taskId, "stderr", result.stderr);
+
+  const logEntry = await persistOperationLog(source, result);
+
+  updateTask(taskId, (task) => {
+    task.result = result;
+    task.operationLogId = logEntry?.id;
+    task.finishedAt = new Date().toISOString();
+    task.status = result.exitCode === 0 ? "succeeded" : "failed";
+    task.error = result.exitCode === 0 ? undefined : result.stderr || result.stdout || `command failed with exit code ${result.exitCode}`;
+  });
+}
+
+function startTask(command: "npx", args: string[], source: string): TaskStartResponse {
+  const task = createTask(source);
+  void runCliTask(command, args, source, task.id).catch((error) => {
+    const message = redact(error instanceof Error ? error.message : String(error));
+    server.log.error({ err: error, taskId: task.id, source }, "task execution failed unexpectedly");
+    appendTaskChunk(task.id, "system", `Unexpected failure: ${message}`);
+    updateTask(task.id, (current) => {
+      current.status = "failed";
+      current.finishedAt = new Date().toISOString();
+      current.error = message;
+      current.result ??= {
+        command,
+        args: redactArgs(args),
+        exitCode: 1,
+        stdout: "",
+        stderr: message,
+        durationMs: 0,
+      };
+    });
+  });
+  return { taskId: task.id };
 }
 
 function pushRepeatedFlag(args: string[], flag: string, values: string[]): void {
@@ -235,6 +419,14 @@ server.setErrorHandler((error, request, reply) => {
     return reply.status(400).send({
       error: "INVALID_REQUEST",
       issues: error.issues.map((issue) => ({ path: issue.path.join("."), message: issue.message })),
+    });
+  }
+
+  const statusCode = (error as Error & { statusCode?: number }).statusCode;
+  if (statusCode === 404) {
+    return reply.status(404).send({
+      error: "NOT_FOUND",
+      message: redact(error instanceof Error ? error.message : String(error)),
     });
   }
 
@@ -270,7 +462,7 @@ server.get("/api/skills/list", async (request): Promise<SkillsListResponse> => {
   return { result, skills };
 });
 
-server.post("/api/skills/install", async (request): Promise<SkillsCommandResponse> => {
+server.post("/api/skills/install", async (request): Promise<TaskStartResponse> => {
   const body = skillsInstallBodySchema.parse(request.body);
   const args = ["skills", "add", body.packageName, "--yes"];
 
@@ -281,10 +473,10 @@ server.post("/api/skills/install", async (request): Promise<SkillsCommandRespons
   pushRepeatedFlag(args, "--agent", body.agents);
   pushRepeatedFlag(args, "--skill", body.skillNames);
 
-  return { result: await runCli("npx", args, "POST /api/skills/install") };
+  return startTask("npx", args, "POST /api/skills/install");
 });
 
-server.post("/api/skills/remove", async (request): Promise<SkillsCommandResponse> => {
+server.post("/api/skills/remove", async (request): Promise<TaskStartResponse> => {
   const body = skillsRemoveBodySchema.parse(request.body);
   const args = ["skills", "remove", "--yes"];
 
@@ -294,17 +486,17 @@ server.post("/api/skills/remove", async (request): Promise<SkillsCommandResponse
   pushRepeatedFlag(args, "--agent", body.agents);
   pushRepeatedFlag(args, "--skill", body.skillNames);
 
-  return { result: await runCli("npx", args, "POST /api/skills/remove") };
+  return startTask("npx", args, "POST /api/skills/remove");
 });
 
-server.post("/api/skills/update", async (request): Promise<SkillsCommandResponse> => {
+server.post("/api/skills/update", async (request): Promise<TaskStartResponse> => {
   const body = skillsUpdateBodySchema.parse(request.body);
   const args = ["skills", "update", "--yes", ...body.names];
 
   if (body.scope === "global") args.push("--global");
   if (body.scope === "project") args.push("--project");
 
-  return { result: await runCli("npx", args, "POST /api/skills/update") };
+  return startTask("npx", args, "POST /api/skills/update");
 });
 
 server.post("/api/skills/help", async (): Promise<CommandResult> => runCli("npx", ["skills", "--help"], "POST /api/skills/help"));
@@ -317,7 +509,7 @@ server.get("/api/mcp/list", async (request): Promise<CommandResult> => {
   return runCli("npx", args, "GET /api/mcp/list");
 });
 
-server.post("/api/mcp/add", async (request): Promise<McpCommandResponse> => {
+server.post("/api/mcp/add", async (request): Promise<TaskStartResponse> => {
   const body = mcpAddBodySchema.parse(request.body);
   const args = ["add-mcp", body.target, "--yes"];
 
@@ -330,7 +522,42 @@ server.post("/api/mcp/add", async (request): Promise<McpCommandResponse> => {
   pushRepeatedFlag(args, "--header", body.headers);
   pushRepeatedFlag(args, "--env", body.env);
 
-  return { result: await runCli("npx", args, "POST /api/mcp/add") };
+  return startTask("npx", args, "POST /api/mcp/add");
+});
+
+server.get("/api/tasks/:id", async (request): Promise<TaskGetResponse> => {
+  const { id } = taskParamsSchema.parse(request.params);
+  return { task: cloneTask(getTaskOrThrow(id)) };
+});
+
+server.get("/api/tasks/:id/stream", async (request, reply) => {
+  const { id } = taskParamsSchema.parse(request.params);
+  const task = getTaskOrThrow(id);
+
+  reply.raw.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
+  });
+
+  const sendEvent = (event: TaskStreamEvent) => {
+    reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
+  };
+
+  sendEvent({ type: "snapshot", task: cloneTask(task) });
+  const heartbeat = setInterval(() => {
+    reply.raw.write(": keep-alive\n\n");
+  }, 15000);
+
+  const unsubscribe = subscribeToTask(id, sendEvent);
+  const cleanup = () => {
+    clearInterval(heartbeat);
+    unsubscribe();
+  };
+
+  request.raw.on("close", cleanup);
+  request.raw.on("end", cleanup);
 });
 
 server.get("/api/logs", async (request): Promise<LogsListResponse> => {
