@@ -48,10 +48,10 @@ PM 合并结论并安排下一步
 
 当前没有阻塞 Phase 2 主体功能合并的问题。
 
-后续 Phase 2 候选卡：
+已完成的后续卡：
 
 1. `LogPersistence-06`：命令执行日志持久化。
-   - 写入范围：`apps/server/**`, 必要时 `packages/shared/**`
+   - 状态：已完成。
    - 验收：日志落到本地 JSON；敏感字段落盘前脱敏；不暴露任意文件路径写入。
 2. `TaskStream-07`：基础任务状态 / 输出流。
    - 状态：已完成。
@@ -59,9 +59,14 @@ PM 合并结论并安排下一步
    - 限制：task active state 仅保存在当前 server 进程内，不提供取消、重试、复杂队列。
 3. `RuntimeSmoke-08`：真实 CLI smoke test 与操作手册补充。
    - 状态：已完成。
-   - 写入范围：`docs/**`
    - 结果：新增 `docs/11-runtime-smoke.md`，覆盖 read-only API、TaskStream、operation logs、Web UI、redaction 与 cleanup。
    - 验收：记录可重复的手工验证步骤与结果，不提交本地密钥或机器路径。
+4. `LogsSettings-10`：Logs / Settings 控制台完善。
+   - 状态：已完成并已在主线可见。
+   - 结果：web 增加 Logs 与 Settings 区域；server 暴露 `GET/PUT /api/settings` 与 `GET /api/logs`；Settings 仅允许安全偏好字段。
+5. `MvpReleaseReview-11`：MVP release readiness 审查。
+   - 状态：已完成。
+   - 结果：完成 typecheck / build / runtime read-only review，并补齐文档结论。
 
 ## Merge / Release 规则补充
 
