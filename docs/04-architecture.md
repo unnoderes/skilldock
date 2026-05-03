@@ -63,6 +63,7 @@ OptionalBackup
 - 为写操作分配 task id，并通过进程内 TaskState 跟踪状态
 - 通过 `GET /api/tasks/:id/stream` 返回脱敏后的 SSE 输出
 - 记录操作日志（最终结果继续写入 JSONL）
+- 维护 `~/.skilldock/config.json`，并通过固定 settings API 暴露安全偏好
 - 脱敏敏感信息
 - 必要时做轻量备份
 
@@ -89,6 +90,8 @@ POST /api/mcp/add
 GET  /api/tasks/:id
 GET  /api/tasks/:id/stream
 GET  /api/logs
+GET  /api/settings
+PUT  /api/settings
 ```
 
 ## 安全约束
@@ -98,6 +101,7 @@ GET  /api/logs
 - 日志默认脱敏 token / key / secret
 - 写操作必须前端确认
 - 不上传任何本地配置或密钥
+- `GET /api/settings` 与 `PUT /api/settings` 只允许安全偏好字段，不接收 config 路径或 CLI 路径
 
 
 ## TaskStream-07 实现说明

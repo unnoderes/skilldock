@@ -136,3 +136,27 @@ export type LogsListQuery = {
 export type LogsListResponse = {
   logs: OperationLogEntry[];
 };
+
+export type SkillDockConfig = {
+  defaultSkillsScope: Scope;
+  defaultMcpScope: Scope;
+  defaultLogsLimit: number;
+  collapseRawOutput: boolean;
+};
+
+export type SettingsMetadata = {
+  configPath: string;
+  logPath: string;
+  cliCommands: {
+    skills: "npx skills";
+    addMcp: "npx add-mcp";
+  };
+  configStatus: "default" | "loaded" | "invalid";
+};
+
+export type SettingsResponse = {
+  config: SkillDockConfig;
+  metadata: SettingsMetadata;
+};
+
+export type SettingsUpdateRequest = Partial<SkillDockConfig>;
