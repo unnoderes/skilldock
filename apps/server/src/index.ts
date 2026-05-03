@@ -2,7 +2,7 @@ import cors from "@fastify/cors";
 import { execa } from "execa";
 import Fastify from "fastify";
 import crypto from "node:crypto";
-import { appendFile, mkdir, readFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { z, ZodError } from "zod";
@@ -12,6 +12,9 @@ import type {
   CommandResult,
   LogsListResponse,
   OperationLogEntry,
+  SettingsResponse,
+  SettingsUpdateRequest,
+  SkillDockConfig,
   SkillRecord,
   SkillsListResponse,
   TaskGetResponse,
@@ -26,12 +29,20 @@ await server.register(cors, { origin: true });
 
 const PORT = Number(process.env.SKILLDOCK_SERVER_PORT ?? 3301);
 const HOST = process.env.SKILLDOCK_SERVER_HOST ?? "127.0.0.1";
-const LOG_DIRECTORY = path.join(os.homedir(), ".skilldock", "logs");
+const SKILLDOCK_DIRECTORY = path.join(os.homedir(), ".skilldock");
+const CONFIG_FILE_PATH = path.join(SKILLDOCK_DIRECTORY, "config.json");
+const LOG_DIRECTORY = path.join(SKILLDOCK_DIRECTORY, "logs");
 const LOG_FILE_PATH = path.join(LOG_DIRECTORY, "operations.jsonl");
 const DEFAULT_LOG_LIMIT = 50;
 const MAX_LOG_LIMIT = 100;
 const MAX_TASKS = 100;
 const MAX_TASK_OUTPUT_CHUNKS = 400;
+const DEFAULT_SETTINGS_CONFIG: SkillDockConfig = {
+  defaultSkillsScope: "project",
+  defaultMcpScope: "project",
+  defaultLogsLimit: DEFAULT_LOG_LIMIT,
+  collapseRawOutput: true,
+};
 
 const scopeSchema = z.enum(["project", "global"]);
 const updateScopeSchema = z.enum(["project", "global", "auto"]);
@@ -52,8 +63,20 @@ const mcpListQuerySchema = z.object({
 });
 
 const logsListQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(MAX_LOG_LIMIT).default(DEFAULT_LOG_LIMIT),
+  limit: z.coerce.number().int().min(1).max(MAX_LOG_LIMIT).optional(),
 });
+
+const settingsFileSchema = z.object({
+  defaultSkillsScope: scopeSchema.default(DEFAULT_SETTINGS_CONFIG.defaultSkillsScope),
+  defaultMcpScope: scopeSchema.default(DEFAULT_SETTINGS_CONFIG.defaultMcpScope),
+  defaultLogsLimit: z.number().int().min(1).max(MAX_LOG_LIMIT).default(DEFAULT_SETTINGS_CONFIG.defaultLogsLimit),
+  collapseRawOutput: z.boolean().default(DEFAULT_SETTINGS_CONFIG.collapseRawOutput),
+});
+
+const settingsUpdateBodySchema = settingsFileSchema.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  { message: "provide at least one settings field" },
+);
 
 const taskParamsSchema = z.object({
   id: z.string().uuid(),
@@ -152,6 +175,10 @@ async function ensureLogDirectory(): Promise<void> {
   await mkdir(LOG_DIRECTORY, { recursive: true });
 }
 
+async function ensureSkillDockDirectory(): Promise<void> {
+  await mkdir(SKILLDOCK_DIRECTORY, { recursive: true });
+}
+
 async function appendOperationLog(entry: OperationLogEntry): Promise<OperationLogEntry> {
   await ensureLogDirectory();
   await appendFile(LOG_FILE_PATH, `${JSON.stringify(entry)}\n`, "utf8");
@@ -196,6 +223,58 @@ async function readRecentOperationLogs(limit: number): Promise<OperationLogEntry
     }
     throw error;
   }
+}
+
+type ConfigReadResult = {
+  config: SkillDockConfig;
+  status: SettingsResponse["metadata"]["configStatus"];
+};
+
+async function readSkillDockConfig(): Promise<ConfigReadResult> {
+  try {
+    const content = await readFile(CONFIG_FILE_PATH, "utf8");
+    const parsed = JSON.parse(content) as unknown;
+    const config = settingsFileSchema.parse(parsed);
+    return { config, status: "loaded" };
+  } catch (error) {
+    const nodeError = error as NodeJS.ErrnoException;
+    if (nodeError.code === "ENOENT") {
+      return { config: DEFAULT_SETTINGS_CONFIG, status: "default" };
+    }
+    if (error instanceof SyntaxError || error instanceof ZodError) {
+      server.log.warn({ err: error, configPath: CONFIG_FILE_PATH }, "invalid skilldock config, using defaults");
+      return { config: DEFAULT_SETTINGS_CONFIG, status: "invalid" };
+    }
+    throw error;
+  }
+}
+
+function buildSettingsResponse(readResult: ConfigReadResult): SettingsResponse {
+  return {
+    config: readResult.config,
+    metadata: {
+      configPath: CONFIG_FILE_PATH,
+      logPath: LOG_FILE_PATH,
+      cliCommands: {
+        skills: "npx skills",
+        addMcp: "npx add-mcp",
+      },
+      configStatus: readResult.status,
+    },
+  };
+}
+
+async function writeSkillDockConfig(update: SettingsUpdateRequest): Promise<SettingsResponse> {
+  const current = await readSkillDockConfig();
+  const merged = settingsFileSchema.parse({
+    ...current.config,
+    ...update,
+  });
+
+  await ensureSkillDockDirectory();
+  await writeFile(CONFIG_FILE_PATH, `${JSON.stringify(merged, null, 2)}\n`, "utf8");
+
+  return buildSettingsResponse({ config: merged, status: "loaded" });
 }
 
 function cloneTask(task: TaskRecord): TaskRecord {
@@ -450,6 +529,13 @@ server.get("/api/status", async (): Promise<AppStatus> => {
   };
 });
 
+server.get("/api/settings", async (): Promise<SettingsResponse> => buildSettingsResponse(await readSkillDockConfig()));
+
+server.put("/api/settings", async (request): Promise<SettingsResponse> => {
+  const body = settingsUpdateBodySchema.parse(request.body);
+  return writeSkillDockConfig(body);
+});
+
 server.get("/api/skills/list", async (request): Promise<SkillsListResponse> => {
   const query = skillsListQuerySchema.parse(request.query);
   const args = ["skills", "list", "--json"];
@@ -562,8 +648,9 @@ server.get("/api/tasks/:id/stream", async (request, reply) => {
 
 server.get("/api/logs", async (request): Promise<LogsListResponse> => {
   const query = logsListQuerySchema.parse(request.query);
+  const { config } = await readSkillDockConfig();
   return {
-    logs: await readRecentOperationLogs(query.limit),
+    logs: await readRecentOperationLogs(query.limit ?? config.defaultLogsLimit),
   };
 });
 
