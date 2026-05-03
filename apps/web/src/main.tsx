@@ -3,7 +3,13 @@ import { createRoot } from "react-dom/client";
 import type {
   AppStatus,
   CommandResult,
+  LogsListResponse,
+  OperationLogEntry,
+  Scope,
+  SettingsResponse,
+  SettingsUpdateRequest,
   SkillRecord,
+  SkillsListResponse,
   TaskGetResponse,
   TaskOutputChunk,
   TaskRecord,
@@ -12,9 +18,6 @@ import type {
 } from "@skilldock/shared";
 import "./styles.css";
 
-type Scope = "project" | "global";
-
-type SkillsResponse = { result: CommandResult; skills: SkillRecord[] };
 type ResultState = {
   title: string;
   result: CommandResult;
@@ -63,6 +66,10 @@ type AddMcpPayload = {
   gitignore: boolean;
   yes: true;
 };
+
+const DEFAULT_SCOPE: Scope = "project";
+const DEFAULT_LOG_LIMIT = 50;
+const MAX_LOG_LIMIT = 100;
 
 const emptyResult: CommandResult = {
   command: "npx",
@@ -120,14 +127,40 @@ function formatTime(value?: string): string {
   return new Date(value).toLocaleString();
 }
 
+function clipText(value: string, length = 240): string {
+  const normalized = value.trim();
+  if (!normalized) return "";
+  return normalized.length > length ? `${normalized.slice(0, length)}…` : normalized;
+}
+
+function formatCommand(result: CommandResult): string {
+  return [result.command, ...result.args].join(" ");
+}
+
+function getLogPreview(log: OperationLogEntry): string {
+  return clipText(log.result.stderr || log.result.stdout || `exit ${log.result.exitCode}`);
+}
+
 function App() {
   const [status, setStatus] = useState<AppStatus | null>(null);
-  const [skillsScope, setSkillsScope] = useState<Scope>("project");
-  const [skills, setSkills] = useState<SkillsResponse | null>(null);
+  const [settings, setSettings] = useState<SettingsResponse | null>(null);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [settingsBusy, setSettingsBusy] = useState(false);
+
+  const [skillsScope, setSkillsScopeState] = useState<Scope>(DEFAULT_SCOPE);
+  const [skills, setSkills] = useState<SkillsListResponse | null>(null);
   const [skillsError, setSkillsError] = useState<string | null>(null);
-  const [mcpScope, setMcpScope] = useState<Scope>("project");
+
+  const [mcpScope, setMcpScopeState] = useState<Scope>(DEFAULT_SCOPE);
   const [mcpList, setMcpList] = useState<CommandResult | null>(null);
   const [mcpAgents, setMcpAgents] = useState<CommandResult | null>(null);
+
+  const [logs, setLogs] = useState<OperationLogEntry[]>([]);
+  const [logsLimit, setLogsLimitState] = useState(DEFAULT_LOG_LIMIT);
+  const [logsError, setLogsError] = useState<string | null>(null);
+  const [logsBusy, setLogsBusy] = useState(false);
+
+  const [collapseRawOutput, setCollapseRawOutputState] = useState(true);
   const [pageError, setPageError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<ResultState | null>(null);
@@ -135,6 +168,11 @@ function App() {
 
   const eventSourceRef = useRef<EventSource | null>(null);
   const pollingTimerRef = useRef<number | null>(null);
+  const initializedFromSettingsRef = useRef(false);
+  const skillsScopeTouchedRef = useRef(false);
+  const mcpScopeTouchedRef = useRef(false);
+  const logsLimitTouchedRef = useRef(false);
+  const collapsePreferenceTouchedRef = useRef(false);
 
   const [installPackageName, setInstallPackageName] = useState("");
   const [installAgents, setInstallAgents] = useState("");
@@ -157,10 +195,66 @@ function App() {
   const [mcpAll, setMcpAll] = useState(false);
   const [mcpGitignore, setMcpGitignore] = useState(true);
 
+  const [settingsForm, setSettingsForm] = useState<SettingsUpdateRequest>({
+    defaultSkillsScope: DEFAULT_SCOPE,
+    defaultMcpScope: DEFAULT_SCOPE,
+    defaultLogsLimit: DEFAULT_LOG_LIMIT,
+    collapseRawOutput: true,
+  });
+
   const skillCountLabel = useMemo(() => {
     if (!skills) return "加载中...";
     return `${skills.skills.length} 个 ${skillsScope === "project" ? "项目" : "全局"} Skills`;
   }, [skills, skillsScope]);
+
+  const logLimitOptions = useMemo(() => {
+    const values = new Set([5, 10, 20, 50, 100, settingsForm.defaultLogsLimit ?? DEFAULT_LOG_LIMIT, logsLimit]);
+    return [...values].filter((value) => value >= 1 && value <= MAX_LOG_LIMIT).sort((left, right) => left - right);
+  }, [logsLimit, settingsForm.defaultLogsLimit]);
+
+  function setSkillsScope(scope: Scope, touched = true) {
+    if (touched) skillsScopeTouchedRef.current = true;
+    setSkillsScopeState(scope);
+  }
+
+  function setMcpScope(scope: Scope, touched = true) {
+    if (touched) mcpScopeTouchedRef.current = true;
+    setMcpScopeState(scope);
+  }
+
+  function setLogsLimit(limit: number, touched = true) {
+    if (touched) logsLimitTouchedRef.current = true;
+    setLogsLimitState(limit);
+  }
+
+  function setCollapseRawOutput(value: boolean, touched = true) {
+    if (touched) collapsePreferenceTouchedRef.current = true;
+    setCollapseRawOutputState(value);
+  }
+
+  function syncSettingsToForm(nextSettings: SettingsResponse) {
+    setSettingsForm({
+      defaultSkillsScope: nextSettings.config.defaultSkillsScope,
+      defaultMcpScope: nextSettings.config.defaultMcpScope,
+      defaultLogsLimit: nextSettings.config.defaultLogsLimit,
+      collapseRawOutput: nextSettings.config.collapseRawOutput,
+    });
+  }
+
+  function applySettingsDefaults(nextSettings: SettingsResponse) {
+    if (!skillsScopeTouchedRef.current) {
+      setSkillsScope(nextSettings.config.defaultSkillsScope, false);
+    }
+    if (!mcpScopeTouchedRef.current) {
+      setMcpScope(nextSettings.config.defaultMcpScope, false);
+    }
+    if (!logsLimitTouchedRef.current) {
+      setLogsLimit(nextSettings.config.defaultLogsLimit, false);
+    }
+    if (!collapsePreferenceTouchedRef.current) {
+      setCollapseRawOutput(nextSettings.config.collapseRawOutput, false);
+    }
+  }
 
   function stopTaskWatch() {
     eventSourceRef.current?.close();
@@ -175,10 +269,22 @@ function App() {
     setStatus(await readJson<AppStatus>("/api/status"));
   }
 
+  async function refreshSettings(options?: { applyDefaults?: boolean }) {
+    setSettingsError(null);
+    const response = await readJson<SettingsResponse>("/api/settings");
+    setSettings(response);
+    syncSettingsToForm(response);
+    if (options?.applyDefaults) {
+      applySettingsDefaults(response);
+      initializedFromSettingsRef.current = true;
+    }
+    return response;
+  }
+
   async function refreshSkills(scope = skillsScope) {
     setSkillsError(null);
     try {
-      setSkills(await readJson<SkillsResponse>(`/api/skills/list?scope=${scope}`));
+      setSkills(await readJson<SkillsListResponse>(`/api/skills/list?scope=${scope}`));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       setSkillsError(message);
@@ -200,10 +306,34 @@ function App() {
     }
   }
 
+  async function refreshLogs(limit = logsLimit) {
+    setLogsBusy(true);
+    setLogsError(null);
+    try {
+      const response = await readJson<LogsListResponse>(`/api/logs?limit=${limit}`);
+      setLogs(response.logs);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setLogsError(message);
+      setLogs([]);
+    } finally {
+      setLogsBusy(false);
+    }
+  }
+
   async function load() {
     setPageError(null);
     try {
-      await Promise.all([refreshStatus(), refreshSkills(skillsScope), refreshMcp(mcpScope)]);
+      const nextSettings = await refreshSettings({ applyDefaults: true });
+      const nextSkillsScope = skillsScopeTouchedRef.current ? skillsScope : nextSettings.config.defaultSkillsScope;
+      const nextMcpScope = mcpScopeTouchedRef.current ? mcpScope : nextSettings.config.defaultMcpScope;
+      const nextLogsLimit = logsLimitTouchedRef.current ? logsLimit : nextSettings.config.defaultLogsLimit;
+      await Promise.all([
+        refreshStatus(),
+        refreshSkills(nextSkillsScope),
+        refreshMcp(nextMcpScope),
+        refreshLogs(nextLogsLimit),
+      ]);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       setPageError(message);
@@ -224,6 +354,7 @@ function App() {
           if (isTaskFinished(task)) {
             stopTaskWatch();
             void refreshStatus();
+            void refreshLogs();
             if (title.startsWith("Skills")) void refreshSkills();
             if (title.startsWith("MCP")) void refreshMcp();
           }
@@ -280,14 +411,22 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (!initializedFromSettingsRef.current) return;
     void refreshSkills(skillsScope);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skillsScope]);
 
   useEffect(() => {
+    if (!initializedFromSettingsRef.current) return;
     void refreshMcp(mcpScope);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mcpScope]);
+
+  useEffect(() => {
+    if (!initializedFromSettingsRef.current) return;
+    void refreshLogs(logsLimit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [logsLimit]);
 
   async function runWrite<TPayload>(title: string, url: string, payload: TPayload, onDone?: () => Promise<void>) {
     setBusy(title);
@@ -303,8 +442,8 @@ function App() {
       setActiveTask({ title, task, transport: "sse" });
       watchTask(response.taskId, title);
 
-      if (isTaskFinished(task)) {
-        if (onDone) await onDone();
+      if (isTaskFinished(task) && onDone) {
+        await onDone();
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -326,6 +465,7 @@ function App() {
   useEffect(() => {
     if (!activeTask || !isTaskFinished(activeTask.task)) return;
     void refreshStatus();
+    void refreshLogs();
     if (activeTask.title.startsWith("Skills")) {
       void refreshSkills();
     }
@@ -426,15 +566,48 @@ function App() {
     await runWrite("MCP add", "/api/mcp/add", payload);
   }
 
+  async function handleSettingsSave(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSettingsBusy(true);
+    setSettingsError(null);
+    try {
+      const response = await readJson<SettingsResponse>("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settingsForm),
+      });
+      setSettings(response);
+      syncSettingsToForm(response);
+      setCollapseRawOutput(response.config.collapseRawOutput);
+      setLastResult({
+        title: "Settings saved",
+        result: {
+          command: "server settings",
+          args: ["PUT", "/api/settings"],
+          exitCode: 0,
+          stdout: JSON.stringify(response.config, null, 2),
+          stderr: "",
+          durationMs: 0,
+        },
+      });
+      void refreshLogs();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setSettingsError(message);
+    } finally {
+      setSettingsBusy(false);
+    }
+  }
+
   return (
     <main className="shell">
       <header className="hero">
         <div>
           <p className="eyebrow">SkillDock Frontend MVP</p>
           <h1>Skills / MCP 操作台</h1>
-          <p className="lead">只调用受控 server API；写操作统一二次确认。</p>
+          <p className="lead">只调用受控 server API；CLI 命令由服务端固定控制，前端不执行 shell，也不提交任意路径。</p>
         </div>
-        <button className="ghostButton" type="button" onClick={() => void load()} disabled={Boolean(busy)}>
+        <button className="ghostButton" type="button" onClick={() => void load()} disabled={Boolean(busy) || settingsBusy || logsBusy}>
           刷新全部
         </button>
       </header>
@@ -461,8 +634,156 @@ function App() {
             <h2>最近一次写操作</h2>
             <span className="meta">task id / status / output / result</span>
           </div>
-          {activeTask ? <TaskPanel state={activeTask} /> : lastResult ? <ResultPanel state={lastResult} /> : <p className="muted">尚未执行写操作。</p>}
+          {activeTask ? <TaskPanel state={activeTask} collapseRawOutput={collapseRawOutput} /> : lastResult ? <ResultPanel state={lastResult} collapseRawOutput={collapseRawOutput} /> : <p className="muted">尚未执行写操作。</p>}
         </article>
+      </section>
+
+      <section className="card">
+        <div className="sectionHeader">
+          <div>
+            <h2>Settings</h2>
+            <p className="muted">仅编辑安全偏好；CLI 路径与命令标签只读展示。</p>
+          </div>
+          <button className="ghostButton" type="button" onClick={() => void refreshSettings()} disabled={settingsBusy || Boolean(busy)}>
+            刷新 Settings
+          </button>
+        </div>
+
+        {settingsError ? <p className="errorText">Settings 加载/保存失败：{settingsError}</p> : null}
+        {settings ? (
+          <div className="grid twoCols settingsGrid">
+            <FormCard title="Safe preferences" description="默认范围、日志条数与原始输出折叠偏好。">
+              <form onSubmit={(event) => void handleSettingsSave(event)}>
+                <label>
+                  <span>Default Skills scope</span>
+                  <select
+                    value={settingsForm.defaultSkillsScope ?? DEFAULT_SCOPE}
+                    onChange={(event) => setSettingsForm((current) => ({ ...current, defaultSkillsScope: event.target.value as Scope }))}
+                  >
+                    <option value="project">project</option>
+                    <option value="global">global</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Default MCP scope</span>
+                  <select
+                    value={settingsForm.defaultMcpScope ?? DEFAULT_SCOPE}
+                    onChange={(event) => setSettingsForm((current) => ({ ...current, defaultMcpScope: event.target.value as Scope }))}
+                  >
+                    <option value="project">project</option>
+                    <option value="global">global</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Default logs limit</span>
+                  <select
+                    value={String(settingsForm.defaultLogsLimit ?? DEFAULT_LOG_LIMIT)}
+                    onChange={(event) => setSettingsForm((current) => ({ ...current, defaultLogsLimit: Number(event.target.value) }))}
+                  >
+                    {logLimitOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+                  </select>
+                </label>
+                <label className="checkboxLabel">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(settingsForm.collapseRawOutput)}
+                    onChange={(event) => setSettingsForm((current) => ({ ...current, collapseRawOutput: event.target.checked }))}
+                  />
+                  默认折叠原始 stdout/stderr 详情
+                </label>
+                <button className="primaryButton" disabled={settingsBusy || Boolean(busy)}>保存安全设置</button>
+              </form>
+            </FormCard>
+
+            <article className="formCard">
+              <h3>Config metadata</h3>
+              <p className="muted small">以下信息只读，由服务端提供并控制。</p>
+              <div className="detailsGrid settingsMetaList">
+                <section>
+                  <h4>Config status</h4>
+                  <p>{settings.metadata.configStatus}</p>
+                </section>
+                <section>
+                  <h4>Config path</h4>
+                  <p className="small breakAll">{settings.metadata.configPath}</p>
+                </section>
+                <section>
+                  <h4>Log path</h4>
+                  <p className="small breakAll">{settings.metadata.logPath}</p>
+                </section>
+                <section>
+                  <h4>CLI labels</h4>
+                  <p className="small">Skills: {settings.metadata.cliCommands.skills}</p>
+                  <p className="small">Add MCP: {settings.metadata.cliCommands.addMcp}</p>
+                </section>
+              </div>
+              <div className="banner info compactBanner">
+                Web 端不会暴露可编辑 CLI 路径、可执行文件路径或任意 shell 输入。
+              </div>
+            </article>
+          </div>
+        ) : <p>加载中...</p>}
+      </section>
+
+      <section className="card">
+        <div className="sectionHeader">
+          <div>
+            <h2>Logs</h2>
+            <p className="muted">查看受控 API 记录的命令历史，输出已由服务端脱敏。</p>
+          </div>
+          <div className="toolbar wrapToolbar">
+            <label className="inlineControl">
+              <span>Limit</span>
+              <select value={String(logsLimit)} onChange={(event) => setLogsLimit(Number(event.target.value))}>
+                {logLimitOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label className="checkboxLabel inlineCheckbox">
+              <input type="checkbox" checked={collapseRawOutput} onChange={(event) => setCollapseRawOutput(event.target.checked)} />
+              折叠原始详情
+            </label>
+            <button className="ghostButton" type="button" onClick={() => void refreshLogs()} disabled={logsBusy || Boolean(busy)}>
+              {logsBusy ? "刷新中..." : "刷新 Logs"}
+            </button>
+          </div>
+        </div>
+
+        {logsError ? <p className="errorText">Logs 加载失败：{logsError}</p> : null}
+        {!logsError && !logs.length ? <p className="muted">暂无日志记录。</p> : null}
+        <div className="logList">
+          {logs.map((log) => (
+            <article className="logItem" key={log.id}>
+              <div className="logHeader">
+                <div>
+                  <strong>{log.source}</strong>
+                  <p className="muted small">{formatTime(log.timestamp)}</p>
+                </div>
+                <div className="metaGrid">
+                  <span>exitCode: {log.result.exitCode}</span>
+                  <span>durationMs: {log.result.durationMs}</span>
+                </div>
+              </div>
+              <div className="logMetaGrid">
+                <span><strong>command:</strong> {formatCommand(log.result)}</span>
+                <span><strong>args:</strong> {log.result.args.join(" ") || "(none)"}</span>
+              </div>
+              <pre>{getLogPreview(log) || "(empty output)"}</pre>
+              <details open={!collapseRawOutput}>
+                <summary>展开 stdout / stderr 详情</summary>
+                <div className="detailsGrid">
+                  <section>
+                    <h4>stdout</h4>
+                    <pre>{log.result.stdout || "(empty)"}</pre>
+                  </section>
+                  <section>
+                    <h4>stderr</h4>
+                    <pre>{log.result.stderr || "(empty)"}</pre>
+                  </section>
+                </div>
+              </details>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="card">
@@ -599,11 +920,11 @@ function App() {
         <article className="card outputStack">
           <div>
             <h2>MCP List 输出</h2>
-            <ResultPanel state={{ title: `MCP list (${mcpScope})`, result: mcpList ?? emptyResult }} compact />
+            <ResultPanel state={{ title: `MCP list (${mcpScope})`, result: mcpList ?? emptyResult }} compact collapseRawOutput={collapseRawOutput} />
           </div>
           <div>
             <h2>List Agents 输出</h2>
-            <ResultPanel state={{ title: "MCP list-agents", result: mcpAgents ?? emptyResult }} compact />
+            <ResultPanel state={{ title: "MCP list-agents", result: mcpAgents ?? emptyResult }} compact collapseRawOutput={collapseRawOutput} />
           </div>
         </article>
       </section>
@@ -634,7 +955,7 @@ function FormCard({ title, description, children }: React.PropsWithChildren<{ ti
   );
 }
 
-function TaskPanel({ state }: { state: TaskViewState }) {
+function TaskPanel({ state, collapseRawOutput }: { state: TaskViewState; collapseRawOutput: boolean }) {
   const { task, title, transport } = state;
   const output = task.output.length ? task.output : [{ timestamp: task.createdAt, stream: "system", text: "任务已创建，等待输出..." } satisfies TaskOutputChunk];
 
@@ -663,12 +984,12 @@ function TaskPanel({ state }: { state: TaskViewState }) {
       </div>
 
       {task.error ? <p className="errorText">错误：{task.error}</p> : null}
-      {task.result ? <ResultPanel state={{ title: `${title} result`, result: task.result, error: task.error }} compact={false} /> : null}
+      {task.result ? <ResultPanel state={{ title: `${title} result`, result: task.result, error: task.error }} compact={false} collapseRawOutput={collapseRawOutput} /> : null}
     </div>
   );
 }
 
-function ResultPanel({ state, compact = false }: { state: ResultState; compact?: boolean }) {
+function ResultPanel({ state, compact = false, collapseRawOutput }: { state: ResultState; compact?: boolean; collapseRawOutput: boolean }) {
   const { title, result, error } = state;
   const primaryOutput = error || result.stdout || result.stderr || `exit ${result.exitCode}`;
 
@@ -683,7 +1004,7 @@ function ResultPanel({ state, compact = false }: { state: ResultState; compact?:
       </div>
       <pre>{primaryOutput}</pre>
       {!compact ? (
-        <details>
+        <details open={!collapseRawOutput}>
           <summary>展开 stderr / stdout</summary>
           <div className="detailsGrid">
             <section>
