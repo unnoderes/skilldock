@@ -16,7 +16,7 @@
 
 ## Phase 2：MVP 操作能力
 
-状态：主体功能已合入 `origin/main`，当前 commit：`2838e28`（Merge PR #3）。
+状态：MVP 主体功能已合入 `origin/main`；截至 2026-05-03 的 release review 基线为 `origin/main@1023bcd`。
 
 已完成：
 
@@ -42,6 +42,9 @@
 - [x] 命令执行日志持久化（server 端 JSONL 落盘与最近日志查询）
 - [x] 基础任务状态 / 输出流
 - [x] 真实 CLI smoke test 与操作手册补充
+- [x] Settings 安全偏好页与只读 metadata 展示
+- [x] Logs 页面与最近 operation logs 展示
+- [x] Release readiness 文档审查
 
 分支处理状态：
 
@@ -98,3 +101,32 @@ MVP 限制：
 
 - `pnpm typecheck`
 - `pnpm build`
+
+## 2026-05-03 MvpReleaseReview-11
+
+结论：**Pass with caveats**
+
+已验证：
+
+- `pnpm install`
+- `pnpm typecheck`
+- `pnpm build`
+- `GET /healthz`
+- `GET /api/status`
+- `GET /api/settings`
+- `GET /api/logs?limit=3`
+- `GET /api/skills/list?scope=project`
+- `GET /api/mcp/list?scope=project`
+- `GET /api/mcp/list-agents`
+- `POST /api/mcp/add` 的 task / logs / redaction 链路（使用假 header / env，检查后已清理测试配置）
+
+审查结果摘要：
+
+- 安全边界保持成立：前端没有任意 shell 输入；server 仅暴露固定业务 API；CLI 调用继续使用 `execa(command, args)`；task / logs / result 中的敏感字段会脱敏；Settings 不允许编辑 CLI 路径或任意命令。
+- MVP 页面覆盖已达成：Overview/status、Skills、MCP、Logs、Settings、Task output 均已存在。
+- 文档已补齐：本次同步修正文档中对 Settings、Logs、Task output 与 release review 的描述。
+
+注意事项：
+
+- task active state 仍只保存在当前 server 进程内，server 重启后旧 `taskId` 不保证可查询。
+- `add-mcp` 远程 target 的成功不代表服务可连通；当前 MVP 仅保证受控调用、task 状态、原始输出展示与日志链路。

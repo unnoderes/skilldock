@@ -10,7 +10,8 @@
 - Skills：Skills 列表与操作
 - MCP：MCP Server 添加与结果展示
 - Logs：命令执行日志
-- Settings：CLI 路径与基础设置
+- Settings：安全偏好设置 + 只读元信息
+- Task output：最近一次写操作的 task 状态、输出流与最终结果
 
 ## MVP 功能
 
@@ -18,6 +19,7 @@
 - 调用 `npx skills` 安装 Skill
 - 调用 `npx skills` 删除 / 更新 Skill（如 CLI 支持）
 - 调用 `npx add-mcp` 添加 MCP Server
+- 通过固定 settings API 读取 / 保存安全偏好
 - 显示命令 stdout / stderr / exit code
 - 支持流式命令输出
 - 记录操作历史
@@ -40,5 +42,5 @@
 用户可以通过 GUI 完成：
 
 ```txt
-查看环境/Skills → 安装 Skill → 添加 MCP Server → 查看执行日志
+查看环境/Skills → 安装 Skill → 添加 MCP Server → 查看 task 输出与执行日志
 ```

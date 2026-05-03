@@ -188,6 +188,25 @@ curl "http://127.0.0.1:3301/api/logs?limit=5"
   - `result`
 - 首次启动、尚未执行任何 API 时，`logs` 为空数组也属于合理结果
 
+### 1.9 `GET /api/settings`
+
+```bash
+curl http://127.0.0.1:3301/api/settings
+```
+
+预期：
+
+- HTTP 200
+- 返回 JSON 包含：
+  - `config`
+  - `metadata`
+- `config` 仅包含安全偏好字段：
+  - `defaultSkillsScope`
+  - `defaultMcpScope`
+  - `defaultLogsLimit`
+  - `collapseRawOutput`
+- `metadata` 仅用于只读展示，不提供可编辑 CLI 路径或任意命令入口
+
 ---
 
 ## 2) TaskStream Smoke Checks
@@ -350,6 +369,8 @@ curl -X POST http://127.0.0.1:3301/api/mcp/add \
 
 - CLI 状态卡片
 - 最近一次写操作卡片
+- Settings 卡片
+- Logs 卡片
 - Skills 列表与表单
 - MCP 表单
 - MCP list 输出
@@ -390,6 +411,23 @@ curl -X POST http://127.0.0.1:3301/api/mcp/add \
 - UI 不应卡死
 - task 卡片里的 `stream` 可切换为 `polling`
 - 仍能轮询拿到任务最终状态
+
+### 4.6 Settings 安全边界
+
+预期：
+
+- Settings 只允许修改默认 scope、日志条数、原始输出折叠偏好
+- CLI 标签、config path、log path 为只读展示
+- 页面不提供 CLI 路径、任意路径、任意命令的编辑入口
+
+### 4.7 Logs 页面
+
+预期：
+
+- 可查看最近 operation logs
+- 可调整 `limit`
+- 每条日志展示 `command`、`args`、`exitCode`、`durationMs`、stdout/stderr
+- 原始详情默认是否折叠，受当前页面偏好 / settings 控制
 
 ---
 
