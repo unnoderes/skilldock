@@ -1,5 +1,5 @@
 import React from "react";
-import { Server, Activity, Terminal, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Server, Activity, Terminal, CheckCircle2, XCircle, History } from "lucide-react";
 import { useStatus } from "../hooks/useStatus";
 import { useLogs } from "../hooks/useLogs";
 
@@ -115,4 +115,3 @@ export function Overview() {
   );
 }
 
-import { History } from "lucide-react";

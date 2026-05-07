@@ -54,7 +54,21 @@ export function useTask() {
       eventSourceRef.current = es;
 
       es.onmessage = (event) => {
-        const data = JSON.parse(event.data) as TaskStreamEvent;
+        let data: TaskStreamEvent;
+        try {
+          data = JSON.parse(event.data) as TaskStreamEvent;
+        } catch {
+          return;
+        }
+        if (
+          (data.type === "snapshot" || data.type === "status") &&
+          (data.task.status === "succeeded" || data.task.status === "failed")
+        ) {
+          es.close();
+          if (eventSourceRef.current === es) {
+            eventSourceRef.current = null;
+          }
+        }
         setActiveTask((current) => {
           if (data.type === "snapshot" || data.type === "status") {
             return { title, task: data.task, transport: "sse" };
@@ -71,12 +85,11 @@ export function useTask() {
                     output: [],
                   } satisfies TaskRecord);
 
-            const newChunk = data.chunk as TaskOutputChunk;
             return {
               title,
               task: {
                 ...baseTask,
-                output: [...baseTask.output, newChunk],
+                output: [...baseTask.output, data.chunk],
               },
               transport: "sse" as const,
             };
