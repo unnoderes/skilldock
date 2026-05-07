@@ -1,103 +1,118 @@
-import * as React from "react";
-import { Panel } from "../components/ui/Panel";
-import { Button } from "../components/ui/Button";
-import { Badge } from "../components/ui/Badge";
-import { Activity, Shield, Terminal, Zap } from "lucide-react";
+import React from "react";
+import { Server, Activity, Terminal, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { useStatus } from "../hooks/useStatus";
+import { useLogs } from "../hooks/useLogs";
 
-const Overview = () => {
+export function Overview() {
+  const { data: status, isLoading: isStatusLoading } = useStatus();
+  const { data: logsData, isLoading: isLogsLoading } = useLogs(5);
+
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Panel className="border-l-4 border-l-primary">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-                <Terminal size={20} className="text-primary" />
-            </div>
-            <div>
-              <div className="text-xs text-foreground/50 uppercase font-bold tracking-widest">CLI Status</div>
-              <div className="text-xl font-bold">Connected</div>
-            </div>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Environment Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <section className="p-6 rounded-2xl bg-surface-800 border border-border flex flex-col gap-4">
+          <div className="flex items-center gap-3 text-accent-light">
+            <Server size={20} />
+            <h3 className="font-bold tracking-tight">CLI Health</h3>
           </div>
-        </Panel>
-
-        <Panel className="border-l-4 border-l-success">
-          <div className="flex items-center gap-3">
-             <div className="p-2 bg-success/10 rounded-lg">
-                <Zap size={20} className="text-success" />
-            </div>
-            <div>
-              <div className="text-xs text-foreground/50 uppercase font-bold tracking-widest">Active Tasks</div>
-              <div className="text-xl font-bold">0</div>
-            </div>
-          </div>
-        </Panel>
-
-        <Panel className="border-l-4 border-l-warning">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-warning/10 rounded-lg">
-                <Activity size={20} className="text-warning" />
-            </div>
-            <div>
-              <div className="text-xs text-foreground/50 uppercase font-bold tracking-widest">Logs (24h)</div>
-              <div className="text-xl font-bold">12</div>
-            </div>
-          </div>
-        </Panel>
-
-        <Panel className="border-l-4 border-l-border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-border/20 rounded-lg">
-                <Shield size={20} className="text-foreground/50" />
-            </div>
-            <div>
-              <div className="text-xs text-foreground/50 uppercase font-bold tracking-widest">Security</div>
-              <div className="text-xl font-bold">Strict</div>
-            </div>
-          </div>
-        </Panel>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Panel title="Recent Activity" className="lg:col-span-2">
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between border-b border-border/50 pb-4 last:border-0 last:pb-0">
-                <div className="flex items-center gap-4">
-                    <div className="font-mono text-xs text-foreground/30">14:2{i}:45</div>
-                    <div>
-                        <div className="text-sm font-medium">skills list --scope global</div>
-                        <div className="text-[10px] text-foreground/40 font-mono">ID: task_a7f{i}d</div>
-                    </div>
+          <div className="space-y-3">
+            {isStatusLoading ? (
+              <div className="h-20 animate-pulse bg-surface-700 rounded-xl" />
+            ) : (
+              status?.cli.map((cli) => (
+                <div key={cli.name} className="flex items-center justify-between p-3 rounded-xl bg-surface-900 border border-border/50">
+                  <span className="font-medium text-sm capitalize">{cli.name}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-text-muted">{cli.available ? cli.version : "N/A"}</span>
+                    {cli.available ? (
+                      <CheckCircle2 size={16} className="text-success" />
+                    ) : (
+                      <XCircle size={16} className="text-danger" />
+                    )}
+                  </div>
                 </div>
-                <Badge variant="success">Completed</Badge>
-              </div>
-            ))}
-            <Button variant="ghost" size="sm" className="w-full text-foreground/50">View all logs</Button>
+              ))
+            )}
           </div>
-        </Panel>
+        </section>
 
-        <Panel title="Environment">
-          <div className="space-y-4 text-sm">
-            <div className="flex justify-between">
-              <span className="text-foreground/50">Node.js</span>
-              <span className="font-mono">v20.12.2</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-foreground/50">Operating System</span>
-              <span className="font-mono text-right truncate max-w-[150px]">Linux 6.6.87.2</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-foreground/50">CLI Version</span>
-              <span className="font-mono">v1.2.4</span>
-            </div>
-             <div className="pt-4 border-t border-border">
-               <Button size="sm" variant="secondary" className="w-full">System Check</Button>
-             </div>
+        <section className="p-6 rounded-2xl bg-surface-800 border border-border flex flex-col gap-4">
+          <div className="flex items-center gap-3 text-success">
+            <Activity size={20} />
+            <h3 className="font-bold tracking-tight">System Status</h3>
           </div>
-        </Panel>
+          <div className="flex-1 flex flex-col justify-center items-center gap-2 p-4 rounded-xl bg-surface-900/50 border border-border/30 border-dashed">
+            {isStatusLoading ? (
+              <span className="text-xs text-text-muted">Analyzing...</span>
+            ) : (
+              <>
+                <span className="text-3xl font-bold font-mono tracking-tighter">OK</span>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-text-muted">
+                  Server Time: {new Date(status?.serverTime ?? Date.now()).toLocaleTimeString()}
+                </span>
+              </>
+            )}
+          </div>
+        </section>
+
+        <section className="p-6 rounded-2xl bg-surface-800 border border-border flex flex-col gap-4">
+          <div className="flex items-center gap-3 text-warning">
+            <Terminal size={20} />
+            <h3 className="font-bold tracking-tight">Project Context</h3>
+          </div>
+          <div className="p-4 rounded-xl bg-surface-900 border border-border/50 space-y-2">
+            <div className="flex justify-between text-xs">
+              <span className="text-text-muted">Path</span>
+              <span className="font-mono truncate ml-4">/var/tmp/skilldock/...</span>
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-text-muted">Runtime</span>
+              <span className="font-mono">Node {status?.cli[0]?.version?.split(' ')[0] ?? '...'}</span>
+            </div>
+          </div>
+        </section>
       </div>
+
+      {/* Recent Activity */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-3">
+          <History size={20} className="text-text-muted" />
+          <h3 className="font-bold tracking-tight">Recent Activity</h3>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-surface-800 overflow-hidden">
+          {isLogsLoading ? (
+            <div className="p-12 flex justify-center"><Activity className="animate-spin text-text-muted" /></div>
+          ) : !logsData?.logs.length ? (
+            <div className="p-12 text-center text-text-muted text-sm italic">No recent operations recorded.</div>
+          ) : (
+            <div className="divide-y divide-border">
+              {logsData.logs.map((log) => (
+                <div key={log.id} className="p-4 hover:bg-surface-700/50 transition-colors flex items-center justify-between gap-6">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className={`p-2 rounded-lg shrink-0 ${log.result.exitCode === 0 ? "bg-success/10 text-success" : "bg-danger/10 text-danger"}`}>
+                      <Terminal size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold truncate tracking-tight">{log.source}</p>
+                      <p className="text-[10px] font-mono text-text-muted truncate">
+                        {log.result.command} {log.result.args.join(" ")}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6 shrink-0 font-mono text-[11px] text-text-muted">
+                    <span>{log.result.durationMs}ms</span>
+                    <span>{new Date(log.timestamp).toLocaleTimeString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
-};
+}
 
-export default Overview;
+import { History } from "lucide-react";

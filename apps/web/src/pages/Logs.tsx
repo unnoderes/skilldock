@@ -1,63 +1,126 @@
-import * as React from "react";
-import { Panel } from "../components/ui/Panel";
-import { Badge } from "../components/ui/Badge";
-import { Button } from "../components/ui/Button";
-import { Terminal, Clock, ChevronRight } from "lucide-react";
+import React, { useState } from "react";
+import { History, Search, Filter, ChevronRight, Terminal, Clock, Calendar } from "lucide-react";
+import { useLogs } from "../hooks/useLogs";
 
-const Logs = () => {
+export function Logs() {
+  const [limit, setLimit] = useState(50);
+  const { data, isLoading, refetch } = useLogs(limit);
+  const [search, setSearch] = useState("");
+
+  const filteredLogs = data?.logs.filter(log =>
+    log.source.toLowerCase().includes(search.toLowerCase()) ||
+    log.result.command.toLowerCase().includes(search.toLowerCase()) ||
+    log.result.args.join(" ").toLowerCase().includes(search.toLowerCase())
+  ) ?? [];
+
   return (
-    <div className="h-[calc(100vh-120px)] flex flex-col gap-6">
-      <div className="flex-1 overflow-hidden flex gap-6">
-        <Panel title="Operation History" className="w-1/3 flex flex-col p-0">
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <div key={i} className="group cursor-pointer border-b border-border/50 p-4 hover:bg-white/[0.02] transition-colors">
-                    <div className="flex items-center justify-between mb-1">
-                        <Badge variant={i === 1 ? "running" : "default"} className="text-[9px]">
-                            {i === 1 ? "Running" : "Completed"}
-                        </Badge>
-                        <span className="text-[10px] text-foreground/30 font-mono">2026-05-07 09:2{i}:12</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium truncate pr-4">skills install @lucide/react</span>
-                        <ChevronRight size={14} className="text-foreground/20 group-hover:text-foreground/50 transition-colors" />
-                    </div>
-                </div>
-             ))}
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-surface-800 p-6 rounded-2xl border border-border">
+        <div className="flex items-center gap-6">
+          <div className="relative group">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-accent transition-colors" />
+            <input
+              type="text"
+              placeholder="Search logs..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 py-2 text-xs w-80 bg-surface-900 border-border focus:ring-1 focus:ring-accent outline-none rounded-xl"
+            />
           </div>
-        </Panel>
 
-        <div className="flex-1 flex flex-col gap-6">
-            <Panel title="Log Details" className="flex-1 flex flex-col p-0 overflow-hidden">
-                <div className="p-4 border-b border-border/50 bg-sidebar/50 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 text-xs text-foreground/50">
-                            <Terminal size={12} />
-                            <span className="font-mono">ID: task_9b2e1</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-foreground/50">
-                            <Clock size={12} />
-                            <span className="font-mono">Duration: 1.2s</span>
-                        </div>
-                    </div>
-                    <Button variant="outline" size="sm" className="h-7 text-[10px]">RETRY COMMAND</Button>
-                </div>
-                <div className="flex-1 bg-sidebar p-4 font-mono text-xs overflow-y-auto custom-scrollbar">
-                    <div className="text-foreground/40 mb-2">$ skills install @lucide/react --scope global</div>
-                    <div className="text-foreground/80 leading-relaxed whitespace-pre">
-{`Resolving packages...
-Fetching @lucide/react@latest...
-Installing dependencies...
-+ @lucide/react@0.378.0
-Added 1 package to global skills.
-Execution completed with exit code 0.`}
-                    </div>
-                </div>
-            </Panel>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">Show</span>
+            <select
+              value={limit}
+              onChange={e => setLimit(Number(e.target.value))}
+              className="py-1 px-3 text-xs bg-surface-900 border-border rounded-lg outline-none focus:ring-1 focus:ring-accent"
+            >
+              <option value={10}>10 records</option>
+              <option value={20}>20 records</option>
+              <option value={50}>50 records</option>
+              <option value={100}>100 records</option>
+            </select>
+          </div>
         </div>
+
+        <button
+          onClick={() => void refetch()}
+          className="px-4 py-2 text-xs font-bold border border-border rounded-xl hover:bg-surface-700 transition-colors flex items-center gap-2"
+        >
+          <History size={14} />
+          Refresh History
+        </button>
+      </header>
+
+      <div className="space-y-4">
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-24 rounded-2xl bg-surface-800 border border-border animate-pulse" />
+          ))
+        ) : filteredLogs.length === 0 ? (
+          <div className="p-12 text-center text-text-muted border border-dashed border-border rounded-2xl">
+            No matching log entries found.
+          </div>
+        ) : (
+          filteredLogs.map((log) => (
+            <details key={log.id} className="group rounded-2xl border border-border bg-surface-800 overflow-hidden transition-all hover:border-border-accent/30">
+              <summary className="p-5 flex items-center justify-between cursor-pointer list-none hover:bg-surface-700/30">
+                <div className="flex items-center gap-6 min-w-0">
+                  <div className={`p-2.5 rounded-xl shrink-0 ${log.result.exitCode === 0 ? "bg-success/10 text-success" : "bg-danger/10 text-danger"}`}>
+                    <Terminal size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h4 className="font-bold tracking-tight truncate">{log.source}</h4>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                        log.result.exitCode === 0 ? "border-success/20 text-success bg-success/5" : "border-danger/20 text-danger bg-danger/5"
+                      }`}>
+                        EXIT {log.result.exitCode}
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-mono text-text-muted truncate">
+                      {log.result.command} {log.result.args.join(" ")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-8 shrink-0">
+                  <div className="hidden md:flex items-center gap-6 text-[10px] uppercase font-bold text-text-muted tracking-widest">
+                    <div className="flex items-center gap-2">
+                      <Clock size={12} />
+                      <span>{log.result.durationMs}ms</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar size={12} />
+                      <span>{new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  </div>
+                  <ChevronRight size={18} className="text-text-muted group-open:rotate-90 transition-transform" />
+                </div>
+              </summary>
+
+              <div className="p-6 pt-0 border-t border-border bg-surface-900/50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                  <section className="space-y-3">
+                    <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                      Standard Output
+                    </h5>
+                    <pre className="text-xs h-48">{log.result.stdout || "(empty)"}</pre>
+                  </section>
+                  <section className="space-y-3">
+                    <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-danger" />
+                      Standard Error
+                    </h5>
+                    <pre className="text-xs h-48">{log.result.stderr || "(empty)"}</pre>
+                  </section>
+                </div>
+              </div>
+            </details>
+          ))
+        )}
       </div>
     </div>
   );
-};
-
-export default Logs;
+}
