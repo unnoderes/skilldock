@@ -1,77 +1,188 @@
-import * as React from "react";
-import { Panel } from "../components/ui/Panel";
-import { Button } from "../components/ui/Button";
-import { Badge } from "../components/ui/Badge";
-import { Search, Plus, RefreshCw, Trash2, Globe, Folder } from "lucide-react";
+import React, { useState } from "react";
+import { Package, Plus, Trash2, RefreshCw, Info, Search } from "lucide-react";
+import type { Scope, SkillRecord } from "@skilldock/shared";
+import { useSkillsList, useSkillInstall, useSkillRemove, useSkillUpdate } from "../hooks/useSkills";
+import { ScopeToggle } from "../components/ui/ScopeToggle";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { StatusBadge } from "../components/ui/StatusBadge";
 
-const Skills = () => {
+export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
+  const [scope, setScope] = useState<Scope>("project");
+  const { data: skillsData, isLoading } = useSkillsList(scope);
+  const [search, setSearch] = useState("");
+
+  const installMutation = useSkillInstall();
+  const removeMutation = useSkillRemove();
+  const updateMutation = useSkillUpdate();
+
+  // Dialog states
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string[];
+    onConfirm: () => void;
+    isDangerous?: boolean;
+  } | null>(null);
+
+  // Form states
+  const [installPackage, setInstallPackage] = useState("");
+
+  const filteredSkills = skillsData?.skills.filter(s =>
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    s.agents?.some(a => a.toLowerCase().includes(search.toLowerCase()))
+  ) ?? [];
+
+  const handleInstall = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!installPackage.trim()) return;
+
+    setConfirmState({
+      isOpen: true,
+      title: "Install Skill",
+      message: [
+        `You are about to install package: ${installPackage}`,
+        `Scope: ${scope}`,
+        "This will download and configure the skill for the specified agents."
+      ],
+      onConfirm: async () => {
+        const res = await installMutation.mutateAsync({
+          packageName: installPackage,
+          scope,
+          yes: true
+        } as any);
+        onTaskStart(res.taskId, `Installing ${installPackage}`);
+        setInstallPackage("");
+        setConfirmState(null);
+      }
+    });
+  };
+
+  const handleRemove = (skill: SkillRecord) => {
+    setConfirmState({
+      isOpen: true,
+      title: "Remove Skill",
+      isDangerous: true,
+      message: [
+        `You are about to remove skill: ${skill.name}`,
+        `Scope: ${scope}`,
+        "This action cannot be undone."
+      ],
+      onConfirm: async () => {
+        const res = await removeMutation.mutateAsync({
+          names: [skill.name],
+          scope,
+          yes: true
+        } as any);
+        onTaskStart(res.taskId, `Removing ${skill.name}`);
+        setConfirmState(null);
+      }
+    });
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 bg-panel border border-border p-1 rounded-md">
-           <Button variant="ghost" size="sm" className="bg-white/5 text-white">
-             <Globe size={14} className="mr-2" /> Global
-           </Button>
-           <Button variant="ghost" size="sm" className="text-foreground/50">
-             <Folder size={14} className="mr-2" /> Project
-           </Button>
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-6">
+          <ScopeToggle label="Scope" value={scope} onChange={setScope} />
+          <div className="relative group">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-accent transition-colors" />
+            <input
+              type="text"
+              placeholder="Search skills..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 py-1.5 text-xs w-64 bg-surface-800 border-border focus:ring-1 focus:ring-accent outline-none rounded-lg"
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-            <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
-                <input
-                    type="text"
-                    placeholder="Filter skills..."
-                    className="h-9 w-64 rounded-md border border-border bg-sidebar pl-9 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-            </div>
-            <Button variant="primary" size="sm">
-                <Plus size={16} className="mr-1" /> Install Skill
-            </Button>
-        </div>
-      </div>
 
-      <Panel>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-border/50 text-foreground/40 uppercase text-[10px] font-bold tracking-widest">
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Version</th>
-                <th className="px-4 py-3">Path</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/50">
-              {[
-                { name: "claude-code", version: "0.2.14", path: "~/.nvm/versions/node/v20.12.2/bin/claude" },
-                { name: "@skilldock/cli", version: "1.2.4", path: "/usr/local/bin/skills" },
-                { name: "mcp-server-git", version: "0.1.0", path: "npm:@modelcontextprotocol/server-git" },
-              ].map((skill) => (
-                <tr key={skill.name} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-4 py-4 font-medium">{skill.name}</td>
-                  <td className="px-4 py-4">
-                    <Badge variant="outline" className="font-mono">{skill.version}</Badge>
-                  </td>
-                  <td className="px-4 py-4 text-foreground/40 font-mono text-xs truncate max-w-xs">{skill.path}</td>
-                  <td className="px-4 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                       <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <RefreshCw size={14} />
-                       </Button>
-                       <Button variant="ghost" size="icon" className="h-8 w-8 text-error/50 hover:text-error hover:bg-error/10">
-                          <Trash2 size={14} />
-                       </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
+        <form onSubmit={handleInstall} className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Package name (e.g. vercel-labs/skills)"
+            value={installPackage}
+            onChange={e => setInstallPackage(e.target.value)}
+            className="text-xs py-1.5 w-64 bg-surface-800 border-border rounded-lg"
+          />
+          <button
+            type="submit"
+            disabled={!installPackage.trim() || installMutation.isPending}
+            className="px-4 py-1.5 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
+          >
+            <Plus size={14} />
+            Install
+          </button>
+        </form>
+      </header>
+
+      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-40 rounded-2xl bg-surface-800 border border-border animate-pulse" />
+          ))
+        ) : filteredSkills.length === 0 ? (
+          <div className="col-span-full">
+            <EmptyState
+              title="No Skills Found"
+              message={search ? `No skills match your search "${search}" in ${scope} scope.` : `You haven't installed any skills in the ${scope} scope yet.`}
+              action={!search && (
+                <div className="flex gap-4 items-center p-4 bg-accent/5 rounded-xl border border-accent/20 text-accent-light text-xs max-w-sm">
+                  <Info size={16} className="shrink-0" />
+                  <p>Try searching for a package above or switch to Global scope.</p>
+                </div>
+              )}
+            />
+          </div>
+        ) : (
+          filteredSkills.map((skill) => (
+            <article key={skill.name} className="group p-6 rounded-2xl bg-surface-800 border border-border hover:border-accent/50 transition-all flex flex-col gap-4 relative overflow-hidden">
+              <div className="flex items-start justify-between">
+                <div className="p-3 rounded-xl bg-surface-900 border border-border group-hover:border-accent/30 transition-colors">
+                  <Package size={20} className="text-text-muted group-hover:text-accent transition-colors" />
+                </div>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => handleRemove(skill)}
+                    className="p-2 hover:bg-danger/10 hover:text-danger rounded-lg text-text-muted transition-colors"
+                    title="Remove Skill"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-bold tracking-tight text-lg mb-1">{skill.name}</h4>
+                <p className="text-xs text-text-muted font-mono truncate">{skill.path || "Installed in system"}</p>
+              </div>
+
+              <div className="mt-auto pt-4 flex flex-wrap gap-2">
+                {skill.agents?.map(agent => (
+                  <span key={agent} className="px-2 py-0.5 rounded-md bg-surface-900 border border-border text-[10px] font-bold text-text-muted uppercase tracking-tight">
+                    {agent}
+                  </span>
+                )) || <span className="text-[10px] italic text-text-muted">No agents associated</span>}
+              </div>
+
+              <div className="absolute top-0 right-0 p-4">
+                {/* Could add a status indicator here if backend provided it per-skill */}
+              </div>
+            </article>
+          ))
+        )}
+      </section>
+
+      {confirmState && (
+        <ConfirmDialog
+          isOpen={confirmState.isOpen}
+          title={confirmState.title}
+          message={confirmState.message}
+          onConfirm={confirmState.onConfirm}
+          onCancel={() => setConfirmState(null)}
+          isDangerous={confirmState.isDangerous}
+        />
+      )}
     </div>
   );
-};
-
-export default Skills;
+}
