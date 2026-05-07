@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Zap, Plus, Trash2, Info, LayoutGrid, List, Search } from "lucide-react";
+import { Zap, Plus, LayoutGrid, List, AlertTriangle } from "lucide-react";
 import type { Scope } from "@skilldock/shared";
 import { useMcpList, useMcpAgents, useMcpAdd } from "../hooks/useMcp";
 import { ScopeToggle } from "../components/ui/ScopeToggle";
@@ -41,8 +41,7 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
           target,
           name: name || undefined,
           scope,
-          yes: true
-        } as any);
+        });
         onTaskStart(res.taskId, `Adding MCP ${target}`);
         setTarget("");
         setName("");
@@ -53,6 +52,12 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {addMutation.error && (
+        <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
+          <AlertTriangle size={16} />
+          <span>{addMutation.error instanceof Error ? addMutation.error.message : "Operation failed. Please try again."}</span>
+        </div>
+      )}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <ScopeToggle label="Scope" value={scope} onChange={setScope} />
 

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { History, Search, Filter, ChevronRight, Terminal, Clock, Calendar } from "lucide-react";
+import { History, Search, ChevronRight, Terminal, Clock, Calendar, AlertTriangle } from "lucide-react";
 import { useLogs } from "../hooks/useLogs";
 
 export function Logs() {
   const [limit, setLimit] = useState(50);
-  const { data, isLoading, refetch } = useLogs(limit);
+  const { data, isLoading, error, refetch } = useLogs(limit);
   const [search, setSearch] = useState("");
 
   const filteredLogs = data?.logs.filter(log =>
@@ -52,6 +52,12 @@ export function Logs() {
         </button>
       </header>
 
+      {error && (
+        <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
+          <AlertTriangle size={16} />
+          <span>Failed to load logs. Please try again.</span>
+        </div>
+      )}
       <div className="space-y-4">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (

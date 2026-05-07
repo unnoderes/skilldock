@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Package, Plus, Trash2, RefreshCw, Info, Search } from "lucide-react";
+import { Package, Plus, Trash2, RefreshCw, Info, Search, XCircle } from "lucide-react";
 import type { Scope, SkillRecord } from "@skilldock/shared";
 import { useSkillsList, useSkillInstall, useSkillRemove, useSkillUpdate } from "../hooks/useSkills";
 import { ScopeToggle } from "../components/ui/ScopeToggle";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { StatusBadge } from "../components/ui/StatusBadge";
+import { ApiError } from "../lib/api";
 
 export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
   const [scope, setScope] = useState<Scope>("project");
@@ -33,6 +34,8 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
     s.agents?.some(a => a.toLowerCase().includes(search.toLowerCase()))
   ) ?? [];
 
+  const mutationError = installMutation.error || removeMutation.error || updateMutation.error;
+
   const handleInstall = (e: React.FormEvent) => {
     e.preventDefault();
     if (!installPackage.trim()) return;
@@ -49,10 +52,28 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         const res = await installMutation.mutateAsync({
           packageName: installPackage,
           scope,
-          yes: true
-        } as any);
+        });
         onTaskStart(res.taskId, `Installing ${installPackage}`);
         setInstallPackage("");
+        setConfirmState(null);
+      }
+    });
+  };
+
+  const handleUpdate = (skill: SkillRecord) => {
+    setConfirmState({
+      isOpen: true,
+      title: "Update Skill",
+      message: [
+        `You are about to update skill: ${skill.name}`,
+        `Scope: ${scope}`,
+      ],
+      onConfirm: async () => {
+        const res = await updateMutation.mutateAsync({
+          names: [skill.name],
+          scope,
+        });
+        onTaskStart(res.taskId, `Updating ${skill.name}`);
         setConfirmState(null);
       }
     });
@@ -72,8 +93,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         const res = await removeMutation.mutateAsync({
           names: [skill.name],
           scope,
-          yes: true
-        } as any);
+        });
         onTaskStart(res.taskId, `Removing ${skill.name}`);
         setConfirmState(null);
       }
@@ -82,6 +102,12 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {mutationError && (
+        <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
+          <XCircle size={16} />
+          <span>{mutationError instanceof ApiError ? mutationError.message : "Operation failed. Please try again."}</span>
+        </div>
+      )}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-6">
           <ScopeToggle label="Scope" value={scope} onChange={setScope} />
@@ -142,6 +168,13 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
                   <Package size={20} className="text-text-muted group-hover:text-accent transition-colors" />
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => handleUpdate(skill)}
+                    className="p-2 hover:bg-accent/10 hover:text-accent rounded-lg text-text-muted transition-colors"
+                    title="Update Skill"
+                  >
+                    <RefreshCw size={14} />
+                  </button>
                   <button
                     onClick={() => handleRemove(skill)}
                     className="p-2 hover:bg-danger/10 hover:text-danger rounded-lg text-text-muted transition-colors"
