@@ -3,11 +3,14 @@ import { Settings as SettingsIcon, Save, RefreshCw, ShieldCheck, Database, FileC
 import type { SkillDockConfig, Scope } from "@skilldock/shared";
 import { useSettings } from "../hooks/useSettings";
 import { useTheme } from "../contexts/ThemeContext";
+import { useLocale } from "../contexts/LocaleContext";
+import { Languages } from "lucide-react";
 
 export function Settings() {
   const { query, mutation } = useSettings();
   const { data, isLoading } = query;
   const { theme, toggleTheme } = useTheme();
+  const { locale, setLocale, t } = useLocale();
 
   const [formData, setFormData] = useState<Partial<SkillDockConfig>>({});
 
@@ -33,13 +36,13 @@ export function Settings() {
         <section className="space-y-6">
           <div className="flex items-center gap-3">
             <ShieldCheck size={20} className="text-accent-light" />
-            <h3 className="font-bold tracking-tight uppercase text-xs tracking-widest text-text-muted">User Preferences</h3>
+            <h3 className="font-bold tracking-tight uppercase text-xs tracking-widest text-text-muted">{t("settings.userPreferences")}</h3>
           </div>
 
           <form onSubmit={handleSave} className="p-8 rounded-2xl bg-surface-800 border border-border space-y-6">
             <div className="space-y-4">
               <label className="flex flex-col gap-2">
-                <span className="text-sm font-semibold">Default Skills Scope</span>
+                <span className="text-sm font-semibold">{t("settings.defaultSkillsScope")}</span>
                 <select
                   value={formData.defaultSkillsScope}
                   onChange={e => setFormData(p => ({ ...p, defaultSkillsScope: e.target.value as Scope }))}
@@ -51,7 +54,7 @@ export function Settings() {
               </label>
 
               <label className="flex flex-col gap-2">
-                <span className="text-sm font-semibold">Default MCP Scope</span>
+                <span className="text-sm font-semibold">{t("settings.defaultMcpScope")}</span>
                 <select
                   value={formData.defaultMcpScope}
                   onChange={e => setFormData(p => ({ ...p, defaultMcpScope: e.target.value as Scope }))}
@@ -63,7 +66,7 @@ export function Settings() {
               </label>
 
               <label className="flex flex-col gap-2">
-                <span className="text-sm font-semibold">Recent Logs Limit</span>
+                <span className="text-sm font-semibold">{t("settings.recentLogsLimit")}</span>
                 <input
                   type="number"
                   min={5}
@@ -81,13 +84,13 @@ export function Settings() {
                   onChange={e => setFormData(p => ({ ...p, collapseRawOutput: e.target.checked }))}
                   className="w-4 h-4 rounded border-border text-accent focus:ring-0 focus:ring-offset-0 bg-surface-900"
                 />
-                <span className="text-sm font-medium">Collapse raw output details by default</span>
+                <span className="text-sm font-medium">{t("settings.collapseRawOutput")}</span>
               </label>
 
               <div className="flex items-center justify-between p-4 rounded-xl bg-surface-900/50 border border-border/50">
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-semibold">Appearance</span>
-                  <span className="text-xs text-text-muted">Dark or light workspace theme</span>
+                  <span className="text-sm font-semibold">{t("settings.appearance")}</span>
+                  <span className="text-xs text-text-muted">{t("settings.appearanceDesc")}</span>
                 </div>
                 <button
                   type="button"
@@ -95,8 +98,35 @@ export function Settings() {
                   className="px-4 py-2 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-all"
                 >
                   {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  {theme === 'dark' ? t("settings.lightMode") : t("settings.darkMode")}
                 </button>
+              </div>
+
+              <div className="flex items-center justify-between p-4 rounded-xl bg-surface-900/50 border border-border/50">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold">{t("language.label")}</span>
+                  <span className="text-xs text-text-muted">{t("language.description")}</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setLocale("en-US")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      locale === "en-US" ? "bg-accent text-white" : "bg-surface-700 text-text-muted hover:text-text"
+                    }`}
+                  >
+                    English
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLocale("zh-CN")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      locale === "zh-CN" ? "bg-accent text-white" : "bg-surface-700 text-text-muted hover:text-text"
+                    }`}
+                  >
+                    简体中文
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -106,7 +136,7 @@ export function Settings() {
               className="w-full py-3 bg-accent text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 transition-all shadow-lg shadow-accent/20"
             >
               {mutation.isPending ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
-              Save Security Preferences
+              {t("settings.savePreferences")}
             </button>
           </form>
         </section>
@@ -115,13 +145,13 @@ export function Settings() {
         <section className="space-y-6">
           <div className="flex items-center gap-3">
             <Database size={20} className="text-warning" />
-            <h3 className="font-bold tracking-tight uppercase text-xs tracking-widest text-text-muted">System Context</h3>
+            <h3 className="font-bold tracking-tight uppercase text-xs tracking-widest text-text-muted">{t("settings.systemContext")}</h3>
           </div>
 
           <div className="p-8 rounded-2xl bg-surface-800 border border-border space-y-6">
             <div className="space-y-6">
               <div className="space-y-1">
-                <p className="text-[10px] uppercase font-bold text-text-muted tracking-widest">Configuration Path</p>
+                <p className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("settings.configPath")}</p>
                 <div className="p-3 rounded-xl bg-surface-900 border border-border/50 flex items-center gap-3">
                   <FileCode size={14} className="text-text-muted shrink-0" />
                   <code className="text-[11px] font-mono break-all text-text-muted">{data?.metadata.configPath}</code>
@@ -129,7 +159,7 @@ export function Settings() {
               </div>
 
               <div className="space-y-1">
-                <p className="text-[10px] uppercase font-bold text-text-muted tracking-widest">Logs Path</p>
+                <p className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("settings.logsPath")}</p>
                 <div className="p-3 rounded-xl bg-surface-900 border border-border/50 flex items-center gap-3">
                   <FileCode size={14} className="text-text-muted shrink-0" />
                   <code className="text-[11px] font-mono break-all text-text-muted">{data?.metadata.logPath}</code>
@@ -137,14 +167,14 @@ export function Settings() {
               </div>
 
               <div className="pt-4 space-y-2">
-                <p className="text-[10px] uppercase font-bold text-text-muted tracking-widest">CLI Commands (Fixed)</p>
+                <p className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("settings.cliCommands")}</p>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between p-2 rounded-lg bg-surface-900/50 border border-border/30">
-                    <span className="text-xs font-bold text-text-muted">Skills</span>
+                    <span className="text-xs font-bold text-text-muted">{t("settings.skillsLabel")}</span>
                     <code className="text-xs font-mono">{data?.metadata.cliCommands.skills}</code>
                   </div>
                   <div className="flex items-center justify-between p-2 rounded-lg bg-surface-900/50 border border-border/30">
-                    <span className="text-xs font-bold text-text-muted">Add MCP</span>
+                    <span className="text-xs font-bold text-text-muted">{t("settings.addMcpLabel")}</span>
                     <code className="text-xs font-mono">{data?.metadata.cliCommands.addMcp}</code>
                   </div>
                 </div>
@@ -153,7 +183,7 @@ export function Settings() {
 
             <div className="p-4 rounded-xl bg-accent/5 border border-accent/20">
               <p className="text-[11px] leading-relaxed text-accent-light/80 italic">
-                Notice: SkillDock does not expose editable CLI paths or direct shell execution for security reasons.
+                {t("settings.securityNotice")}
               </p>
             </div>
           </div>

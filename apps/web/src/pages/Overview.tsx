@@ -2,10 +2,12 @@ import React from "react";
 import { Server, Activity, Terminal, CheckCircle2, XCircle, History } from "lucide-react";
 import { useStatus } from "../hooks/useStatus";
 import { useLogs } from "../hooks/useLogs";
+import { useLocale } from "../contexts/LocaleContext";
 
 export function Overview() {
   const { data: status, isLoading: isStatusLoading } = useStatus();
   const { data: logsData, isLoading: isLogsLoading } = useLogs(5);
+  const { t } = useLocale();
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -14,7 +16,7 @@ export function Overview() {
         <section className="p-6 rounded-2xl bg-surface-800 border border-border flex flex-col gap-4">
           <div className="flex items-center gap-3 text-accent-light">
             <Server size={20} />
-            <h3 className="font-bold tracking-tight">CLI Health</h3>
+            <h3 className="font-bold tracking-tight">{t("overview.cliHealth")}</h3>
           </div>
           <div className="space-y-3">
             {isStatusLoading ? (
@@ -40,11 +42,11 @@ export function Overview() {
         <section className="p-6 rounded-2xl bg-surface-800 border border-border flex flex-col gap-4">
           <div className="flex items-center gap-3 text-success">
             <Activity size={20} />
-            <h3 className="font-bold tracking-tight">System Status</h3>
+            <h3 className="font-bold tracking-tight">{t("overview.systemStatus")}</h3>
           </div>
           <div className="flex-1 flex flex-col justify-center items-center gap-2 p-4 rounded-xl bg-surface-900/50 border border-border/30 border-dashed">
             {isStatusLoading ? (
-              <span className="text-xs text-text-muted">Analyzing...</span>
+              <span className="text-xs text-text-muted">{t("overview.analyzing")}</span>
             ) : (
               <>
                 <span className="text-3xl font-bold font-mono tracking-tighter">OK</span>
@@ -59,15 +61,15 @@ export function Overview() {
         <section className="p-6 rounded-2xl bg-surface-800 border border-border flex flex-col gap-4">
           <div className="flex items-center gap-3 text-warning">
             <Terminal size={20} />
-            <h3 className="font-bold tracking-tight">Project Context</h3>
+            <h3 className="font-bold tracking-tight">{t("overview.projectContext")}</h3>
           </div>
           <div className="p-4 rounded-xl bg-surface-900 border border-border/50 space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-text-muted">Path</span>
+              <span className="text-text-muted">{t("overview.path")}</span>
               <span className="font-mono truncate ml-4">/var/tmp/skilldock/...</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-text-muted">Runtime</span>
+              <span className="text-text-muted">{t("overview.runtime")}</span>
               <span className="font-mono">Node {status?.cli[0]?.version?.split(' ')[0] ?? '...'}</span>
             </div>
           </div>
@@ -78,14 +80,14 @@ export function Overview() {
       <section className="space-y-4">
         <div className="flex items-center gap-3">
           <History size={20} className="text-text-muted" />
-          <h3 className="font-bold tracking-tight">Recent Activity</h3>
+          <h3 className="font-bold tracking-tight">{t("overview.recentActivity")}</h3>
         </div>
 
         <div className="rounded-2xl border border-border bg-surface-800 overflow-hidden">
           {isLogsLoading ? (
             <div className="p-12 flex justify-center"><Activity className="animate-spin text-text-muted" /></div>
           ) : !logsData?.logs.length ? (
-            <div className="p-12 text-center text-text-muted text-sm italic">No recent operations recorded.</div>
+            <div className="p-12 text-center text-text-muted text-sm italic">{t("overview.noRecentOperations")}</div>
           ) : (
             <div className="divide-y divide-border">
               {logsData.logs.map((log) => (

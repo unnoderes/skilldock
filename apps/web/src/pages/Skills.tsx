@@ -8,11 +8,13 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { ApiError } from "../lib/api";
+import { useLocale } from "../contexts/LocaleContext";
 
 export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
   const [scope, setScope] = useState<Scope>("project");
   const { data: skillsData, isLoading } = useSkillsList(scope);
   const [search, setSearch] = useState("");
+  const { t } = useLocale();
 
   const installMutation = useSkillInstall();
   const removeMutation = useSkillRemove();
@@ -25,6 +27,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
     message: string[];
     onConfirm: () => void;
     isDangerous?: boolean;
+    confirmLabel?: string;
   } | null>(null);
 
   // Form states
@@ -43,18 +46,19 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
 
     setConfirmState({
       isOpen: true,
-      title: "Install Skill",
+      title: t("skills.installTitle"),
       message: [
-        `You are about to install package: ${installPackage}`,
-        `Scope: ${scope}`,
-        "This will download and configure the skill for the specified agents."
+        t("skills.installMessage", { package: installPackage }),
+        t("skills.installScope", { scope }),
+        t("skills.installDescription")
       ],
+      confirmLabel: t("skills.install"),
       onConfirm: async () => {
         const res = await installMutation.mutateAsync({
           packageName: installPackage,
           scope,
         });
-        onTaskStart(res.taskId, `Installing ${installPackage}`);
+        onTaskStart(res.taskId, `${t("skills.install")} ${installPackage}`);
         setInstallPackage("");
         setConfirmState(null);
       }
@@ -64,11 +68,12 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   const handleUpdate = (skill: SkillRecord) => {
     setConfirmState({
       isOpen: true,
-      title: "Update Skill",
+      title: t("skills.updateTitle"),
       message: [
-        `You are about to update skill: ${skill.name}`,
-        `Scope: ${scope}`,
+        t("skills.updateMessage", { name: skill.name }),
+        t("skills.installScope", { scope }),
       ],
+      confirmLabel: t("skills.updateButton"),
       onConfirm: async () => {
         const res = await updateMutation.mutateAsync({
           names: [skill.name],
@@ -83,13 +88,14 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   const handleRemove = (skill: SkillRecord) => {
     setConfirmState({
       isOpen: true,
-      title: "Remove Skill",
+      title: t("skills.removeTitle"),
       isDangerous: true,
       message: [
-        `You are about to remove skill: ${skill.name}`,
-        `Scope: ${scope}`,
-        "This action cannot be undone."
+        t("skills.removeMessage", { name: skill.name }),
+        t("skills.installScope", { scope }),
+        t("skills.removeWarning")
       ],
+      confirmLabel: t("skills.removeButton"),
       onConfirm: async () => {
         const res = await removeMutation.mutateAsync({
           names: [skill.name],
@@ -106,14 +112,14 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
       {mutationError && (
         <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
           <XCircle size={16} />
-          <span>{mutationError instanceof ApiError ? mutationError.message : "Operation failed. Please try again."}</span>
+          <span>{mutationError instanceof ApiError ? mutationError.message : t("common.operationFailed")}</span>
         </div>
       )}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-6">
-          <ScopeToggle label="Scope" value={scope} onChange={setScope} />
+          <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
           <SearchInput
-            placeholder="Search skills..."
+            placeholder={t("skills.searchPlaceholder")}
             value={search}
             onChange={setSearch}
             className="w-64"
@@ -123,7 +129,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         <form onSubmit={handleInstall} className="flex gap-2">
           <input
             type="text"
-            placeholder="Package name (e.g. vercel-labs/skills)"
+            placeholder={t("skills.packagePlaceholder")}
             value={installPackage}
             onChange={e => setInstallPackage(e.target.value)}
             className="text-xs py-1.5 w-64 bg-surface-800 border-border rounded-lg"
@@ -134,7 +140,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
             className="px-4 py-1.5 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
           >
             <Plus size={14} />
-            Install
+            {t("skills.install")}
           </button>
         </form>
       </header>
@@ -147,12 +153,12 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         ) : filteredSkills.length === 0 ? (
           <div className="col-span-full">
             <EmptyState
-              title="No Skills Found"
-              message={search ? `No skills match your search "${search}" in ${scope} scope.` : `You haven't installed any skills in the ${scope} scope yet.`}
+              title={t("skills.noSkillsFound")}
+              message={search ? t("skills.noSearchMatch", { search, scope }) : t("skills.noSkillsInstalled", { scope })}
               action={!search && (
                 <div className="flex gap-4 items-center p-4 bg-accent/5 rounded-xl border border-accent/20 text-accent-light text-xs max-w-sm">
                   <Info size={16} className="shrink-0" />
-                  <p>Try searching for a package above or switch to Global scope.</p>
+                  <p>{t("skills.trySearchOrSwitch")}</p>
                 </div>
               )}
             />
@@ -168,14 +174,14 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
                   <button
                     onClick={() => handleUpdate(skill)}
                     className="p-2 hover:bg-accent/10 hover:text-accent rounded-lg text-text-muted transition-colors"
-                    title="Update Skill"
+                    title={t("skills.updateButton")}
                   >
                     <RefreshCw size={14} />
                   </button>
                   <button
                     onClick={() => handleRemove(skill)}
                     className="p-2 hover:bg-danger/10 hover:text-danger rounded-lg text-text-muted transition-colors"
-                    title="Remove Skill"
+                    title={t("skills.removeButton")}
                   >
                     <Trash2 size={14} />
                   </button>
@@ -184,7 +190,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
 
               <div>
                 <h4 className="font-bold tracking-tight text-lg mb-1">{skill.name}</h4>
-                <p className="text-xs text-text-muted font-mono truncate">{skill.path || "Installed in system"}</p>
+                <p className="text-xs text-text-muted font-mono truncate">{skill.path || t("skills.installedInSystem")}</p>
               </div>
 
               <div className="mt-auto pt-4 flex flex-wrap gap-2">
@@ -192,7 +198,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
                   <span key={agent} className="px-2 py-0.5 rounded-md bg-surface-900 border border-border text-[10px] font-bold text-text-muted uppercase tracking-tight">
                     {agent}
                   </span>
-                )) || <span className="text-[10px] italic text-text-muted">No agents associated</span>}
+                )) || <span className="text-[10px] italic text-text-muted">{t("skills.noAgents")}</span>}
               </div>
 
               <div className="absolute top-0 right-0 p-4">
@@ -208,6 +214,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           isOpen={confirmState.isOpen}
           title={confirmState.title}
           message={confirmState.message}
+          confirmLabel={confirmState.confirmLabel}
           onConfirm={confirmState.onConfirm}
           onCancel={() => setConfirmState(null)}
           isDangerous={confirmState.isDangerous}

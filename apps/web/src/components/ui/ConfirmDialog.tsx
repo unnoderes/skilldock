@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, AlertTriangle } from "lucide-react";
+import { useLocale } from "../../contexts/LocaleContext";
 
 export function ConfirmDialog({
   isOpen,
   title,
   message,
-  confirmLabel = "Confirm",
+  confirmLabel,
   onConfirm,
   onCancel,
   isDangerous = false,
@@ -20,6 +21,7 @@ export function ConfirmDialog({
   isDangerous?: boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const { t } = useLocale();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -64,13 +66,13 @@ export function ConfirmDialog({
             onClick={onCancel}
             className="px-4 py-2 text-sm font-medium rounded-lg border border-border hover:bg-surface-600 transition-colors"
           >
-            Cancel
+            {t("dialog.cancel")}
           </button>
           <button
             onClick={onConfirm}
             className={`px-4 py-2 text-sm font-medium rounded-lg text-white transition-opacity hover:opacity-90 ${isDangerous ? 'bg-danger' : 'bg-accent'}`}
           >
-            {confirmLabel}
+            {confirmLabel || t("dialog.confirm")}
           </button>
         </div>
       </div>

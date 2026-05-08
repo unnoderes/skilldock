@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { History, ChevronRight, Terminal, Clock, Calendar, AlertTriangle } from "lucide-react";
 import { SearchInput } from "../components/ui/SearchInput";
 import { useLogs } from "../hooks/useLogs";
+import { useLocale } from "../contexts/LocaleContext";
 
 export function Logs() {
   const [limit, setLimit] = useState(50);
   const { data, isLoading, error, refetch } = useLogs(limit);
   const [search, setSearch] = useState("");
+  const { t } = useLocale();
 
   const filteredLogs = data?.logs.filter(log =>
     log.source.toLowerCase().includes(search.toLowerCase()) ||
@@ -19,23 +21,23 @@ export function Logs() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-surface-800 p-6 rounded-2xl border border-border">
         <div className="flex items-center gap-6">
           <SearchInput
-            placeholder="Search logs..."
+            placeholder={t("logs.searchPlaceholder")}
             value={search}
             onChange={setSearch}
             className="w-80"
           />
 
           <div className="flex items-center gap-3">
-            <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">Show</span>
+            <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.show")}</span>
             <select
               value={limit}
               onChange={e => setLimit(Number(e.target.value))}
               className="py-1 px-3 text-xs bg-surface-900 border-border rounded-lg outline-none focus:ring-1 focus:ring-accent"
             >
-              <option value={10}>10 records</option>
-              <option value={20}>20 records</option>
-              <option value={50}>50 records</option>
-              <option value={100}>100 records</option>
+              <option value={10}>10 {t("logs.records")}</option>
+              <option value={20}>20 {t("logs.records")}</option>
+              <option value={50}>50 {t("logs.records")}</option>
+              <option value={100}>100 {t("logs.records")}</option>
             </select>
           </div>
         </div>
@@ -45,14 +47,14 @@ export function Logs() {
           className="px-4 py-2 text-xs font-bold border border-border rounded-xl hover:bg-surface-700 transition-colors flex items-center gap-2"
         >
           <History size={14} />
-          Refresh History
+          {t("logs.refreshHistory")}
         </button>
       </header>
 
       {error && (
         <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
           <AlertTriangle size={16} />
-          <span>Failed to load logs. Please try again.</span>
+          <span>{t("logs.loadFailed")}</span>
         </div>
       )}
       <div className="space-y-4">
@@ -62,7 +64,7 @@ export function Logs() {
           ))
         ) : filteredLogs.length === 0 ? (
           <div className="p-12 text-center text-text-muted border border-dashed border-border rounded-2xl">
-            No matching log entries found.
+            {t("logs.noMatchingEntries")}
           </div>
         ) : (
           filteredLogs.map((log) => (
@@ -107,16 +109,16 @@ export function Logs() {
                   <section className="space-y-3">
                     <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                      Standard Output
+                      {t("logs.standardOutput")}
                     </h5>
-                    <pre className="text-xs h-48">{log.result.stdout || "(empty)"}</pre>
+                    <pre className="text-xs h-48">{log.result.stdout || t("logs.empty")}</pre>
                   </section>
                   <section className="space-y-3">
                     <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-danger" />
-                      Standard Error
+                      {t("logs.standardError")}
                     </h5>
-                    <pre className="text-xs h-48">{log.result.stderr || "(empty)"}</pre>
+                    <pre className="text-xs h-48">{log.result.stderr || t("logs.empty")}</pre>
                   </section>
                 </div>
               </div>
