@@ -1,10 +1,12 @@
 import cors from "@fastify/cors";
+import fastifyStatic from "@fastify/static";
 import { execa } from "execa";
 import Fastify from "fastify";
 import crypto from "node:crypto";
-import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { z, ZodError } from "zod";
 import type {
   AppStatus,
@@ -37,6 +39,13 @@ const DEFAULT_LOG_LIMIT = 50;
 const MAX_LOG_LIMIT = 100;
 const MAX_TASKS = 100;
 const MAX_TASK_OUTPUT_CHUNKS = 400;
+let staticAssetsRegistered = false;
+
+export type StartServerOptions = {
+  host?: string;
+  port?: number;
+  staticRoot?: string;
+};
 const DEFAULT_SETTINGS_CONFIG: SkillDockConfig = {
   defaultSkillsScope: "project",
   defaultMcpScope: "project",
@@ -656,4 +665,32 @@ server.get("/api/logs", async (request): Promise<LogsListResponse> => {
 
 server.get("/healthz", async () => ({ ok: true }));
 
-await server.listen({ port: PORT, host: HOST });
+async function registerStaticAssets(staticRoot?: string): Promise<void> {
+  if (!staticRoot || staticAssetsRegistered) return;
+
+  const root = path.resolve(staticRoot);
+  await access(path.join(root, "index.html"));
+  await server.register(fastifyStatic, {
+    root,
+    prefix: "/",
+    index: ["index.html"],
+  });
+  staticAssetsRegistered = true;
+}
+
+export async function startServer(options: StartServerOptions = {}): Promise<string> {
+  await registerStaticAssets(options.staticRoot);
+  return server.listen({
+    port: options.port ?? PORT,
+    host: options.host ?? HOST,
+  });
+}
+
+export { server };
+
+const entryFile = process.argv[1] ? path.resolve(process.argv[1]) : undefined;
+const currentFile = fileURLToPath(import.meta.url);
+
+if (entryFile === currentFile) {
+  await startServer();
+}
