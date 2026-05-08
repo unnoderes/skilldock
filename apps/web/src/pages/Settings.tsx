@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, RefreshCw, ShieldCheck, Database, FileCode } from "lucide-react";
+import { Settings as SettingsIcon, Save, RefreshCw, ShieldCheck, Database, FileCode, Sun, Moon } from "lucide-react";
 import type { SkillDockConfig, Scope } from "@skilldock/shared";
 import { useSettings } from "../hooks/useSettings";
+import { useTheme } from "../contexts/ThemeContext";
 
 export function Settings() {
   const { query, mutation } = useSettings();
   const { data, isLoading } = query;
+  const { theme, toggleTheme } = useTheme();
 
   const [formData, setFormData] = useState<Partial<SkillDockConfig>>({});
 
@@ -81,6 +83,21 @@ export function Settings() {
                 />
                 <span className="text-sm font-medium">Collapse raw output details by default</span>
               </label>
+
+              <div className="flex items-center justify-between p-4 rounded-xl bg-surface-900/50 border border-border/50">
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold">Appearance</span>
+                  <span className="text-xs text-text-muted">Dark or light workspace theme</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="px-4 py-2 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-all"
+                >
+                  {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                </button>
+              </div>
             </div>
 
             <button

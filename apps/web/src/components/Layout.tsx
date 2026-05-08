@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { TaskDrawer } from "./TaskDrawer";
 import { useTask } from "../hooks/useTask";
+import { useTheme } from "../contexts/ThemeContext";
+import { Sun, Moon } from "lucide-react";
 
 export function Layout({ children, currentView, setView }: { children: React.ReactNode, currentView: string, setView: (v: string) => void }) {
   const { activeTask, stop, setActiveTask } = useTask();
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const { theme, toggleTheme } = useTheme();
 
   // Expose activeTask to children via some mechanism or just rely on global layout
   // For MVP, we'll pass setters down or use the hook in pages too
@@ -22,7 +25,13 @@ export function Layout({ children, currentView, setView }: { children: React.Rea
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Global status or user info would go here */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-surface-700 text-text-muted hover:text-text transition-colors"
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
+            >
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
           </div>
         </header>
 

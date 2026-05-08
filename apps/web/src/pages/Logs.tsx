@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { History, Search, ChevronRight, Terminal, Clock, Calendar, AlertTriangle } from "lucide-react";
+import { History, ChevronRight, Terminal, Clock, Calendar, AlertTriangle } from "lucide-react";
+import { SearchInput } from "../components/ui/SearchInput";
 import { useLogs } from "../hooks/useLogs";
 
 export function Logs() {
@@ -17,16 +18,12 @@ export function Logs() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-surface-800 p-6 rounded-2xl border border-border">
         <div className="flex items-center gap-6">
-          <div className="relative group">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-accent transition-colors" />
-            <input
-              type="text"
-              placeholder="Search logs..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9 py-2 text-xs w-80 bg-surface-900 border-border focus:ring-1 focus:ring-accent outline-none rounded-xl"
-            />
-          </div>
+          <SearchInput
+            placeholder="Search logs..."
+            value={search}
+            onChange={setSearch}
+            className="w-80"
+          />
 
           <div className="flex items-center gap-3">
             <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">Show</span>
