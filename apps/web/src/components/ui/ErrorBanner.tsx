@@ -1,5 +1,6 @@
 import React from "react";
 import { AlertCircle, RefreshCcw } from "lucide-react";
+import { useLocale } from "../../contexts/LocaleContext";
 
 export function ErrorBanner({
   message,
@@ -10,6 +11,7 @@ export function ErrorBanner({
   onRetry?: () => void;
   className?: string;
 }) {
+  const { t } = useLocale();
   return (
     <div
       role="alert"
@@ -27,7 +29,7 @@ export function ErrorBanner({
         >
           <span className="inline-flex items-center gap-1.5">
             <RefreshCcw size={14} />
-            Retry
+            {t("error.retry")}
           </span>
         </button>
       )}

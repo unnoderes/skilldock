@@ -8,8 +8,8 @@ export function EmptyState({
   icon: Icon = AlertCircle,
   className = "",
 }: {
-  title: string;
-  message: string;
+  title: string | React.ReactNode;
+  message: string | React.ReactNode;
   action?: React.ReactNode;
   icon?: LucideIcon;
   className?: string;
@@ -20,7 +20,7 @@ export function EmptyState({
         <Icon size={24} />
       </div>
       <h3 className="text-lg font-semibold mb-1">{title}</h3>
-      <p className="text-sm text-text-muted max-w-xs mb-6">{message}</p>
+      <div className="text-sm text-text-muted max-w-xs mb-6">{message}</div>
       {action}
     </div>
   );

@@ -3,6 +3,7 @@ import { Terminal, ChevronDown, ChevronUp, Clock, Hash, CheckCircle2, XCircle } 
 import type { TaskRecord, TaskOutputChunk } from "@skilldock/shared";
 import { StatusBadge } from "./ui/StatusBadge";
 import { ResultPanel } from "./ui/ResultPanel";
+import { useLocale } from "../contexts/LocaleContext";
 
 export function TaskDrawer({
   activeTask,
@@ -15,6 +16,7 @@ export function TaskDrawer({
   isOpen: boolean;
   setIsOpen: (o: boolean) => void;
 }) {
+  const { t } = useLocale();
   if (!activeTask) return null;
 
   const { task, title, transport } = activeTask;
@@ -22,7 +24,7 @@ export function TaskDrawer({
 
   const output = task.output.length > 0
     ? task.output
-    : [{ timestamp: task.createdAt, stream: "system", text: "Initializing task environment..." } satisfies TaskOutputChunk];
+    : [{ timestamp: task.createdAt, stream: "system", text: t("taskDrawer.initializing") } satisfies TaskOutputChunk];
 
   return (
     <div className={`fixed bottom-0 right-0 left-64 bg-surface-700 border-t border-border shadow-2xl transition-all z-40 ${
@@ -59,21 +61,21 @@ export function TaskDrawer({
           {/* Metadata Sidebar */}
           <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-border p-6 space-y-6 overflow-y-auto shrink-0 bg-surface-800/50">
             <section className="space-y-2">
-              <h4 className="text-[10px] uppercase font-bold tracking-widest text-text-muted">Lifecycle</h4>
+              <h4 className="text-[10px] uppercase font-bold tracking-widest text-text-muted">{t("taskDrawer.lifecycle")}</h4>
               <div className="space-y-2 font-mono text-[11px]">
                 <div className="flex justify-between">
-                  <span className="text-text-muted">Created</span>
+                  <span className="text-text-muted">{t("taskDrawer.created")}</span>
                   <span>{new Date(task.createdAt).toLocaleTimeString()}</span>
                 </div>
                 {task.startedAt && (
                   <div className="flex justify-between">
-                    <span className="text-text-muted">Started</span>
+                    <span className="text-text-muted">{t("taskDrawer.started")}</span>
                     <span>{new Date(task.startedAt).toLocaleTimeString()}</span>
                   </div>
                 )}
                 {task.finishedAt && (
                   <div className="flex justify-between">
-                    <span className="text-text-muted">Finished</span>
+                    <span className="text-text-muted">{t("taskDrawer.finished")}</span>
                     <span>{new Date(task.finishedAt).toLocaleTimeString()}</span>
                   </div>
                 )}
@@ -81,9 +83,9 @@ export function TaskDrawer({
             </section>
 
             <section className="space-y-2">
-              <h4 className="text-[10px] uppercase font-bold tracking-widest text-text-muted">Network</h4>
+              <h4 className="text-[10px] uppercase font-bold tracking-widest text-text-muted">{t("taskDrawer.network")}</h4>
               <div className="flex items-center justify-between text-[11px] font-mono">
-                <span className="text-text-muted">Transport</span>
+                <span className="text-text-muted">{t("taskDrawer.transport")}</span>
                 <span className="bg-surface-900 px-2 rounded border border-border">{transport}</span>
               </div>
             </section>
@@ -121,7 +123,7 @@ export function TaskDrawer({
 
             {task.result && (
               <div className="p-6 border-t border-border bg-surface-800/80">
-                <ResultPanel title="Final Execution Result" result={task.result} compact />
+                <ResultPanel title={t("taskDrawer.finalResult")} result={task.result} compact />
               </div>
             )}
           </div>

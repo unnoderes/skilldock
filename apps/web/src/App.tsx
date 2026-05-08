@@ -8,6 +8,7 @@ import { Logs } from "./pages/Logs";
 import { Settings } from "./pages/Settings";
 import { useTask } from "./hooks/useTask";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LocaleProvider } from "./contexts/LocaleContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,12 +60,14 @@ export function App() {
   };
 
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <Layout currentView={view} setView={setView}>
-          {renderView()}
-        </Layout>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <LocaleProvider>
+      <ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <Layout currentView={view} setView={setView}>
+            {renderView()}
+          </Layout>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </LocaleProvider>
   );
 }

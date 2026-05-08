@@ -8,16 +8,18 @@ import {
   Activity
 } from "lucide-react";
 import { useStatus } from "../hooks/useStatus";
+import { useLocale } from "../contexts/LocaleContext";
 
 export function Sidebar({ currentView, setView }: { currentView: string, setView: (v: string) => void }) {
   const { data: status } = useStatus();
+  const { t } = useLocale();
 
   const navItems = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "skills", label: "Skills", icon: Package },
-    { id: "mcp", label: "MCP Center", icon: Zap },
-    { id: "logs", label: "Activity Logs", icon: History },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "overview", label: t("nav.overview"), icon: LayoutDashboard },
+    { id: "skills", label: t("nav.skills"), icon: Package },
+    { id: "mcp", label: t("nav.mcp"), icon: Zap },
+    { id: "logs", label: t("nav.logs"), icon: History },
+    { id: "settings", label: t("nav.settings"), icon: Settings },
   ];
 
   const allAvailable = status?.cli.every(c => c.available);
@@ -32,7 +34,7 @@ export function Sidebar({ currentView, setView }: { currentView: string, setView
         <div className="flex items-center gap-2 mt-4">
           <div className={`w-2 h-2 rounded-full ${allAvailable ? "bg-success" : "bg-danger animate-pulse"}`} />
           <span className="text-[10px] uppercase font-bold tracking-widest text-text-muted">
-            CLI {allAvailable ? "Operational" : "Degraded"}
+            CLI {allAvailable ? t("sidebar.cliOperational") : t("sidebar.cliDegraded")}
           </span>
         </div>
       </div>
