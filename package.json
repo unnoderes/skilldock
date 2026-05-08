@@ -1,17 +1,39 @@
 {
   "name": "skilldock",
   "version": "0.0.0",
-  "private": true,
+  "description": "Local graphical console for npx skills and npx add-mcp.",
+  "private": false,
   "type": "module",
   "packageManager": "pnpm@10.33.2",
+  "bin": {
+    "skilldock": "./bin/skilldock.js"
+  },
+  "files": [
+    "bin",
+    "apps/server/dist",
+    "apps/web/dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "pnpm -r --parallel dev",
+    "start": "node ./bin/skilldock.js",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "prepack": "pnpm build"
   },
   "devDependencies": {
     "@types/node": "latest",
     "typescript": "latest"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/static": "^9.1.3",
+    "execa": "^9.6.1",
+    "fastify": "^5.8.5",
+    "zod": "^4.4.3"
   }
 }
