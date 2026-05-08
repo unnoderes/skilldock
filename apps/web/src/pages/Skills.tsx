@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Package, Plus, Trash2, RefreshCw, Info, Search, XCircle } from "lucide-react";
+import { Package, Plus, Trash2, RefreshCw, Info, XCircle } from "lucide-react";
+import { SearchInput } from "../components/ui/SearchInput";
 import type { Scope, SkillRecord } from "@skilldock/shared";
 import { useSkillsList, useSkillInstall, useSkillRemove, useSkillUpdate } from "../hooks/useSkills";
 import { ScopeToggle } from "../components/ui/ScopeToggle";
@@ -111,16 +112,12 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-6">
           <ScopeToggle label="Scope" value={scope} onChange={setScope} />
-          <div className="relative group">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-accent transition-colors" />
-            <input
-              type="text"
-              placeholder="Search skills..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9 py-1.5 text-xs w-64 bg-surface-800 border-border focus:ring-1 focus:ring-accent outline-none rounded-lg"
-            />
-          </div>
+          <SearchInput
+            placeholder="Search skills..."
+            value={search}
+            onChange={setSearch}
+            className="w-64"
+          />
         </div>
 
         <form onSubmit={handleInstall} className="flex gap-2">

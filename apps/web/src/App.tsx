@@ -7,6 +7,7 @@ import { Mcp } from "./pages/Mcp";
 import { Logs } from "./pages/Logs";
 import { Settings } from "./pages/Settings";
 import { useTask } from "./hooks/useTask";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,10 +59,12 @@ export function App() {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Layout currentView={view} setView={setView}>
-        {renderView()}
-      </Layout>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <Layout currentView={view} setView={setView}>
+          {renderView()}
+        </Layout>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
