@@ -66,7 +66,7 @@ export function Logs() {
           </div>
         ) : (
           filteredLogs.map((log) => (
-            <details key={log.id} className="group rounded-2xl border border-border bg-surface-800 overflow-hidden transition-all hover:border-border-accent/30">
+            <details key={log.id} className="group rounded-2xl border border-border bg-surface-800 overflow-hidden transition-all hover:border-accent/30">
               <summary className="p-5 flex items-center justify-between cursor-pointer list-none hover:bg-surface-700/30">
                 <div className="flex items-center gap-6 min-w-0">
                   <div className={`p-2.5 rounded-xl shrink-0 ${log.result.exitCode === 0 ? "bg-success/10 text-success" : "bg-danger/10 text-danger"}`}>
