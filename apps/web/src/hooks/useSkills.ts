@@ -6,11 +6,21 @@ import type {
   SkillsUpdateRequest,
 } from "@skilldock/shared";
 import {
+  fetchSkillsFind,
   fetchSkillsList,
   installSkill,
   removeSkill,
   updateSkill,
 } from "../lib/api";
+
+export function useSkillsFind(query: string) {
+  return useQuery({
+    queryKey: ["skills", "find", query],
+    queryFn: () => fetchSkillsFind(query),
+    enabled: query.trim().length > 0,
+    staleTime: 30_000,
+  });
+}
 
 export function useSkillsList(scope: Scope) {
   return useQuery({

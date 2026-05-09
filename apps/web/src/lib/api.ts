@@ -6,6 +6,7 @@ import type {
   Scope,
   SettingsResponse,
   SettingsUpdateRequest,
+  SkillsFindResponse,
   SkillsInstallRequest,
   SkillsListResponse,
   SkillsRemoveRequest,
@@ -95,6 +96,14 @@ export function removeSkill(
   payload: SkillsRemoveRequest,
 ): Promise<TaskStartResponse> {
   return postJson<TaskStartResponse>("/api/skills/remove", payload);
+}
+
+export function fetchSkillsFind(
+  query: string,
+): Promise<SkillsFindResponse> {
+  return request<SkillsFindResponse>(
+    `/api/skills/find?q=${encodeURIComponent(query)}`,
+  );
 }
 
 export function updateSkill(
