@@ -1,0 +1,4 @@
+interface:
+  display_name: "Release npx Package"
+  short_description: "Prepare GitHub release PRs and publish npm/npx packages safely."
+  default_prompt: "Prepare a new npm/npx package release, run preflight checks, create a release PR, and publish to npm only after explicit confirmation."
