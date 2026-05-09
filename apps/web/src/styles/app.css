@@ -67,6 +67,7 @@ pre {
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-word;
+  overflow-wrap: anywhere;
   background: var(--color-surface-900);
   border-radius: 12px;
   padding: 16px;
@@ -74,6 +75,10 @@ pre {
   border: 1px solid var(--color-surface-600);
   font-family: var(--font-mono);
   font-size: 13px;
+}
+
+code {
+  overflow-wrap: anywhere;
 }
 
 details { border-top: 1px solid var(--color-surface-600); padding-top: 12px; }
