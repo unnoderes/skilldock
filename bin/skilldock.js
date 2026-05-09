@@ -12,7 +12,7 @@ function color(code, text) {
   return useColor ? `\x1b[${code}m${text}\x1b[0m` : text;
 }
 
-function renderBanner(url) {
+function renderBanner(url, version) {
   const title = [
     " ____  _    _ _ _ ____             _    ",
     "/ ___|| | _(_) | |  _ \\  ___   ___| | __",
@@ -28,6 +28,7 @@ ${color(90, "The local console for agent skills and MCP")}
 ${color(90, "$")} npx skilldock                 ${color(90, "Start the local console")}
 ${color(90, "$")} npx skilldock --port 3301     ${color(90, "Choose a server port")}
 
+${color(90, "Version")}    skilldock v${version}
 ${color(90, "Local URL")}  ${url}`;
 }
 
@@ -94,8 +95,9 @@ try {
       ?? process.env.SKILLDOCK_SERVER_PORT
       ?? String(DEFAULT_PORT),
   );
+  const version = await readPackageVersion(rootDir);
   const displayUrl = `http://${host}:${port}`;
-  console.log(renderBanner(displayUrl));
+  console.log(renderBanner(displayUrl, version));
   console.log("");
 
   const { startServer } = await import("../apps/server/dist/index.js");
