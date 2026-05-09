@@ -294,7 +294,16 @@ function cloneTask(task: TaskRecord): TaskRecord {
   };
 }
 
-async function runCli(command: "npx", args: string[], source = "unknown"): Promise<CommandResult> {
+type RunCliOptions = {
+  persistLog?: boolean;
+};
+
+async function runCli(
+  command: "npx",
+  args: string[],
+  source = "unknown",
+  options: RunCliOptions = {},
+): Promise<CommandResult> {
   const started = Date.now();
   let result: CommandResult;
   try {
@@ -319,7 +328,9 @@ async function runCli(command: "npx", args: string[], source = "unknown"): Promi
     };
   }
 
-  await persistOperationLog(source, result);
+  if (options.persistLog !== false) {
+    await persistOperationLog(source, result);
+  }
   return result;
 }
 
@@ -448,9 +459,6 @@ async function runCliTask(command: "npx", args: string[], source: string, taskId
     appendTaskChunk(taskId, "system", `Execution error: ${result.stderr}`);
   }
 
-  if (result.stdout) appendTaskChunk(taskId, "stdout", result.stdout);
-  if (result.stderr) appendTaskChunk(taskId, "stderr", result.stderr);
-
   const logEntry = await persistOperationLog(source, result);
 
   updateTask(taskId, (task) => {
@@ -492,7 +500,7 @@ function pushRepeatedFlag(args: string[], flag: string, values: string[]): void 
 }
 
 async function cliStatus(name: CliName): Promise<AppStatus["cli"][number]> {
-  const result = await runCli("npx", [name, "--version"], `GET /api/status (${name})`);
+  const result = await runCli("npx", [name, "--version"], `GET /api/status (${name})`, { persistLog: false });
   const version = result.stdout.trim() || result.stderr.trim();
   return {
     name,
