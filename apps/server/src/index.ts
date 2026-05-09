@@ -18,6 +18,7 @@ import type {
   SettingsUpdateRequest,
   SkillDockConfig,
   SkillRecord,
+  SkillsFindResponse,
   SkillsListResponse,
   TaskGetResponse,
   TaskOutputChunk,
@@ -65,6 +66,15 @@ const stringArray = <T extends z.ZodTypeAny>(schema: T, max = 20) => z.array(sch
 
 const skillsListQuerySchema = z.object({
   scope: scopeSchema.default("project"),
+});
+
+const queryParamSchema = z.string().trim().min(1).max(200).refine(
+  (value) => !/[\x00-\x08\x0b\x0c\x0e-\x1f;|&`$(){}[\]<>!#~]/.test(value),
+  "query contains invalid characters",
+);
+
+const skillsFindQuerySchema = z.object({
+  q: queryParamSchema,
 });
 
 const mcpListQuerySchema = z.object({
@@ -563,6 +573,12 @@ server.get("/api/skills/list", async (request): Promise<SkillsListResponse> => {
     skills = JSON.parse(result.stdout) as SkillRecord[];
   }
   return { result, skills };
+});
+
+server.get("/api/skills/find", async (request): Promise<SkillsFindResponse> => {
+  const { q } = skillsFindQuerySchema.parse(request.query);
+  const result = await runCli("npx", ["skills", "find", q], "GET /api/skills/find");
+  return { result };
 });
 
 server.post("/api/skills/install", async (request): Promise<TaskStartResponse> => {
