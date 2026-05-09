@@ -11,7 +11,7 @@ interface SkillsDiscoveryProps {
   onRequestInstall: (packageName: string) => void;
 }
 
-export function SkillsDiscovery({ scope, onRequestInstall }: SkillsDiscoveryProps) {
+export function SkillsDiscovery({ scope }: SkillsDiscoveryProps) {
   const { t } = useLocale();
   const [query, setQuery] = useState("");
   const { data, isFetching: isLoading, error } = useSkillsFind(query);
@@ -19,13 +19,6 @@ export function SkillsDiscovery({ scope, onRequestInstall }: SkillsDiscoveryProp
   const result: CommandResult | undefined = data?.result;
   const hasSearched = query.trim().length > 0 && result !== undefined;
   const showSpinner = query.trim().length > 0 && isLoading;
-
-  const extractPackageNames = (stdout: string): string[] => {
-    return stdout
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0 && !line.startsWith("#") && !line.startsWith("━"));
-  };
 
   return (
     <div className="space-y-4">
@@ -73,24 +66,6 @@ export function SkillsDiscovery({ scope, onRequestInstall }: SkillsDiscoveryProp
         />
       )}
 
-      {hasSearched && result && result.exitCode === 0 && result.stdout && (
-        <div className="space-y-2">
-          <p className="text-xs text-text-muted font-bold uppercase tracking-wider">
-            {t("skills.discoverInstallHint")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {extractPackageNames(result.stdout).map((pkg) => (
-              <button
-                key={pkg}
-                onClick={() => onRequestInstall(pkg)}
-                className="px-3 py-1.5 rounded-lg bg-surface-800 border border-border hover:border-accent/50 hover:bg-accent/5 text-xs font-mono text-text hover:text-accent transition-all"
-              >
-                {pkg}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
