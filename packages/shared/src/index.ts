@@ -109,6 +109,14 @@ export type SkillsUpdateRequest = {
   scope?: UpdateScope;
 };
 
+export type SkillsFindQuery = {
+  query: string;
+};
+
+export type SkillsFindResponse = {
+  result: CommandResult;
+};
+
 export type SkillsCommandResponse = {
   result: CommandResult;
 };
