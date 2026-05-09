@@ -43,6 +43,12 @@ export type TranslationKey =
   | "skills.removeButton"
   | "skills.installedInSystem"
   | "skills.noAgents"
+  | "skills.discoverTitle"
+  | "skills.discoverPlaceholder"
+  | "skills.discoverResults"
+  | "skills.discoverInstallHint"
+  | "skills.searching"
+  | "skills.searchError"
   | "mcp.addServerTitle"
   | "mcp.addServerMessage"
   | "mcp.addServerName"
@@ -143,6 +149,12 @@ const enUS: Record<TranslationKey, string> = {
   "skills.removeButton": "Remove Skill",
   "skills.installedInSystem": "Installed in system",
   "skills.noAgents": "No agents associated",
+  "skills.discoverTitle": "Discover Skills",
+  "skills.discoverPlaceholder": "Search for skills (e.g. vercel-labs)...",
+  "skills.discoverResults": "Results for \"{{query}}\"",
+  "skills.discoverInstallHint": "Click a package name to install it:",
+  "skills.searching": "Searching for \"{{query}}\"...",
+  "skills.searchError": "Search failed. Please try again.",
   "mcp.addServerTitle": "Add MCP Server",
   "mcp.addServerMessage": "You are about to add MCP server: {{target}}",
   "mcp.addServerName": "Name: {{name}}",
@@ -244,6 +256,12 @@ const zhCN: Record<TranslationKey, string> = {
   "skills.removeButton": "移除 Skill",
   "skills.installedInSystem": "已安装于系统中",
   "skills.noAgents": "未关联 Agents",
+  "skills.discoverTitle": "发现 Skills",
+  "skills.discoverPlaceholder": "搜索 Skills（如 vercel-labs）...",
+  "skills.discoverResults": "\"{{query}}\" 的搜索结果",
+  "skills.discoverInstallHint": "点击包名进行安装：",
+  "skills.searching": "正在搜索 \"{{query}}\"...",
+  "skills.searchError": "搜索失败，请重试。",
   "mcp.addServerTitle": "添加 MCP Server",
   "mcp.addServerMessage": "即将添加 MCP Server：{{target}}",
   "mcp.addServerName": "名称：{{name}}",

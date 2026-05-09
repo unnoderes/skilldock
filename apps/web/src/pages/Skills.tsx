@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { Package, Plus, Trash2, RefreshCw, Info, XCircle } from "lucide-react";
+import { Package, Trash2, RefreshCw, Info, XCircle } from "lucide-react";
 import { SearchInput } from "../components/ui/SearchInput";
 import type { Scope, SkillRecord } from "@skilldock/shared";
 import { useSkillsList, useSkillInstall, useSkillRemove, useSkillUpdate } from "../hooks/useSkills";
 import { ScopeToggle } from "../components/ui/ScopeToggle";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
-import { StatusBadge } from "../components/ui/StatusBadge";
 import { ApiError } from "../lib/api";
 import { useLocale } from "../contexts/LocaleContext";
+import { SkillsInstall } from "../components/SkillsInstall";
+import { SkillsDiscovery } from "../components/SkillsDiscovery";
 
 export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
   const [scope, setScope] = useState<Scope>("project");
@@ -20,7 +21,6 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   const removeMutation = useSkillRemove();
   const updateMutation = useSkillUpdate();
 
-  // Dialog states
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean;
     title: string;
@@ -30,9 +30,6 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
     confirmLabel?: string;
   } | null>(null);
 
-  // Form states
-  const [installPackage, setInstallPackage] = useState("");
-
   const filteredSkills = skillsData?.skills.filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
     s.agents?.some(a => a.toLowerCase().includes(search.toLowerCase()))
@@ -40,28 +37,23 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
 
   const mutationError = installMutation.error || removeMutation.error || updateMutation.error;
 
-  const handleInstall = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!installPackage.trim()) return;
+  const executeInstall = async (packageName: string) => {
+    const res = await installMutation.mutateAsync({ packageName, scope });
+    onTaskStart(res.taskId, `${t("skills.install")} ${packageName}`);
+    setConfirmState(null);
+  };
 
+  const handleInstallRequest = (packageName: string) => {
     setConfirmState({
       isOpen: true,
       title: t("skills.installTitle"),
       message: [
-        t("skills.installMessage", { package: installPackage }),
+        t("skills.installMessage", { package: packageName }),
         t("skills.installScope", { scope }),
-        t("skills.installDescription")
+        t("skills.installDescription"),
       ],
       confirmLabel: t("skills.install"),
-      onConfirm: async () => {
-        const res = await installMutation.mutateAsync({
-          packageName: installPackage,
-          scope,
-        });
-        onTaskStart(res.taskId, `${t("skills.install")} ${installPackage}`);
-        setInstallPackage("");
-        setConfirmState(null);
-      }
+      onConfirm: () => executeInstall(packageName),
     });
   };
 
@@ -115,35 +107,28 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           <span>{mutationError instanceof ApiError ? mutationError.message : t("common.operationFailed")}</span>
         </div>
       )}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
-          <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
-          <SearchInput
-            placeholder={t("skills.searchPlaceholder")}
-            value={search}
-            onChange={setSearch}
-            className="w-64"
-          />
-        </div>
 
-        <form onSubmit={handleInstall} className="flex gap-2">
-          <input
-            type="text"
-            placeholder={t("skills.packagePlaceholder")}
-            value={installPackage}
-            onChange={e => setInstallPackage(e.target.value)}
-            className="text-xs py-1.5 w-64 bg-surface-800 border-border rounded-lg"
-          />
-          <button
-            type="submit"
-            disabled={!installPackage.trim() || installMutation.isPending}
-            className="px-4 py-1.5 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
-          >
-            <Plus size={14} />
-            {t("skills.install")}
-          </button>
-        </form>
+      <header className="flex items-center gap-6">
+        <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
+        <SearchInput
+          placeholder={t("skills.searchPlaceholder")}
+          value={search}
+          onChange={setSearch}
+          className="w-64"
+        />
       </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SkillsInstall
+          scope={scope}
+          isPending={installMutation.isPending}
+          onInstall={handleInstallRequest}
+        />
+        <SkillsDiscovery
+          scope={scope}
+          onRequestInstall={handleInstallRequest}
+        />
+      </div>
 
       <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {isLoading ? (
@@ -199,10 +184,6 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
                     {agent}
                   </span>
                 )) || <span className="text-[10px] italic text-text-muted">{t("skills.noAgents")}</span>}
-              </div>
-
-              <div className="absolute top-0 right-0 p-4">
-                {/* Could add a status indicator here if backend provided it per-skill */}
               </div>
             </article>
           ))
