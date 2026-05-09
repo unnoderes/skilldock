@@ -63,7 +63,15 @@ export function App() {
     <LocaleProvider>
       <ThemeProvider>
         <QueryClientProvider client={queryClient}>
-          <Layout currentView={view} setView={setView}>
+          <Layout
+            currentView={view}
+            setView={setView}
+            activeTask={activeTask}
+            onCloseTask={() => {
+              stop();
+              setActiveTask(null);
+            }}
+          >
             {renderView()}
           </Layout>
         </QueryClientProvider>

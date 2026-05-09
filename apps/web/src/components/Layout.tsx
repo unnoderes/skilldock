@@ -1,13 +1,30 @@
 import React, { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { TaskDrawer } from "./TaskDrawer";
-import { useTask } from "../hooks/useTask";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLocale } from "../contexts/LocaleContext";
 import { Sun, Moon, Languages } from "lucide-react";
+import type { TaskRecord } from "@skilldock/shared";
 
-export function Layout({ children, currentView, setView }: { children: React.ReactNode, currentView: string, setView: (v: string) => void }) {
-  const { activeTask, stop, setActiveTask } = useTask();
+type ActiveTask = {
+  title: string;
+  task: TaskRecord;
+  transport: "sse" | "polling";
+};
+
+export function Layout({
+  children,
+  currentView,
+  setView,
+  activeTask,
+  onCloseTask,
+}: {
+  children: React.ReactNode;
+  currentView: string;
+  setView: (v: string) => void;
+  activeTask: ActiveTask | null;
+  onCloseTask: () => void;
+}) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   const { theme, toggleTheme } = useTheme();
   const { locale, toggleLocale, t } = useLocale();
@@ -57,7 +74,7 @@ export function Layout({ children, currentView, setView }: { children: React.Rea
 
         <TaskDrawer
           activeTask={activeTask}
-          onClose={() => { stop(); setActiveTask(null); }}
+          onClose={onCloseTask}
           isOpen={isDrawerOpen}
           setIsOpen={setIsDrawerOpen}
         />
