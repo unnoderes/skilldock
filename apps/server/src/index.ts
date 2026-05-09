@@ -26,7 +26,7 @@ import type {
   TaskStreamEvent,
 } from "@skilldock/shared";
 
-const server = Fastify({ logger: true });
+const server = Fastify({ logger: process.env.SKILLDOCK_SERVER_LOGGER !== "false" });
 await server.register(cors, { origin: true });
 
 const PORT = Number(process.env.SKILLDOCK_SERVER_PORT ?? 3301);
