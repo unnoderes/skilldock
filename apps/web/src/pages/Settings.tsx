@@ -110,14 +110,14 @@ export function Settings() {
 
                     <div className="flex flex-col gap-2.5">
                       <span className="text-xs font-semibold opacity-0 select-none">Placeholder</span>
-                      <label className="flex items-center gap-3 px-4 rounded-lg bg-surface-900/50 border border-border cursor-pointer select-none transition-all hover:bg-surface-900 hover:border-accent/40 h-11">
+                      <label className="flex items-center gap-3 px-4 rounded-lg bg-surface-900/50 border border-border cursor-pointer select-none transition-all hover:bg-surface-900 hover:border-accent/40 min-h-11 py-2">
                         <input
                           type="checkbox"
                           checked={formData.collapseRawOutput}
                           onChange={e => setFormData(p => ({ ...p, collapseRawOutput: e.target.checked }))}
-                          className="w-4 h-4 rounded border-border text-accent focus:ring-0 focus:ring-offset-0 bg-surface-900"
+                          className="w-4 h-4 rounded border-border text-accent focus:ring-0 focus:ring-offset-0 bg-surface-900 shrink-0"
                         />
-                        <span className="text-xs font-medium text-text-muted">{t("settings.collapseRawOutput")}</span>
+                        <span className="text-xs font-medium text-text-muted leading-tight">{t("settings.collapseRawOutput")}</span>
                       </label>
                     </div>
                   </div>
