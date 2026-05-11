@@ -3,7 +3,8 @@ import fastifyStatic from "@fastify/static";
 import { execa } from "execa";
 import Fastify from "fastify";
 import crypto from "node:crypto";
-import { access, appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { constants as fsConstants } from "node:fs";
+import { access, appendFile, mkdir, readFile, realpath, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,6 +15,11 @@ import type {
   CommandResult,
   LogsListResponse,
   OperationLogEntry,
+  ProjectAddRequest,
+  ProjectRecord,
+  ProjectSetActiveRequest,
+  ProjectStatus,
+  ProjectsResponse,
   SettingsResponse,
   SettingsUpdateRequest,
   SkillDockConfig,
@@ -34,8 +40,10 @@ const PORT = Number(process.env.SKILLDOCK_SERVER_PORT ?? 3301);
 const HOST = process.env.SKILLDOCK_SERVER_HOST ?? "127.0.0.1";
 const SKILLDOCK_DIRECTORY = path.join(os.homedir(), ".skilldock");
 const CONFIG_FILE_PATH = path.join(SKILLDOCK_DIRECTORY, "config.json");
+const PROJECTS_FILE_PATH = path.join(SKILLDOCK_DIRECTORY, "projects.json");
 const LOG_DIRECTORY = path.join(SKILLDOCK_DIRECTORY, "logs");
 const LOG_FILE_PATH = path.join(LOG_DIRECTORY, "operations.jsonl");
+const LAUNCH_PROJECT_PATH = process.cwd();
 const DEFAULT_LOG_LIMIT = 50;
 const MAX_LOG_LIMIT = 100;
 const MAX_TASKS = 100;
@@ -56,6 +64,7 @@ const DEFAULT_SETTINGS_CONFIG: SkillDockConfig = {
 
 const scopeSchema = z.enum(["project", "global"]);
 const updateScopeSchema = z.enum(["project", "global", "auto"]);
+const projectStatusSchema = z.enum(["valid", "missing", "not-directory", "inaccessible"]);
 const packageNameSchema = z.string().trim().min(1).max(200).regex(/^[A-Za-z0-9._/@:+-]+$/, "invalid package name");
 const simpleValueSchema = z.string().trim().min(1).max(120).regex(/^[A-Za-z0-9._:@+/-]+$/, "invalid value");
 const mcpTargetSchema = z.string().trim().min(1).max(500).refine((value) => !/[\r\n]/.test(value), "target must be a single line");
@@ -85,20 +94,49 @@ const logsListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(MAX_LOG_LIMIT).optional(),
 });
 
+const projectRecordSchema = z.object({
+  id: z.string().trim().min(1),
+  name: z.string().trim().min(1),
+  path: z.string().trim().min(1),
+  status: projectStatusSchema,
+  isLaunchProject: z.boolean(),
+  addedAt: z.string().trim().min(1),
+  lastUsedAt: z.string().trim().min(1),
+  lastValidatedAt: z.string().trim().min(1),
+});
+
+const projectsRegistrySchema = z.object({
+  projects: z.array(projectRecordSchema).default([]),
+});
+
 const settingsFileSchema = z.object({
   defaultSkillsScope: scopeSchema.default(DEFAULT_SETTINGS_CONFIG.defaultSkillsScope),
   defaultMcpScope: scopeSchema.default(DEFAULT_SETTINGS_CONFIG.defaultMcpScope),
   defaultLogsLimit: z.number().int().min(1).max(MAX_LOG_LIMIT).default(DEFAULT_SETTINGS_CONFIG.defaultLogsLimit),
   collapseRawOutput: z.boolean().default(DEFAULT_SETTINGS_CONFIG.collapseRawOutput),
+  activeProjectId: z.string().trim().min(1).optional(),
 });
 
-const settingsUpdateBodySchema = settingsFileSchema.partial().refine(
+const settingsUpdateBodySchema = settingsFileSchema.omit({ activeProjectId: true }).partial().refine(
   (value) => Object.keys(value).length > 0,
   { message: "provide at least one settings field" },
 );
 
 const taskParamsSchema = z.object({
   id: z.string().uuid(),
+});
+
+const projectParamsSchema = z.object({
+  id: z.string().trim().min(1),
+});
+
+const projectAddBodySchema = z.object({
+  path: z.string().trim().min(1),
+  makeActive: z.boolean().default(true),
+});
+
+const projectSetActiveBodySchema = z.object({
+  projectId: z.string().trim().min(1),
 });
 
 const skillsInstallBodySchema = z.object({
@@ -198,6 +236,297 @@ async function ensureSkillDockDirectory(): Promise<void> {
   await mkdir(SKILLDOCK_DIRECTORY, { recursive: true });
 }
 
+class ApiError extends Error {
+  statusCode: number;
+  code: string;
+
+  constructor(statusCode: number, code: string, message: string) {
+    super(message);
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
+type ProjectsRegistry = z.infer<typeof projectsRegistrySchema>;
+
+type ProjectsState = {
+  projects: ProjectRecord[];
+  activeProjectId: string;
+  launchProjectId: string;
+};
+
+function nowIso(): string {
+  return new Date().toISOString();
+}
+
+function createApiError(statusCode: number, code: string, message: string): ApiError {
+  return new ApiError(statusCode, code, message);
+}
+
+function buildProjectId(projectPath: string): string {
+  return crypto.createHash("sha256").update(projectPath).digest("hex").slice(0, 16);
+}
+
+function deriveProjectName(projectPath: string): string {
+  return path.basename(projectPath) || projectPath;
+}
+
+function compareProjects(a: ProjectRecord, b: ProjectRecord): number {
+  if (a.isLaunchProject !== b.isLaunchProject) {
+    return a.isLaunchProject ? -1 : 1;
+  }
+
+  const lastUsedDiff = b.lastUsedAt.localeCompare(a.lastUsedAt);
+  if (lastUsedDiff !== 0) return lastUsedDiff;
+  return a.name.localeCompare(b.name) || a.path.localeCompare(b.path);
+}
+
+function sortProjects(projects: ProjectRecord[]): ProjectRecord[] {
+  return [...projects].sort(compareProjects);
+}
+
+function indexProjectsById(projects: ProjectRecord[]): Map<string, ProjectRecord> {
+  const indexed = new Map<string, ProjectRecord>();
+  for (const project of projects) {
+    indexed.set(project.id, project);
+  }
+  return indexed;
+}
+
+function dedupeProjects(projects: ProjectRecord[]): ProjectRecord[] {
+  return [...indexProjectsById(projects).values()];
+}
+
+function updateProjectInList(projects: ProjectRecord[], nextProject: ProjectRecord): ProjectRecord[] {
+  const nextProjects = projects.map((project) => (project.id === nextProject.id ? nextProject : project));
+  if (!nextProjects.some((project) => project.id === nextProject.id)) {
+    nextProjects.push(nextProject);
+  }
+  return nextProjects;
+}
+
+function touchProject(project: ProjectRecord, timestamp: string): ProjectRecord {
+  return {
+    ...project,
+    lastUsedAt: timestamp,
+  };
+}
+
+function normalizeLaunchFlags(projects: ProjectRecord[], launchProjectId: string): { projects: ProjectRecord[]; changed: boolean } {
+  let changed = false;
+  const nextProjects = projects.map((project) => {
+    const shouldBeLaunchProject = project.id === launchProjectId;
+    const nextName = deriveProjectName(project.path);
+
+    if (project.isLaunchProject === shouldBeLaunchProject && project.name === nextName) {
+      return project;
+    }
+
+    changed = true;
+    return {
+      ...project,
+      isLaunchProject: shouldBeLaunchProject,
+      name: nextName,
+    };
+  });
+
+  return { projects: nextProjects, changed };
+}
+
+async function getProjectStatus(projectPath: string): Promise<ProjectStatus> {
+  try {
+    const stats = await stat(projectPath);
+    if (!stats.isDirectory()) return "not-directory";
+    await access(projectPath, fsConstants.R_OK | fsConstants.X_OK);
+    return "valid";
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") return "missing";
+    if (code === "EACCES" || code === "EPERM") return "inaccessible";
+    return "inaccessible";
+  }
+}
+
+async function validateProjectPath(inputPath: string): Promise<string> {
+  const trimmedPath = inputPath.trim();
+  if (!path.isAbsolute(trimmedPath)) {
+    throw createApiError(400, "INVALID_PROJECT_PATH", "project path must be absolute");
+  }
+
+  let canonicalPath: string;
+  try {
+    canonicalPath = await realpath(trimmedPath);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") {
+      throw createApiError(400, "PROJECT_NOT_FOUND", "project path does not exist");
+    }
+    if (code === "EACCES" || code === "EPERM") {
+      throw createApiError(400, "PROJECT_INACCESSIBLE", "project path is not accessible");
+    }
+    throw error;
+  }
+
+  let stats;
+  try {
+    stats = await stat(canonicalPath);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") {
+      throw createApiError(400, "PROJECT_NOT_FOUND", "project path does not exist");
+    }
+    if (code === "EACCES" || code === "EPERM") {
+      throw createApiError(400, "PROJECT_INACCESSIBLE", "project path is not accessible");
+    }
+    throw error;
+  }
+
+  if (!stats.isDirectory()) {
+    throw createApiError(400, "PROJECT_NOT_DIRECTORY", "project path is not a directory");
+  }
+
+  try {
+    await access(canonicalPath, fsConstants.R_OK | fsConstants.X_OK);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "EACCES" || code === "EPERM") {
+      throw createApiError(400, "PROJECT_INACCESSIBLE", "project path is not accessible");
+    }
+    throw error;
+  }
+
+  return canonicalPath;
+}
+
+function createProjectRecord(
+  projectPath: string,
+  overrides: Partial<ProjectRecord> = {},
+): ProjectRecord {
+  const timestamp = overrides.lastValidatedAt ?? nowIso();
+  return {
+    id: overrides.id ?? buildProjectId(projectPath),
+    name: overrides.name ?? deriveProjectName(projectPath),
+    path: overrides.path ?? projectPath,
+    status: overrides.status ?? "valid",
+    isLaunchProject: overrides.isLaunchProject ?? false,
+    addedAt: overrides.addedAt ?? timestamp,
+    lastUsedAt: overrides.lastUsedAt ?? timestamp,
+    lastValidatedAt: overrides.lastValidatedAt ?? timestamp,
+  };
+}
+
+async function revalidateProject(project: ProjectRecord): Promise<ProjectRecord> {
+  return {
+    ...project,
+    name: deriveProjectName(project.path),
+    status: await getProjectStatus(project.path),
+    lastValidatedAt: nowIso(),
+  };
+}
+
+async function readProjectsRegistry(): Promise<ProjectsRegistry> {
+  try {
+    const content = await readFile(PROJECTS_FILE_PATH, "utf8");
+    const parsed = JSON.parse(content) as unknown;
+    return projectsRegistrySchema.parse(parsed);
+  } catch (error) {
+    const nodeError = error as NodeJS.ErrnoException;
+    if (nodeError.code === "ENOENT") {
+      return { projects: [] };
+    }
+    if (error instanceof SyntaxError || error instanceof ZodError) {
+      server.log.warn({ err: error, projectsPath: PROJECTS_FILE_PATH }, "invalid projects registry, using empty registry");
+      return { projects: [] };
+    }
+    throw error;
+  }
+}
+
+async function writeProjectsRegistry(projects: ProjectRecord[]): Promise<void> {
+  await ensureSkillDockDirectory();
+  const registry = projectsRegistrySchema.parse({
+    projects: sortProjects(projects),
+  });
+  await writeFile(PROJECTS_FILE_PATH, `${JSON.stringify(registry, null, 2)}\n`, "utf8");
+}
+
+async function ensureLaunchProject(projects: ProjectRecord[]): Promise<{ projects: ProjectRecord[]; launchProjectId: string; changed: boolean }> {
+  const launchProjectPath = await validateProjectPath(LAUNCH_PROJECT_PATH);
+  const launchProjectId = buildProjectId(launchProjectPath);
+  const timestamp = nowIso();
+  const indexedProjects = indexProjectsById(projects);
+  const existingLaunchProject = indexedProjects.get(launchProjectId);
+
+  const { projects: normalizedProjects, changed: normalizedChanged } = normalizeLaunchFlags(projects, launchProjectId);
+
+  if (existingLaunchProject) {
+    const nextLaunchProject = createProjectRecord(launchProjectPath, {
+      ...existingLaunchProject,
+      path: launchProjectPath,
+      isLaunchProject: true,
+    });
+    const launchChanged = JSON.stringify(existingLaunchProject) !== JSON.stringify(nextLaunchProject);
+    return {
+      projects: updateProjectInList(normalizedProjects, nextLaunchProject),
+      launchProjectId,
+      changed: normalizedChanged || launchChanged,
+    };
+  }
+
+  return {
+    projects: [
+      ...normalizedProjects,
+      createProjectRecord(launchProjectPath, {
+        isLaunchProject: true,
+        addedAt: timestamp,
+        lastUsedAt: timestamp,
+        lastValidatedAt: timestamp,
+      }),
+    ],
+    launchProjectId,
+    changed: true,
+  };
+}
+
+async function resolveProjectsState(): Promise<ProjectsState> {
+  const registry = await readProjectsRegistry();
+  const launchResolved = await ensureLaunchProject(dedupeProjects(registry.projects));
+  let projects = launchResolved.projects;
+  let registryChanged = launchResolved.changed;
+
+  const revalidatedProjects = await Promise.all(projects.map((project) => revalidateProject(project)));
+  if (JSON.stringify(revalidatedProjects) !== JSON.stringify(projects)) {
+    registryChanged = true;
+  }
+  projects = revalidatedProjects;
+
+  const settingsRead = await readSkillDockConfig();
+  const launchProject = projects.find((project) => project.id === launchResolved.launchProjectId);
+  if (!launchProject) {
+    throw new Error("launch project missing from registry");
+  }
+
+  const activeProject = settingsRead.config.activeProjectId
+    ? projects.find((project) => project.id === settingsRead.config.activeProjectId)
+    : undefined;
+  const activeProjectId = activeProject?.status === "valid"
+    ? activeProject.id
+    : launchProject.id;
+
+  if (settingsRead.config.activeProjectId !== activeProjectId) {
+    await writeSkillDockConfig({ activeProjectId });
+  }
+  if (registryChanged) {
+    await writeProjectsRegistry(projects);
+  }
+
+  return {
+    projects: sortProjects(projects),
+    activeProjectId,
+    launchProjectId: launchProject.id,
+  };
+}
+
 async function appendOperationLog(entry: OperationLogEntry): Promise<OperationLogEntry> {
   await ensureLogDirectory();
   await appendFile(LOG_FILE_PATH, `${JSON.stringify(entry)}\n`, "utf8");
@@ -283,7 +612,7 @@ function buildSettingsResponse(readResult: ConfigReadResult): SettingsResponse {
   };
 }
 
-async function writeSkillDockConfig(update: SettingsUpdateRequest): Promise<SettingsResponse> {
+async function writeSkillDockConfig(update: Partial<SkillDockConfig>): Promise<SettingsResponse> {
   const current = await readSkillDockConfig();
   const merged = settingsFileSchema.parse({
     ...current.config,
@@ -528,10 +857,17 @@ server.setErrorHandler((error, request, reply) => {
     });
   }
 
+  if (error instanceof ApiError) {
+    return reply.status(error.statusCode).send({
+      error: error.code,
+      message: redact(error.message),
+    });
+  }
+
   const statusCode = (error as Error & { statusCode?: number }).statusCode;
-  if (statusCode === 404) {
-    return reply.status(404).send({
-      error: "NOT_FOUND",
+  if (statusCode === 404 || statusCode === 400) {
+    return reply.status(statusCode).send({
+      error: (error as Error & { code?: string }).code ?? (statusCode === 404 ? "NOT_FOUND" : "BAD_REQUEST"),
       message: redact(error instanceof Error ? error.message : String(error)),
     });
   }
@@ -561,6 +897,69 @@ server.get("/api/settings", async (): Promise<SettingsResponse> => buildSettings
 server.put("/api/settings", async (request): Promise<SettingsResponse> => {
   const body = settingsUpdateBodySchema.parse(request.body);
   return writeSkillDockConfig(body);
+});
+
+server.get("/api/projects", async (): Promise<ProjectsResponse> => resolveProjectsState());
+
+server.post("/api/projects", async (request): Promise<ProjectsResponse> => {
+  const body = projectAddBodySchema.parse(request.body) as ProjectAddRequest;
+  const canonicalPath = await validateProjectPath(body.path);
+  const currentState = await resolveProjectsState();
+  const existingProject = currentState.projects.find((project) => project.id === buildProjectId(canonicalPath));
+  const timestamp = nowIso();
+  const nextProject = createProjectRecord(canonicalPath, {
+    ...existingProject,
+    path: canonicalPath,
+    status: "valid",
+    name: deriveProjectName(canonicalPath),
+    lastUsedAt: timestamp,
+    lastValidatedAt: timestamp,
+  });
+
+  await writeProjectsRegistry(updateProjectInList(currentState.projects, nextProject));
+  if (body.makeActive !== false) {
+    await writeSkillDockConfig({ activeProjectId: nextProject.id });
+  }
+
+  return resolveProjectsState();
+});
+
+server.put("/api/projects/active", async (request): Promise<ProjectsResponse> => {
+  const body = projectSetActiveBodySchema.parse(request.body) as ProjectSetActiveRequest;
+  const currentState = await resolveProjectsState();
+  const existingProject = currentState.projects.find((project) => project.id === body.projectId);
+  if (!existingProject) {
+    throw createApiError(404, "PROJECT_NOT_FOUND", "project not found");
+  }
+
+  const revalidatedProject = await revalidateProject(existingProject);
+  if (revalidatedProject.status !== "valid") {
+    await writeProjectsRegistry(updateProjectInList(currentState.projects, revalidatedProject));
+    throw createApiError(400, "PROJECT_INVALID", "project path is no longer accessible");
+  }
+
+  const nextProject = touchProject(revalidatedProject, nowIso());
+  await writeProjectsRegistry(updateProjectInList(currentState.projects, nextProject));
+  await writeSkillDockConfig({ activeProjectId: nextProject.id });
+  return resolveProjectsState();
+});
+
+server.delete("/api/projects/:id", async (request): Promise<ProjectsResponse> => {
+  const { id } = projectParamsSchema.parse(request.params);
+  const currentState = await resolveProjectsState();
+  const existingProject = currentState.projects.find((project) => project.id === id);
+  if (!existingProject) {
+    throw createApiError(404, "PROJECT_NOT_FOUND", "project not found");
+  }
+  if (existingProject.isLaunchProject) {
+    throw createApiError(400, "INVALID_REQUEST", "launch project cannot be removed");
+  }
+
+  await writeProjectsRegistry(currentState.projects.filter((project) => project.id !== id));
+  if (currentState.activeProjectId === id) {
+    await writeSkillDockConfig({ activeProjectId: currentState.launchProjectId });
+  }
+  return resolveProjectsState();
 });
 
 server.get("/api/skills/list", async (request): Promise<SkillsListResponse> => {

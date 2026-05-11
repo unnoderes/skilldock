@@ -25,6 +25,40 @@ export type CommandResult = {
   durationMs: number;
 };
 
+export type ProjectStatus = "valid" | "missing" | "not-directory" | "inaccessible";
+
+export type ProjectRecord = {
+  id: string;
+  name: string;
+  path: string;
+  status: ProjectStatus;
+  isLaunchProject: boolean;
+  addedAt: string;
+  lastUsedAt: string;
+  lastValidatedAt: string;
+};
+
+export type ProjectsResponse = {
+  projects: ProjectRecord[];
+  activeProjectId: string;
+  launchProjectId: string;
+};
+
+export type ProjectAddRequest = {
+  path: string;
+  makeActive?: boolean;
+};
+
+export type ProjectSetActiveRequest = {
+  projectId: string;
+};
+
+export type ProjectContext = {
+  projectId: string;
+  projectName: string;
+  projectPath: string;
+};
+
 export type OperationLogEntry = {
   id: string;
   timestamp: string;
@@ -150,6 +184,7 @@ export type SkillDockConfig = {
   defaultMcpScope: Scope;
   defaultLogsLimit: number;
   collapseRawOutput: boolean;
+  activeProjectId?: string;
 };
 
 export type SettingsMetadata = {
@@ -167,4 +202,4 @@ export type SettingsResponse = {
   metadata: SettingsMetadata;
 };
 
-export type SettingsUpdateRequest = Partial<SkillDockConfig>;
+export type SettingsUpdateRequest = Partial<Omit<SkillDockConfig, "activeProjectId">>;
