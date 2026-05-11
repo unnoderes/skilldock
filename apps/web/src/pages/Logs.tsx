@@ -125,8 +125,20 @@ export function Logs() {
                 </div>
 
                 <div className="mt-5">
-                  <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-2">{t("logs.fullCommand")}</h5>
-                  <pre className="p-3 rounded-lg border-border/60 text-xs">
+                  <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-2">{t("logs.command")}</h5>
+                  <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.command")}</span>
+                      <span className="font-mono font-bold text-accent">{log.result.command}</span>
+                    </div>
+                    {log.result.args.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.args")}</span>
+                        <span className="font-mono">{log.result.args.join(" ")}</span>
+                      </div>
+                    )}
+                  </div>
+                  <pre className="p-3 rounded-lg border border-surface-600/50 text-xs">
                     <span className="text-accent font-bold">{log.result.command}</span>
                     {log.result.args.length > 0 ? " " + log.result.args.join(" ") : ""}
                   </pre>
@@ -139,7 +151,7 @@ export function Logs() {
                       <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.standardOutput")}</h5>
                     </div>
                     {log.result.stdout ? (
-                      <pre className="p-3 rounded-lg border-border/60 text-xs max-h-48 overflow-auto">{log.result.stdout}</pre>
+                      <pre className="p-3 rounded-lg border border-surface-600/50 text-xs max-h-48 overflow-auto">{log.result.stdout}</pre>
                     ) : (
                       <div className="p-3 rounded-lg border border-dashed border-border text-xs text-text-muted italic">{t("logs.noStdout")}</div>
                     )}
@@ -150,7 +162,7 @@ export function Logs() {
                       <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.standardError")}</h5>
                     </div>
                     {log.result.stderr ? (
-                      <pre className="p-3 rounded-lg border-border/60 border-l-2 border-l-danger text-xs max-h-48 overflow-auto">{log.result.stderr}</pre>
+                      <pre className="p-3 rounded-lg border border-surface-600/50 border-l-2 border-l-danger text-xs max-h-48 overflow-auto">{log.result.stderr}</pre>
                     ) : (
                       <div className="p-3 rounded-lg border border-dashed border-border text-xs text-text-muted italic">{t("logs.noStderr")}</div>
                     )}
