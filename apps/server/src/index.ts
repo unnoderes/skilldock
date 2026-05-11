@@ -16,6 +16,7 @@ import type {
   LogsListResponse,
   OperationLogEntry,
   ProjectAddRequest,
+  ProjectContext,
   ProjectRecord,
   ProjectSetActiveRequest,
   ProjectStatus,
@@ -26,11 +27,13 @@ import type {
   SkillRecord,
   SkillsFindResponse,
   SkillsListResponse,
+  Scope,
   TaskGetResponse,
   TaskOutputChunk,
   TaskRecord,
   TaskStartResponse,
   TaskStreamEvent,
+  UpdateScope,
 } from "@skilldock/shared";
 
 const server = Fastify({ logger: process.env.SKILLDOCK_SERVER_LOGGER !== "false" });
@@ -72,9 +75,11 @@ const serverNameSchema = z.string().trim().min(1).max(120).regex(/^[A-Za-z0-9._-
 const headerSchema = z.string().trim().min(3).max(500).refine((value) => /^[^:\s][^:]*:\s*.+$/.test(value), "header must match 'Key: Value'");
 const envSchema = z.string().trim().min(3).max(500).regex(/^[A-Za-z_][A-Za-z0-9_]*=.+$/, "env must match KEY=VALUE");
 const stringArray = <T extends z.ZodTypeAny>(schema: T, max = 20) => z.array(schema).max(max).default([]);
+const projectIdSchema = z.string().trim().min(1).max(200);
 
 const skillsListQuerySchema = z.object({
   scope: scopeSchema.default("project"),
+  projectId: projectIdSchema.optional(),
 });
 
 const queryParamSchema = z.string().trim().min(1).max(200).refine(
@@ -88,6 +93,7 @@ const skillsFindQuerySchema = z.object({
 
 const mcpListQuerySchema = z.object({
   scope: scopeSchema.default("project"),
+  projectId: projectIdSchema.optional(),
 });
 
 const logsListQuerySchema = z.object({
@@ -127,7 +133,7 @@ const taskParamsSchema = z.object({
 });
 
 const projectParamsSchema = z.object({
-  id: z.string().trim().min(1),
+  id: projectIdSchema,
 });
 
 const projectAddBodySchema = z.object({
@@ -142,6 +148,7 @@ const projectSetActiveBodySchema = z.object({
 const skillsInstallBodySchema = z.object({
   packageName: packageNameSchema,
   scope: scopeSchema.default("project"),
+  projectId: projectIdSchema.optional(),
   agents: stringArray(simpleValueSchema),
   skillNames: stringArray(simpleValueSchema, 50),
   copy: z.boolean().default(false),
@@ -160,6 +167,7 @@ const skillsInstallBodySchema = z.object({
 const skillsRemoveBodySchema = z.object({
   names: stringArray(simpleValueSchema, 50),
   scope: scopeSchema.default("project"),
+  projectId: projectIdSchema.optional(),
   agents: stringArray(simpleValueSchema),
   skillNames: stringArray(simpleValueSchema, 50),
   all: z.boolean().default(false),
@@ -183,11 +191,13 @@ const skillsRemoveBodySchema = z.object({
 const skillsUpdateBodySchema = z.object({
   names: stringArray(simpleValueSchema, 50),
   scope: updateScopeSchema.default("auto"),
+  projectId: projectIdSchema.optional(),
 });
 
 const mcpAddBodySchema = z.object({
   target: mcpTargetSchema,
   scope: scopeSchema.default("project"),
+  projectId: projectIdSchema.optional(),
   agents: stringArray(simpleValueSchema),
   name: serverNameSchema.optional(),
   transport: z.enum(["http", "sse"]).optional(),
@@ -527,17 +537,49 @@ async function resolveProjectsState(): Promise<ProjectsState> {
   };
 }
 
+async function resolveProjectContext(projectId?: string): Promise<ProjectContext> {
+  const currentState = await resolveProjectsState();
+  const resolvedProjectId = projectId ?? currentState.activeProjectId;
+  const project = currentState.projects.find((candidate) => candidate.id === resolvedProjectId);
+  if (!project) {
+    throw createApiError(404, "PROJECT_NOT_FOUND", "project not found");
+  }
+
+  const revalidatedProject = await revalidateProject(project);
+  if (revalidatedProject.status !== "valid") {
+    await writeProjectsRegistry(updateProjectInList(currentState.projects, revalidatedProject));
+    throw createApiError(400, "PROJECT_INVALID", "project path is no longer accessible");
+  }
+
+  return {
+    projectId: revalidatedProject.id,
+    projectName: revalidatedProject.name,
+    projectPath: revalidatedProject.path,
+  };
+}
+
 async function appendOperationLog(entry: OperationLogEntry): Promise<OperationLogEntry> {
   await ensureLogDirectory();
   await appendFile(LOG_FILE_PATH, `${JSON.stringify(entry)}\n`, "utf8");
   return entry;
 }
 
-async function persistOperationLog(source: string, result: CommandResult): Promise<OperationLogEntry | undefined> {
+type CliExecutionMetadata = {
+  project?: ProjectContext;
+  scope?: Scope | UpdateScope;
+};
+
+async function persistOperationLog(
+  source: string,
+  result: CommandResult,
+  metadata: CliExecutionMetadata = {},
+): Promise<OperationLogEntry | undefined> {
   const entry: OperationLogEntry = {
     id: crypto.randomUUID(),
     timestamp: new Date().toISOString(),
     source,
+    project: metadata.project,
+    scope: metadata.scope,
     result,
   };
 
@@ -628,6 +670,7 @@ async function writeSkillDockConfig(update: Partial<SkillDockConfig>): Promise<S
 function cloneTask(task: TaskRecord): TaskRecord {
   return {
     ...task,
+    project: task.project ? { ...task.project } : undefined,
     output: task.output.map((chunk) => ({ ...chunk })),
     result: task.result ? { ...task.result, args: [...task.result.args] } : undefined,
   };
@@ -635,7 +678,8 @@ function cloneTask(task: TaskRecord): TaskRecord {
 
 type RunCliOptions = {
   persistLog?: boolean;
-};
+  cwd?: string;
+} & CliExecutionMetadata;
 
 async function runCli(
   command: "npx",
@@ -646,7 +690,11 @@ async function runCli(
   const started = Date.now();
   let result: CommandResult;
   try {
-    const execution = await execa(command, args, { reject: false, stripFinalNewline: false });
+    const execution = await execa(command, args, {
+      cwd: options.cwd,
+      reject: false,
+      stripFinalNewline: false,
+    });
     result = {
       command,
       args: redactArgs(args),
@@ -668,7 +716,7 @@ async function runCli(
   }
 
   if (options.persistLog !== false) {
-    await persistOperationLog(source, result);
+    await persistOperationLog(source, result, options);
   }
   return result;
 }
@@ -711,10 +759,12 @@ function updateTask(taskId: string, updater: (task: TaskRecord) => void): TaskRe
   return task;
 }
 
-function createTask(source: string): TaskRecord {
+function createTask(source: string, metadata: CliExecutionMetadata = {}): TaskRecord {
   const task: TaskRecord = {
     id: crypto.randomUUID(),
     source,
+    project: metadata.project,
+    scope: metadata.scope,
     status: "queued",
     createdAt: new Date().toISOString(),
     output: [],
@@ -757,7 +807,17 @@ function subscribeToTask(taskId: string, listener: (event: TaskStreamEvent) => v
   };
 }
 
-async function runCliTask(command: "npx", args: string[], source: string, taskId: string): Promise<void> {
+type RunCliTaskOptions = {
+  cwd?: string;
+} & CliExecutionMetadata;
+
+async function runCliTask(
+  command: "npx",
+  args: string[],
+  source: string,
+  taskId: string,
+  options: RunCliTaskOptions = {},
+): Promise<void> {
   updateTask(taskId, (task) => {
     task.status = "running";
     task.startedAt = new Date().toISOString();
@@ -769,6 +829,7 @@ async function runCliTask(command: "npx", args: string[], source: string, taskId
 
   try {
     const subprocess = execa(command, args, {
+      cwd: options.cwd,
       reject: false,
       stripFinalNewline: false,
     });
@@ -798,7 +859,7 @@ async function runCliTask(command: "npx", args: string[], source: string, taskId
     appendTaskChunk(taskId, "system", `Execution error: ${result.stderr}`);
   }
 
-  const logEntry = await persistOperationLog(source, result);
+  const logEntry = await persistOperationLog(source, result, options);
 
   updateTask(taskId, (task) => {
     task.result = result;
@@ -809,9 +870,9 @@ async function runCliTask(command: "npx", args: string[], source: string, taskId
   });
 }
 
-function startTask(command: "npx", args: string[], source: string): TaskStartResponse {
-  const task = createTask(source);
-  void runCliTask(command, args, source, task.id).catch((error) => {
+function startTask(command: "npx", args: string[], source: string, options: RunCliTaskOptions = {}): TaskStartResponse {
+  const task = createTask(source, options);
+  void runCliTask(command, args, source, task.id, options).catch((error) => {
     const message = redact(error instanceof Error ? error.message : String(error));
     server.log.error({ err: error, taskId: task.id, source }, "task execution failed unexpectedly");
     appendTaskChunk(task.id, "system", `Unexpected failure: ${message}`);
@@ -964,9 +1025,14 @@ server.delete("/api/projects/:id", async (request): Promise<ProjectsResponse> =>
 
 server.get("/api/skills/list", async (request): Promise<SkillsListResponse> => {
   const query = skillsListQuerySchema.parse(request.query);
+  const project = await resolveProjectContext(query.projectId);
   const args = ["skills", "list", "--json"];
   if (query.scope === "global") args.push("--global");
-  const result = await runCli("npx", args, "GET /api/skills/list");
+  const result = await runCli("npx", args, "GET /api/skills/list", {
+    cwd: project.projectPath,
+    project,
+    scope: query.scope,
+  });
   let skills: SkillRecord[] = [];
   if (result.exitCode === 0 && result.stdout.trim()) {
     skills = JSON.parse(result.stdout) as SkillRecord[];
@@ -982,6 +1048,7 @@ server.get("/api/skills/find", async (request): Promise<SkillsFindResponse> => {
 
 server.post("/api/skills/install", async (request): Promise<TaskStartResponse> => {
   const body = skillsInstallBodySchema.parse(request.body);
+  const project = await resolveProjectContext(body.projectId);
   const args = ["skills", "add", body.packageName, "--yes"];
 
   if (body.scope === "global") args.push("--global");
@@ -991,11 +1058,16 @@ server.post("/api/skills/install", async (request): Promise<TaskStartResponse> =
   pushRepeatedFlag(args, "--agent", body.agents);
   pushRepeatedFlag(args, "--skill", body.skillNames);
 
-  return startTask("npx", args, "POST /api/skills/install");
+  return startTask("npx", args, "POST /api/skills/install", {
+    cwd: project.projectPath,
+    project,
+    scope: body.scope,
+  });
 });
 
 server.post("/api/skills/remove", async (request): Promise<TaskStartResponse> => {
   const body = skillsRemoveBodySchema.parse(request.body);
+  const project = await resolveProjectContext(body.projectId);
   const args = ["skills", "remove", "--yes"];
 
   if (body.scope === "global") args.push("--global");
@@ -1004,17 +1076,26 @@ server.post("/api/skills/remove", async (request): Promise<TaskStartResponse> =>
   pushRepeatedFlag(args, "--agent", body.agents);
   pushRepeatedFlag(args, "--skill", body.skillNames);
 
-  return startTask("npx", args, "POST /api/skills/remove");
+  return startTask("npx", args, "POST /api/skills/remove", {
+    cwd: project.projectPath,
+    project,
+    scope: body.scope,
+  });
 });
 
 server.post("/api/skills/update", async (request): Promise<TaskStartResponse> => {
   const body = skillsUpdateBodySchema.parse(request.body);
+  const project = await resolveProjectContext(body.projectId);
   const args = ["skills", "update", "--yes", ...body.names];
 
   if (body.scope === "global") args.push("--global");
   if (body.scope === "project") args.push("--project");
 
-  return startTask("npx", args, "POST /api/skills/update");
+  return startTask("npx", args, "POST /api/skills/update", {
+    cwd: project.projectPath,
+    project,
+    scope: body.scope,
+  });
 });
 
 server.post("/api/skills/help", async (): Promise<CommandResult> => runCli("npx", ["skills", "--help"], "POST /api/skills/help"));
@@ -1022,13 +1103,19 @@ server.post("/api/mcp/help", async (): Promise<CommandResult> => runCli("npx", [
 server.get("/api/mcp/list-agents", async (): Promise<CommandResult> => runCli("npx", ["add-mcp", "list-agents"], "GET /api/mcp/list-agents"));
 server.get("/api/mcp/list", async (request): Promise<CommandResult> => {
   const query = mcpListQuerySchema.parse(request.query);
+  const project = await resolveProjectContext(query.projectId);
   const args = ["add-mcp", "list"];
   if (query.scope === "global") args.push("--global");
-  return runCli("npx", args, "GET /api/mcp/list");
+  return runCli("npx", args, "GET /api/mcp/list", {
+    cwd: project.projectPath,
+    project,
+    scope: query.scope,
+  });
 });
 
 server.post("/api/mcp/add", async (request): Promise<TaskStartResponse> => {
   const body = mcpAddBodySchema.parse(request.body);
+  const project = await resolveProjectContext(body.projectId);
   const args = ["add-mcp", body.target, "--yes"];
 
   if (body.scope === "global") args.push("--global");
@@ -1040,7 +1127,11 @@ server.post("/api/mcp/add", async (request): Promise<TaskStartResponse> => {
   pushRepeatedFlag(args, "--header", body.headers);
   pushRepeatedFlag(args, "--env", body.env);
 
-  return startTask("npx", args, "POST /api/mcp/add");
+  return startTask("npx", args, "POST /api/mcp/add", {
+    cwd: project.projectPath,
+    project,
+    scope: body.scope,
+  });
 });
 
 server.get("/api/tasks/:id", async (request): Promise<TaskGetResponse> => {
