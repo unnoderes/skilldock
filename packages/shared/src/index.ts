@@ -63,6 +63,8 @@ export type OperationLogEntry = {
   id: string;
   timestamp: string;
   source: string;
+  project?: ProjectContext;
+  scope?: Scope | UpdateScope;
   result: CommandResult;
 };
 
@@ -77,6 +79,8 @@ export type TaskOutputChunk = {
 export type TaskRecord = {
   id: string;
   source: string;
+  project?: ProjectContext;
+  scope?: Scope | UpdateScope;
   status: TaskStatus;
   createdAt: string;
   startedAt?: string;
@@ -109,10 +113,12 @@ export type SkillRecord = {
 
 export type SkillsListQuery = {
   scope?: Scope;
+  projectId?: string;
 };
 
 export type McpListQuery = {
   scope?: Scope;
+  projectId?: string;
 };
 
 export type SkillsListResponse = {
@@ -123,6 +129,7 @@ export type SkillsListResponse = {
 export type SkillsInstallRequest = {
   packageName: string;
   scope?: Scope;
+  projectId?: string;
   agents?: string[];
   skillNames?: string[];
   copy?: boolean;
@@ -133,6 +140,7 @@ export type SkillsInstallRequest = {
 export type SkillsRemoveRequest = {
   names?: string[];
   scope?: Scope;
+  projectId?: string;
   agents?: string[];
   skillNames?: string[];
   all?: boolean;
@@ -141,6 +149,7 @@ export type SkillsRemoveRequest = {
 export type SkillsUpdateRequest = {
   names?: string[];
   scope?: UpdateScope;
+  projectId?: string;
 };
 
 export type SkillsFindQuery = {
@@ -158,6 +167,7 @@ export type SkillsCommandResponse = {
 export type McpAddRequest = {
   target: string;
   scope?: Scope;
+  projectId?: string;
   agents?: string[];
   name?: string;
   transport?: "http" | "sse";
