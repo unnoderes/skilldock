@@ -32,6 +32,7 @@ export function Settings() {
 
   return (
     <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 pb-12">
+      <div className="bg-danger text-white p-2 text-center font-bold mb-4 rounded-lg">DEBUG: IF YOU SEE THIS, THE FILE IS UPDATED</div>
       {/* Tab Switcher Header */}
       <div className="flex items-center gap-1 bg-surface-800 p-1.5 rounded-t-xl border-x border-t border-border w-fit ml-1">
         <button
