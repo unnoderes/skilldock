@@ -64,7 +64,7 @@ export function Settings() {
             <div className="flex flex-col gap-6 max-w-2xl mx-auto">
               {/* Default Scopes */}
               <div className="space-y-3">
-                <p className="text-xs uppercase font-bold text-text-muted tracking-widest">DEBUG: Scopes</p>
+                <p className="text-xs uppercase font-bold text-text-muted tracking-widest">Default Scopes</p>
                 <div className="space-y-2">
                   <label className="grid grid-cols-[1fr_auto] items-center gap-6 p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all cursor-pointer">
                     <span className="text-sm font-medium whitespace-nowrap">{t("settings.defaultSkillsScope")}</span>
@@ -96,8 +96,8 @@ export function Settings() {
               <div className="space-y-3 pt-6 border-t border-border/30">
                 <p className="text-xs uppercase font-bold text-text-muted tracking-widest">Display & Logs</p>
                 <div className="space-y-2">
-                  <label className="flex items-center justify-between gap-6 p-4 px-5 rounded-lg bg-surface-900/50 border border-border hover:bg-surface-900/80 transition-colors cursor-pointer">
-                    <span className="text-sm font-medium whitespace-nowrap flex-1">{t("settings.recentLogsLimit")}</span>
+                  <label className="grid grid-cols-[1fr_auto] items-center gap-6 p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all cursor-pointer">
+                    <span className="text-sm font-medium whitespace-nowrap">{t("settings.recentLogsLimit")}</span>
                     <input
                       type="number"
                       min={5}
@@ -108,8 +108,8 @@ export function Settings() {
                     />
                   </label>
 
-                  <label className="flex items-center justify-between gap-6 p-4 px-5 rounded-lg bg-surface-900/50 border border-border cursor-pointer select-none hover:bg-surface-900/80 transition-colors">
-                    <span className="text-sm font-medium whitespace-nowrap flex-1">{t("settings.collapseRawOutput")}</span>
+                  <label className="grid grid-cols-[1fr_auto] items-center gap-6 p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all cursor-pointer select-none">
+                    <span className="text-sm font-medium whitespace-nowrap">{t("settings.collapseRawOutput")}</span>
                     <input
                       type="checkbox"
                       checked={formData.collapseRawOutput}
