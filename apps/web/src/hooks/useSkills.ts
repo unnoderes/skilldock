@@ -2,16 +2,38 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   Scope,
   SkillsInstallRequest,
+  SkillsListResponse,
   SkillsRemoveRequest,
   SkillsUpdateRequest,
 } from "@skilldock/shared";
 import {
   fetchSkillsFind,
-  fetchSkillsList,
   installSkill,
   removeSkill,
   updateSkill,
 } from "../lib/api";
+
+async function fetchProjectSkillsList(
+  scope: Scope,
+  activeProjectId: string | null,
+): Promise<SkillsListResponse> {
+  const params = new URLSearchParams({ scope });
+  if (activeProjectId) params.set("projectId", activeProjectId);
+
+  const response = await fetch(`/api/skills/list?${params.toString()}`);
+  if (!response.ok) {
+    const contentType = response.headers.get("content-type") ?? "";
+    const body = contentType.includes("application/json")
+      ? await response.json()
+      : await response.text();
+    throw new Error(
+      typeof body === "object" && body !== null && "message" in body
+        ? String((body as { message: string }).message)
+        : String(body),
+    );
+  }
+  return await response.json() as SkillsListResponse;
+}
 
 export function useSkillsFind(query: string) {
   return useQuery({
@@ -22,10 +44,10 @@ export function useSkillsFind(query: string) {
   });
 }
 
-export function useSkillsList(scope: Scope) {
+export function useSkillsList(scope: Scope, activeProjectId: string | null) {
   return useQuery({
-    queryKey: ["skills", scope],
-    queryFn: () => fetchSkillsList(scope),
+    queryKey: ["skills", activeProjectId, scope],
+    queryFn: () => fetchProjectSkillsList(scope, activeProjectId),
     staleTime: 15_000,
   });
 }

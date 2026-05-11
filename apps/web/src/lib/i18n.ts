@@ -35,6 +35,8 @@ export type TranslationKey =
   | "projects.addProjectFailed"
   | "projects.loadFailed"
   | "projects.invalidCannotSelect"
+  | "projects.invalidWriteDisabled"
+  | "projects.contextLine"
   | "projects.removeRecent"
   | "projects.launchCannotRemove"
   | "projects.launchProject"
@@ -179,6 +181,8 @@ const enUS: Record<TranslationKey, string> = {
   "projects.addProjectFailed": "Could not add this project.",
   "projects.loadFailed": "Could not load projects.",
   "projects.invalidCannotSelect": "This project is unavailable and cannot be selected.",
+  "projects.invalidWriteDisabled": "Project-scope writes are disabled because the current project is unavailable.",
+  "projects.contextLine": "Project: {{name}} ({{path}})",
   "projects.removeRecent": "Remove from recent projects",
   "projects.launchCannotRemove": "Launch project cannot be removed.",
   "projects.launchProject": "Launch project",
@@ -324,6 +328,8 @@ const zhCN: Record<TranslationKey, string> = {
   "projects.addProjectFailed": "无法添加该项目。",
   "projects.loadFailed": "无法加载项目列表。",
   "projects.invalidCannotSelect": "该项目不可用，不能切换到它。",
+  "projects.invalidWriteDisabled": "当前项目不可用，已禁用项目范围写操作。",
+  "projects.contextLine": "项目：{{name}}（{{path}}）",
   "projects.removeRecent": "从最近项目移除",
   "projects.launchCannotRemove": "启动项目不能移除。",
   "projects.launchProject": "启动项目",

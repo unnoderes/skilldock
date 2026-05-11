@@ -5,9 +5,13 @@ import { useLocale } from "../contexts/LocaleContext";
 export function SkillAddMenu({
   onInstall,
   onDiscover,
+  disabled = false,
+  disabledReason,
 }: {
   onInstall: () => void;
   onDiscover: () => void;
+  disabled?: boolean;
+  disabledReason?: string;
 }) {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
@@ -28,8 +32,12 @@ export function SkillAddMenu({
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => setOpen(!open)}
-        className="px-4 py-2 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-opacity shrink-0"
+        onClick={() => {
+          if (!disabled) setOpen(!open);
+        }}
+        disabled={disabled}
+        title={disabled ? disabledReason : undefined}
+        className="px-4 py-2 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50 transition-opacity shrink-0"
       >
         <Plus size={14} />
         {t("skills.addSkill")}

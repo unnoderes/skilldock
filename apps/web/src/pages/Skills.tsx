@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Package, Trash2, RefreshCw, XCircle } from "lucide-react";
 import { SearchInput } from "../components/ui/SearchInput";
-import type { Scope, SkillRecord } from "@skilldock/shared";
+import type { ProjectRecord, Scope, SkillRecord } from "@skilldock/shared";
 import { useSkillsList, useSkillInstall, useSkillRemove, useSkillUpdate } from "../hooks/useSkills";
+import { useProjects } from "../hooks/useProjects";
 import { ScopeToggle } from "../components/ui/ScopeToggle";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
@@ -14,7 +15,8 @@ import { SkillDiscoveryDialog } from "../components/SkillDiscoveryDialog";
 
 export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
   const [scope, setScope] = useState<Scope>("project");
-  const { data: skillsData, isLoading } = useSkillsList(scope);
+  const { activeProject, activeProjectId } = useProjects();
+  const { data: skillsData, isLoading } = useSkillsList(scope, activeProjectId);
   const [search, setSearch] = useState("");
   const { t } = useLocale();
 
@@ -40,19 +42,35 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   ) ?? [];
 
   const mutationError = installMutation.error || removeMutation.error || updateMutation.error;
+  const projectWriteDisabled = scope === "project" && activeProject?.status !== "valid";
+
+  const projectContextMessage = (project: ProjectRecord | null) => {
+    if (!project) return t("projects.loading");
+    return t("projects.contextLine", {
+      name: project.name,
+      path: project.path,
+    });
+  };
 
   const executeInstall = async (packageName: string) => {
-    const res = await installMutation.mutateAsync({ packageName, scope });
+    const res = await installMutation.mutateAsync({
+      packageName,
+      scope,
+      projectId: activeProjectId ?? undefined,
+    });
     onTaskStart(res.taskId, `${t("skills.install")} ${packageName}`);
     setConfirmState(null);
   };
 
   const handleInstallRequest = (packageName: string) => {
+    if (projectWriteDisabled) return;
+
     setConfirmState({
       isOpen: true,
       title: t("skills.installTitle"),
       message: [
         t("skills.installMessage", { package: packageName }),
+        projectContextMessage(activeProject),
         t("skills.installScope", { scope }),
         t("skills.installDescription"),
       ],
@@ -62,11 +80,14 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   };
 
   const handleUpdate = (skill: SkillRecord) => {
+    if (projectWriteDisabled) return;
+
     setConfirmState({
       isOpen: true,
       title: t("skills.updateTitle"),
       message: [
         t("skills.updateMessage", { name: skill.name }),
+        projectContextMessage(activeProject),
         t("skills.installScope", { scope }),
       ],
       confirmLabel: t("skills.updateButton"),
@@ -74,6 +95,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         const res = await updateMutation.mutateAsync({
           names: [skill.name],
           scope,
+          projectId: activeProjectId ?? undefined,
         });
         onTaskStart(res.taskId, `Updating ${skill.name}`);
         setConfirmState(null);
@@ -82,12 +104,15 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   };
 
   const handleRemove = (skill: SkillRecord) => {
+    if (projectWriteDisabled) return;
+
     setConfirmState({
       isOpen: true,
       title: t("skills.removeTitle"),
       isDangerous: true,
       message: [
         t("skills.removeMessage", { name: skill.name }),
+        projectContextMessage(activeProject),
         t("skills.installScope", { scope }),
         t("skills.removeWarning")
       ],
@@ -96,6 +121,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         const res = await removeMutation.mutateAsync({
           names: [skill.name],
           scope,
+          projectId: activeProjectId ?? undefined,
         });
         onTaskStart(res.taskId, `Removing ${skill.name}`);
         setConfirmState(null);
@@ -114,6 +140,13 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
 
       <header className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
         <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
+        <div className="min-w-0 text-xs text-text-muted">
+          <div className="font-bold text-text">{activeProject?.name ?? t("projects.loading")}</div>
+          <div className="truncate max-w-xs">{activeProject?.path ?? ""}</div>
+          {projectWriteDisabled ? (
+            <div className="mt-1 text-danger">{t("projects.invalidWriteDisabled")}</div>
+          ) : null}
+        </div>
         <SearchInput
           placeholder={t("skills.searchPlaceholder")}
           value={search}
@@ -124,6 +157,8 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           <SkillAddMenu
             onInstall={() => setInstallDialogOpen(true)}
             onDiscover={() => setDiscoverDialogOpen(true)}
+            disabled={projectWriteDisabled}
+            disabledReason={t("projects.invalidWriteDisabled")}
           />
         </div>
       </header>
@@ -142,13 +177,17 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
                 <div className="flex flex-col sm:flex-row gap-3 items-center">
                   <button
                     onClick={() => setInstallDialogOpen(true)}
-                    className="px-4 py-2 bg-accent text-white rounded-lg text-xs font-bold hover:opacity-90 transition-opacity"
+                    disabled={projectWriteDisabled}
+                    title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
+                    className="px-4 py-2 bg-accent text-white rounded-lg text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
                   >
                     {t("skills.installFromPackage")}
                   </button>
                   <button
                     onClick={() => setDiscoverDialogOpen(true)}
-                    className="px-4 py-2 border border-border rounded-lg text-xs font-bold hover:bg-surface-600 transition-colors"
+                    disabled={projectWriteDisabled}
+                    title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
+                    className="px-4 py-2 border border-border rounded-lg text-xs font-bold hover:bg-surface-600 disabled:opacity-50 transition-colors"
                   >
                     {t("skills.discoverSkills")}
                   </button>
@@ -166,15 +205,17 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleUpdate(skill)}
-                    className="p-2 hover:bg-accent/10 hover:text-accent rounded-lg text-text-muted transition-colors"
-                    title={t("skills.updateButton")}
+                    disabled={projectWriteDisabled}
+                    className="p-2 hover:bg-accent/10 hover:text-accent rounded-lg text-text-muted transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted"
+                    title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : t("skills.updateButton")}
                   >
                     <RefreshCw size={14} />
                   </button>
                   <button
                     onClick={() => handleRemove(skill)}
-                    className="p-2 hover:bg-danger/10 hover:text-danger rounded-lg text-text-muted transition-colors"
-                    title={t("skills.removeButton")}
+                    disabled={projectWriteDisabled}
+                    className="p-2 hover:bg-danger/10 hover:text-danger rounded-lg text-text-muted transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted"
+                    title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : t("skills.removeButton")}
                   >
                     <Trash2 size={14} />
                   </button>
