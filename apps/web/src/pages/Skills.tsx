@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Package, Trash2, RefreshCw, Info, XCircle } from "lucide-react";
+import { Package, Trash2, RefreshCw, XCircle } from "lucide-react";
 import { SearchInput } from "../components/ui/SearchInput";
 import type { Scope, SkillRecord } from "@skilldock/shared";
 import { useSkillsList, useSkillInstall, useSkillRemove, useSkillUpdate } from "../hooks/useSkills";
@@ -8,8 +8,9 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { ApiError } from "../lib/api";
 import { useLocale } from "../contexts/LocaleContext";
-import { SkillsInstall } from "../components/SkillsInstall";
-import { SkillsDiscovery } from "../components/SkillsDiscovery";
+import { SkillAddMenu } from "../components/SkillAddMenu";
+import { SkillInstallDialog } from "../components/SkillInstallDialog";
+import { SkillDiscoveryDialog } from "../components/SkillDiscoveryDialog";
 
 export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
   const [scope, setScope] = useState<Scope>("project");
@@ -29,6 +30,9 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
     isDangerous?: boolean;
     confirmLabel?: string;
   } | null>(null);
+
+  const [installDialogOpen, setInstallDialogOpen] = useState(false);
+  const [discoverDialogOpen, setDiscoverDialogOpen] = useState(false);
 
   const filteredSkills = skillsData?.skills.filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -108,27 +112,21 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         </div>
       )}
 
-      <header className="flex items-center gap-6">
+      <header className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
         <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
         <SearchInput
           placeholder={t("skills.searchPlaceholder")}
           value={search}
           onChange={setSearch}
-          className="w-64"
+          className="sm:w-64"
         />
+        <div className="sm:ml-auto">
+          <SkillAddMenu
+            onInstall={() => setInstallDialogOpen(true)}
+            onDiscover={() => setDiscoverDialogOpen(true)}
+          />
+        </div>
       </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SkillsInstall
-          scope={scope}
-          isPending={installMutation.isPending}
-          onInstall={handleInstallRequest}
-        />
-        <SkillsDiscovery
-          scope={scope}
-          onRequestInstall={handleInstallRequest}
-        />
-      </div>
 
       <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {isLoading ? (
@@ -141,9 +139,19 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
               title={t("skills.noSkillsFound")}
               message={search ? t("skills.noSearchMatch", { search, scope }) : t("skills.noSkillsInstalled", { scope })}
               action={!search && (
-                <div className="flex gap-4 items-center p-4 bg-accent/5 rounded-xl border border-accent/20 text-accent-light text-xs max-w-sm">
-                  <Info size={16} className="shrink-0" />
-                  <p>{t("skills.trySearchOrSwitch")}</p>
+                <div className="flex flex-col sm:flex-row gap-3 items-center">
+                  <button
+                    onClick={() => setInstallDialogOpen(true)}
+                    className="px-4 py-2 bg-accent text-white rounded-lg text-xs font-bold hover:opacity-90 transition-opacity"
+                  >
+                    {t("skills.installFromPackage")}
+                  </button>
+                  <button
+                    onClick={() => setDiscoverDialogOpen(true)}
+                    className="px-4 py-2 border border-border rounded-lg text-xs font-bold hover:bg-surface-600 transition-colors"
+                  >
+                    {t("skills.discoverSkills")}
+                  </button>
                 </div>
               )}
             />
@@ -199,6 +207,23 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           onConfirm={confirmState.onConfirm}
           onCancel={() => setConfirmState(null)}
           isDangerous={confirmState.isDangerous}
+        />
+      )}
+
+      {installDialogOpen && (
+        <SkillInstallDialog
+          scope={scope}
+          isPending={installMutation.isPending}
+          onInstall={handleInstallRequest}
+          onClose={() => setInstallDialogOpen(false)}
+        />
+      )}
+
+      {discoverDialogOpen && (
+        <SkillDiscoveryDialog
+          scope={scope}
+          onRequestInstall={handleInstallRequest}
+          onClose={() => setDiscoverDialogOpen(false)}
         />
       )}
     </div>

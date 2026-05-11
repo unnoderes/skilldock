@@ -23,7 +23,10 @@ export type TranslationKey =
   | "overview.recentActivity"
   | "overview.noRecentOperations"
   | "common.scope"
-  | "skills.searchPlaceholder"
+  | "skills.addSkill"
+| "skills.installFromPackage"
+| "skills.discoverSkills"
+| "skills.searchPlaceholder"
   | "skills.packagePlaceholder"
   | "skills.install"
   | "skills.installTitle"
@@ -142,6 +145,9 @@ const enUS: Record<TranslationKey, string> = {
   "overview.recentActivity": "Recent Activity",
   "overview.noRecentOperations": "No recent operations recorded.",
   "common.scope": "Scope",
+  "skills.addSkill": "Add Skill",
+  "skills.installFromPackage": "Install from package",
+  "skills.discoverSkills": "Discover skills",
   "skills.searchPlaceholder": "Search skills...",
   "skills.packagePlaceholder": "Package name (e.g. vercel-labs/skills)",
   "skills.install": "Install",
@@ -262,6 +268,9 @@ const zhCN: Record<TranslationKey, string> = {
   "overview.recentActivity": "最近活动",
   "overview.noRecentOperations": "暂无操作记录。",
   "common.scope": "范围",
+  "skills.addSkill": "添加 Skill",
+  "skills.installFromPackage": "从包安装",
+  "skills.discoverSkills": "发现 Skills",
   "skills.searchPlaceholder": "搜索 Skills...",
   "skills.packagePlaceholder": "包名（如 vercel-labs/skills）",
   "skills.install": "安装",
