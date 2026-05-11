@@ -60,8 +60,8 @@ export function Settings() {
 
       <div className="bg-surface-800 border border-border rounded-xl rounded-tl-none overflow-hidden min-h-[500px]">
         {activeTab === "preferences" ? (
-          <form onSubmit={handleSave} className="p-8 space-y-6 animate-in fade-in slide-in-from-left-2 duration-300">
-            <div className="flex flex-col gap-6 max-w-3xl">
+          <form onSubmit={handleSave} className="p-8 px-12 space-y-6 animate-in fade-in slide-in-from-left-2 duration-300">
+            <div className="flex flex-col gap-6 max-w-2xl mx-auto">
               {/* Default Scopes */}
               <div className="space-y-3">
                 <p className="text-xs uppercase font-bold text-text-muted tracking-widest">Default Scopes</p>
@@ -169,11 +169,11 @@ export function Settings() {
               </div>
             </div>
 
-            <div className="pt-6 border-t border-border/30 flex justify-end">
+            <div className="pt-6 border-t border-border/30 flex justify-center">
               <button
                 type="submit"
                 disabled={mutation.isPending}
-                className="w-full md:w-auto min-w-[180px] px-8 py-3 bg-accent text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-95 disabled:opacity-50 transition-all shadow-lg shadow-accent/10 active:scale-[0.98]"
+                className="w-full md:w-auto min-w-[200px] px-10 py-3 bg-accent text-white rounded-lg font-bold flex items-center justify-center gap-2 hover:opacity-95 disabled:opacity-50 transition-all shadow-lg shadow-accent/10 active:scale-[0.98]"
               >
                 {mutation.isPending ? <RefreshCw size={18} className="animate-spin" /> : <Save size={18} />}
                 {t("settings.savePreferences")}
