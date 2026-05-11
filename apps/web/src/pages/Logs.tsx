@@ -28,7 +28,7 @@ export function Logs() {
           />
 
           <div className="flex items-center gap-3">
-            <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.show")}</span>
+            <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest whitespace-nowrap">{t("logs.show")}</span>
             <select
               value={limit}
               onChange={e => setLimit(Number(e.target.value))}
