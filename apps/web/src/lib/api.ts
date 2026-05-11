@@ -3,6 +3,9 @@ import type {
   CommandResult,
   LogsListResponse,
   McpAddRequest,
+  ProjectAddRequest,
+  ProjectSetActiveRequest,
+  ProjectsResponse,
   Scope,
   SettingsResponse,
   SettingsUpdateRequest,
@@ -59,6 +62,14 @@ function postJson<T>(url: string, body: unknown): Promise<T> {
   });
 }
 
+function putJson<T>(url: string, body: unknown): Promise<T> {
+  return request<T>(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
 // Status
 export function fetchStatus(): Promise<AppStatus> {
   return request<AppStatus>("/api/status");
@@ -77,6 +88,30 @@ export function saveSettings(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(update),
   });
+}
+
+// Projects
+export function fetchProjects(): Promise<ProjectsResponse> {
+  return request<ProjectsResponse>("/api/projects");
+}
+
+export function addProject(
+  payload: ProjectAddRequest,
+): Promise<ProjectsResponse> {
+  return postJson<ProjectsResponse>("/api/projects", payload);
+}
+
+export function setActiveProject(
+  payload: ProjectSetActiveRequest,
+): Promise<ProjectsResponse> {
+  return putJson<ProjectsResponse>("/api/projects/active", payload);
+}
+
+export function removeProject(projectId: string): Promise<ProjectsResponse> {
+  return request<ProjectsResponse>(
+    `/api/projects/${encodeURIComponent(projectId)}`,
+    { method: "DELETE" },
+  );
 }
 
 // Skills

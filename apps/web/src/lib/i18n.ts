@@ -23,10 +23,30 @@ export type TranslationKey =
   | "overview.recentActivity"
   | "overview.noRecentOperations"
   | "common.scope"
+  | "projects.project"
+  | "projects.loading"
+  | "projects.currentProject"
+  | "projects.recentProjects"
+  | "projects.noRecentProjects"
+  | "projects.addLocalProject"
+  | "projects.addLocalProjectHint"
+  | "projects.projectPath"
+  | "projects.validateAndAdd"
+  | "projects.addProjectFailed"
+  | "projects.loadFailed"
+  | "projects.invalidCannotSelect"
+  | "projects.removeRecent"
+  | "projects.launchCannotRemove"
+  | "projects.launchProject"
+  | "projects.lastUsed"
+  | "projects.status.valid"
+  | "projects.status.missing"
+  | "projects.status.not-directory"
+  | "projects.status.inaccessible"
   | "skills.addSkill"
-| "skills.installFromPackage"
-| "skills.discoverSkills"
-| "skills.searchPlaceholder"
+  | "skills.installFromPackage"
+  | "skills.discoverSkills"
+  | "skills.searchPlaceholder"
   | "skills.packagePlaceholder"
   | "skills.install"
   | "skills.installTitle"
@@ -147,6 +167,26 @@ const enUS: Record<TranslationKey, string> = {
   "overview.recentActivity": "Recent Activity",
   "overview.noRecentOperations": "No recent operations recorded.",
   "common.scope": "Scope",
+  "projects.project": "Project",
+  "projects.loading": "Loading project",
+  "projects.currentProject": "Current Project",
+  "projects.recentProjects": "Recent Projects",
+  "projects.noRecentProjects": "No recent projects yet.",
+  "projects.addLocalProject": "Add Local Project",
+  "projects.addLocalProjectHint": "Enter an existing local directory path. SkillDock will register it before use.",
+  "projects.projectPath": "Project path",
+  "projects.validateAndAdd": "Validate & Add",
+  "projects.addProjectFailed": "Could not add this project.",
+  "projects.loadFailed": "Could not load projects.",
+  "projects.invalidCannotSelect": "This project is unavailable and cannot be selected.",
+  "projects.removeRecent": "Remove from recent projects",
+  "projects.launchCannotRemove": "Launch project cannot be removed.",
+  "projects.launchProject": "Launch project",
+  "projects.lastUsed": "Last used {{time}}",
+  "projects.status.valid": "valid",
+  "projects.status.missing": "missing",
+  "projects.status.not-directory": "not directory",
+  "projects.status.inaccessible": "inaccessible",
   "skills.addSkill": "Add Skill",
   "skills.installFromPackage": "Install from package",
   "skills.discoverSkills": "Discover skills",
@@ -272,6 +312,26 @@ const zhCN: Record<TranslationKey, string> = {
   "overview.recentActivity": "最近活动",
   "overview.noRecentOperations": "暂无操作记录。",
   "common.scope": "范围",
+  "projects.project": "项目",
+  "projects.loading": "正在加载项目",
+  "projects.currentProject": "当前项目",
+  "projects.recentProjects": "最近项目",
+  "projects.noRecentProjects": "暂无最近项目。",
+  "projects.addLocalProject": "添加本地项目",
+  "projects.addLocalProjectHint": "输入已存在的本地目录路径，SkillDock 会先注册后使用。",
+  "projects.projectPath": "项目路径",
+  "projects.validateAndAdd": "校验并添加",
+  "projects.addProjectFailed": "无法添加该项目。",
+  "projects.loadFailed": "无法加载项目列表。",
+  "projects.invalidCannotSelect": "该项目不可用，不能切换到它。",
+  "projects.removeRecent": "从最近项目移除",
+  "projects.launchCannotRemove": "启动项目不能移除。",
+  "projects.launchProject": "启动项目",
+  "projects.lastUsed": "最近使用 {{time}}",
+  "projects.status.valid": "有效",
+  "projects.status.missing": "缺失",
+  "projects.status.not-directory": "非目录",
+  "projects.status.inaccessible": "不可访问",
   "skills.addSkill": "添加 Skill",
   "skills.installFromPackage": "从包安装",
   "skills.discoverSkills": "发现 Skills",
