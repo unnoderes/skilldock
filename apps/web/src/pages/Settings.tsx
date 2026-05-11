@@ -32,7 +32,6 @@ export function Settings() {
 
   return (
     <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500 pb-12">
-      <div className="bg-danger text-white p-2 text-center font-bold mb-4 rounded-lg">DEBUG: IF YOU SEE THIS, THE FILE IS UPDATED</div>
       {/* Tab Switcher Header */}
       <div className="flex items-center gap-1 bg-surface-800 p-1.5 rounded-t-xl border-x border-t border-border w-fit ml-1">
         <button
@@ -68,11 +67,11 @@ export function Settings() {
                 <p className="text-xs uppercase font-bold text-text-muted tracking-widest">Default Scopes</p>
                 <div className="space-y-2">
                   <label className="flex items-center justify-between gap-6 p-4 px-5 rounded-lg bg-surface-900/50 border border-border hover:bg-surface-900/80 transition-colors cursor-pointer">
-                    <span className="text-sm font-medium">{t("settings.defaultSkillsScope")}</span>
+                    <span className="text-sm font-medium whitespace-nowrap flex-1">{t("settings.defaultSkillsScope")}</span>
                     <select
                       value={formData.defaultSkillsScope}
                       onChange={e => setFormData(p => ({ ...p, defaultSkillsScope: e.target.value as Scope }))}
-                      className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-3 transition-shadow w-44 cursor-pointer"
+                      className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-3 transition-shadow w-44 cursor-pointer shrink-0"
                     >
                       <option value="project">Project</option>
                       <option value="global">Global</option>
@@ -80,11 +79,11 @@ export function Settings() {
                   </label>
 
                   <label className="flex items-center justify-between gap-6 p-4 px-5 rounded-lg bg-surface-900/50 border border-border hover:bg-surface-900/80 transition-colors cursor-pointer">
-                    <span className="text-sm font-medium">{t("settings.defaultMcpScope")}</span>
+                    <span className="text-sm font-medium whitespace-nowrap flex-1">{t("settings.defaultMcpScope")}</span>
                     <select
                       value={formData.defaultMcpScope}
                       onChange={e => setFormData(p => ({ ...p, defaultMcpScope: e.target.value as Scope }))}
-                      className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-3 transition-shadow w-44 cursor-pointer"
+                      className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-3 transition-shadow w-44 cursor-pointer shrink-0"
                     >
                       <option value="project">Project</option>
                       <option value="global">Global</option>
@@ -98,19 +97,19 @@ export function Settings() {
                 <p className="text-xs uppercase font-bold text-text-muted tracking-widest">Display & Logs</p>
                 <div className="space-y-2">
                   <label className="flex items-center justify-between gap-6 p-4 px-5 rounded-lg bg-surface-900/50 border border-border hover:bg-surface-900/80 transition-colors cursor-pointer">
-                    <span className="text-sm font-medium">{t("settings.recentLogsLimit")}</span>
+                    <span className="text-sm font-medium whitespace-nowrap flex-1">{t("settings.recentLogsLimit")}</span>
                     <input
                       type="number"
                       min={5}
                       max={100}
                       value={formData.defaultLogsLimit}
                       onChange={e => setFormData(p => ({ ...p, defaultLogsLimit: Number(e.target.value) }))}
-                      className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-3 transition-shadow w-44 text-right"
+                      className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-3 transition-shadow w-44 text-right shrink-0"
                     />
                   </label>
 
                   <label className="flex items-center justify-between gap-6 p-4 px-5 rounded-lg bg-surface-900/50 border border-border cursor-pointer select-none hover:bg-surface-900/80 transition-colors">
-                    <span className="text-sm font-medium">{t("settings.collapseRawOutput")}</span>
+                    <span className="text-sm font-medium whitespace-nowrap flex-1">{t("settings.collapseRawOutput")}</span>
                     <input
                       type="checkbox"
                       checked={formData.collapseRawOutput}
