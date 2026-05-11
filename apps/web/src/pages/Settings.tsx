@@ -80,7 +80,7 @@ export function Settings() {
 
                 <div className="space-y-4 pt-4 border-t border-border/30">
                   <p className="text-[10px] uppercase font-bold text-text-muted/60 tracking-widest px-1">Display & Logs</p>
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
                     <label className="flex flex-col gap-2">
                       <span className="text-xs font-semibold">{t("settings.recentLogsLimit")}</span>
                       <input
@@ -93,14 +93,14 @@ export function Settings() {
                       />
                     </label>
 
-                    <label className="flex items-center gap-3 p-3 rounded-lg bg-surface-900/50 border border-border/40 cursor-pointer select-none transition-all hover:bg-surface-900 hover:border-border/60">
+                    <label className="flex items-center gap-3 p-2.5 rounded-lg bg-surface-900/50 border border-border/40 cursor-pointer select-none transition-all hover:bg-surface-900 hover:border-border/60 h-[38px]">
                       <input
                         type="checkbox"
                         checked={formData.collapseRawOutput}
                         onChange={e => setFormData(p => ({ ...p, collapseRawOutput: e.target.checked }))}
                         className="w-4 h-4 rounded border-border text-accent focus:ring-0 focus:ring-offset-0 bg-surface-900"
                       />
-                      <span className="text-sm font-medium">{t("settings.collapseRawOutput")}</span>
+                      <span className="text-xs font-medium">{t("settings.collapseRawOutput")}</span>
                     </label>
                   </div>
                 </div>
