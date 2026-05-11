@@ -110,7 +110,7 @@ export function Settings() {
 
                     <div className="flex flex-col gap-2.5">
                       <span className="text-xs font-semibold opacity-0 select-none">Placeholder</span>
-                      <label className="flex items-center gap-3 px-4 rounded-lg bg-surface-900/50 border border-border/40 cursor-pointer select-none transition-all hover:bg-surface-900 hover:border-border/60 h-11">
+                      <label className="flex items-center gap-3 px-4 rounded-lg bg-surface-900/50 border border-border cursor-pointer select-none transition-all hover:bg-surface-900 hover:border-accent/40 h-11">
                         <input
                           type="checkbox"
                           checked={formData.collapseRawOutput}
@@ -129,7 +129,7 @@ export function Settings() {
                 <div className="space-y-5">
                   <p className="text-[10px] uppercase font-bold text-text-muted/60 tracking-widest px-1">Workspace Style</p>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-surface-900/50 border border-border/40">
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-surface-900/50 border border-border">
                       <div className="flex flex-col">
                         <span className="text-sm font-semibold">{t("settings.appearance")}</span>
                         <span className="text-[10px] text-text-muted">{t("settings.appearanceDesc")}</span>
@@ -144,7 +144,7 @@ export function Settings() {
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-surface-900/50 border border-border/40">
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-surface-900/50 border border-border">
                       <div className="flex flex-col">
                         <span className="text-sm font-semibold">{t("language.label")}</span>
                         <span className="text-[10px] text-text-muted">{t("language.description")}</span>
