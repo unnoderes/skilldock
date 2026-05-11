@@ -187,23 +187,83 @@ export function Settings() {
             </div>
           </form>
         ) : (
-          <div className="animate-in fade-in slide-in-from-right-2 duration-300">
-            <div className="divide-y divide-border/40">
-              <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] items-baseline px-8 py-6 gap-3 md:gap-6">
-                <span className="text-xs uppercase font-bold text-text-muted/70 tracking-widest">{t("settings.configPath")}</span>
-                <div className="relative group">
-                  <code className="text-sm font-mono break-all text-text-muted selection:bg-accent/30 leading-relaxed block bg-surface-900/40 p-4 rounded-lg border border-border/20">
+          <div className="animate-in fade-in slide-in-from-right-2 duration-300 p-8 space-y-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Config Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-text-muted">
+                  <FileCode size={16} />
+                  <span className="text-xs uppercase font-bold tracking-widest">{t("settings.configPath")}</span>
+                </div>
+                <div className="bg-surface-900/40 p-5 rounded-xl border border-border/20 space-y-3">
+                  <code className="text-sm font-mono break-all text-text-muted leading-relaxed block">
                     {data?.metadata.configPath}
                   </code>
+                  <div className="flex items-center justify-between pt-2 border-t border-border/10">
+                    <span className="text-[10px] text-text-muted/60 italic">Location of your preferences</span>
+                    <button
+                      onClick={() => {
+                        if (data?.metadata.configPath) {
+                          navigator.clipboard.writeText(data.metadata.configPath);
+                        }
+                      }}
+                      className="text-[10px] font-bold text-accent hover:text-accent-light transition-colors uppercase tracking-wider"
+                    >
+                      Copy Path
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] items-baseline px-8 py-6 gap-3 md:gap-6">
-                <span className="text-xs uppercase font-bold text-text-muted/70 tracking-widest">{t("settings.logsPath")}</span>
-                <div className="relative group">
-                  <code className="text-sm font-mono break-all text-text-muted selection:bg-accent/30 leading-relaxed block bg-surface-900/40 p-4 rounded-lg border border-border/20">
+              {/* Logs Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-text-muted">
+                  <Database size={16} />
+                  <span className="text-xs uppercase font-bold tracking-widest">{t("settings.logsPath")}</span>
+                </div>
+                <div className="bg-surface-900/40 p-5 rounded-xl border border-border/20 space-y-3">
+                  <code className="text-sm font-mono break-all text-text-muted leading-relaxed block">
                     {data?.metadata.logPath}
                   </code>
+                  <div className="flex items-center justify-between pt-2 border-t border-border/10">
+                    <span className="text-[10px] text-text-muted/60 italic">Where execution logs reside</span>
+                    <button
+                      onClick={() => {
+                        if (data?.metadata.logPath) {
+                          navigator.clipboard.writeText(data.metadata.logPath);
+                        }
+                      }}
+                      className="text-[10px] font-bold text-accent hover:text-accent-light transition-colors uppercase tracking-wider"
+                    >
+                      Copy Path
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Grid */}
+            <div className="pt-6 border-t border-border/30">
+              <p className="text-[10px] uppercase font-bold text-text-muted/60 tracking-widest px-1 mb-4">System Status</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-xl bg-surface-900/50 border border-border/30 flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-text-muted/60 uppercase tracking-tighter">Config Status</span>
+                  <span className="text-xs font-bold text-success flex items-center gap-1.5 uppercase">
+                    <div className="w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+                    {data?.metadata.configStatus}
+                  </span>
+                </div>
+                <div className="p-4 rounded-xl bg-surface-900/50 border border-border/30 flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-text-muted/60 uppercase tracking-tighter">Environment</span>
+                  <span className="text-xs font-bold text-text-muted uppercase">Production</span>
+                </div>
+                <div className="p-4 rounded-xl bg-surface-900/50 border border-border/30 flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-text-muted/60 uppercase tracking-tighter">CLI Ready</span>
+                  <span className="text-xs font-bold text-accent-light uppercase">Yes</span>
+                </div>
+                <div className="p-4 rounded-xl bg-surface-900/50 border border-border/30 flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-text-muted/60 uppercase tracking-tighter">Permissions</span>
+                  <span className="text-xs font-bold text-text-muted uppercase">Verified</span>
                 </div>
               </div>
             </div>
