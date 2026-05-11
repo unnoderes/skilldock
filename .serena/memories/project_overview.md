@@ -1,0 +1,1 @@
+SkillDock is a pnpm workspace monorepo for a local graphical console around `npx skills` and `npx add-mcp`. Stack: React + Vite + TypeScript in `apps/web`, Fastify + TypeScript + execa in `apps/server`, shared API/types in `packages/shared`. Core docs live under `docs/`, with `docs/project-context/**` covering multi-project management design.
