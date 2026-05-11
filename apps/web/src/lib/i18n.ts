@@ -50,6 +50,8 @@ export type TranslationKey =
   | "skills.discoverPlaceholder"
   | "skills.discoverResults"
   | "skills.discoverInstallHint"
+  | "skills.discoveryEmpty"
+  | "skills.discoveryInstall"
   | "skills.searching"
   | "skills.searchError"
   | "mcp.addServerTitle"
@@ -172,6 +174,8 @@ const enUS: Record<TranslationKey, string> = {
   "skills.discoverPlaceholder": "Search for skills (e.g. vercel-labs)...",
   "skills.discoverResults": "Results for \"{{query}}\"",
   "skills.discoverInstallHint": "Click a package name to install it:",
+  "skills.discoveryEmpty": "No skills found. Try another query.",
+  "skills.discoveryInstall": "Install",
   "skills.searching": "Searching for \"{{query}}\"...",
   "skills.searchError": "Search failed. Please try again.",
   "mcp.addServerTitle": "Add MCP Server",
@@ -295,6 +299,8 @@ const zhCN: Record<TranslationKey, string> = {
   "skills.discoverPlaceholder": "搜索 Skills（如 vercel-labs）...",
   "skills.discoverResults": "\"{{query}}\" 的搜索结果",
   "skills.discoverInstallHint": "点击包名进行安装：",
+  "skills.discoveryEmpty": "未找到 Skills，尝试其他关键词。",
+  "skills.discoveryInstall": "安装",
   "skills.searching": "正在搜索 \"{{query}}\"...",
   "skills.searchError": "搜索失败，请重试。",
   "mcp.addServerTitle": "添加 MCP Server",
