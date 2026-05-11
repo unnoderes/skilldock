@@ -73,6 +73,15 @@ export type TranslationKey =
   | "logs.standardOutput"
   | "logs.standardError"
   | "logs.empty"
+  | "logs.exitCode"
+  | "logs.duration"
+  | "logs.timestamp"
+  | "logs.source"
+  | "logs.command"
+  | "logs.args"
+  | "logs.fullCommand"
+  | "logs.noStdout"
+  | "logs.noStderr"
   | "settings.userPreferences"
   | "settings.defaultSkillsScope"
   | "settings.defaultMcpScope"
@@ -179,6 +188,15 @@ const enUS: Record<TranslationKey, string> = {
   "logs.standardOutput": "Standard Output",
   "logs.standardError": "Standard Error",
   "logs.empty": "(empty)",
+  "logs.exitCode": "Exit code",
+  "logs.duration": "Duration",
+  "logs.timestamp": "Timestamp",
+  "logs.source": "Source",
+  "logs.command": "Command",
+  "logs.args": "Arguments",
+  "logs.fullCommand": "Full command",
+  "logs.noStdout": "No stdout output",
+  "logs.noStderr": "No stderr output",
   "settings.userPreferences": "User Preferences",
   "settings.defaultSkillsScope": "Default Skills Scope",
   "settings.defaultMcpScope": "Default MCP Scope",
@@ -286,6 +304,15 @@ const zhCN: Record<TranslationKey, string> = {
   "logs.standardOutput": "标准输出",
   "logs.standardError": "标准错误",
   "logs.empty": "（空）",
+  "logs.exitCode": "退出码",
+  "logs.duration": "耗时",
+  "logs.timestamp": "时间戳",
+  "logs.source": "来源",
+  "logs.command": "命令",
+  "logs.args": "参数",
+  "logs.fullCommand": "完整命令",
+  "logs.noStdout": "无标准输出",
+  "logs.noStderr": "无标准错误输出",
   "settings.userPreferences": "用户偏好",
   "settings.defaultSkillsScope": "默认 Skills 范围",
   "settings.defaultMcpScope": "默认 MCP 范围",

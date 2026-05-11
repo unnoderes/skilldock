@@ -104,21 +104,56 @@ export function Logs() {
                 </div>
               </summary>
 
-              <div className="p-6 pt-0 border-t border-border bg-surface-900/50">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                  <section className="space-y-3">
-                    <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-2">
+              <div className="p-5 pt-0 border-t border-border bg-surface-900/50">
+                <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.exitCode")}</span>
+                    <span className={`font-mono font-bold ${log.result.exitCode === 0 ? "text-success" : "text-danger"}`}>{log.result.exitCode}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.duration")}</span>
+                    <span className="font-mono">{log.result.durationMs}ms</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.timestamp")}</span>
+                    <span>{new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.source")}</span>
+                    <span>{log.source}</span>
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-2">{t("logs.fullCommand")}</h5>
+                  <pre className="p-3 rounded-lg border-border/60 text-xs">
+                    <span className="text-accent font-bold">{log.result.command}</span>
+                    {log.result.args.length > 0 ? " " + log.result.args.join(" ") : ""}
+                  </pre>
+                </div>
+
+                <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <section>
+                    <div className="flex items-center gap-2 mb-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                      {t("logs.standardOutput")}
-                    </h5>
-                    <pre className="text-xs h-48">{log.result.stdout || t("logs.empty")}</pre>
+                      <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.standardOutput")}</h5>
+                    </div>
+                    {log.result.stdout ? (
+                      <pre className="p-3 rounded-lg border-border/60 text-xs max-h-48 overflow-auto">{log.result.stdout}</pre>
+                    ) : (
+                      <div className="p-3 rounded-lg border border-dashed border-border text-xs text-text-muted italic">{t("logs.noStdout")}</div>
+                    )}
                   </section>
-                  <section className="space-y-3">
-                    <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-2">
+                  <section>
+                    <div className="flex items-center gap-2 mb-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-danger" />
-                      {t("logs.standardError")}
-                    </h5>
-                    <pre className="text-xs h-48">{log.result.stderr || t("logs.empty")}</pre>
+                      <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.standardError")}</h5>
+                    </div>
+                    {log.result.stderr ? (
+                      <pre className="p-3 rounded-lg border-border/60 border-l-2 border-l-danger text-xs max-h-48 overflow-auto">{log.result.stderr}</pre>
+                    ) : (
+                      <div className="p-3 rounded-lg border border-dashed border-border text-xs text-text-muted italic">{t("logs.noStderr")}</div>
+                    )}
                   </section>
                 </div>
               </div>
