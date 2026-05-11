@@ -23,7 +23,10 @@ export type TranslationKey =
   | "overview.recentActivity"
   | "overview.noRecentOperations"
   | "common.scope"
-  | "skills.searchPlaceholder"
+  | "skills.addSkill"
+| "skills.installFromPackage"
+| "skills.discoverSkills"
+| "skills.searchPlaceholder"
   | "skills.packagePlaceholder"
   | "skills.install"
   | "skills.installTitle"
@@ -64,6 +67,10 @@ export type TranslationKey =
   | "mcp.availableAgents"
   | "mcp.noAgentsFound"
   | "mcp.couldNotRetrieve"
+  | "mcp.configuredServersDesc"
+  | "mcp.availableAgentsDesc"
+  | "mcp.noOutput"
+  | "mcp.noErrors"
   | "logs.searchPlaceholder"
   | "logs.show"
   | "logs.records"
@@ -138,6 +145,9 @@ const enUS: Record<TranslationKey, string> = {
   "overview.recentActivity": "Recent Activity",
   "overview.noRecentOperations": "No recent operations recorded.",
   "common.scope": "Scope",
+  "skills.addSkill": "Add Skill",
+  "skills.installFromPackage": "Install from package",
+  "skills.discoverSkills": "Discover skills",
   "skills.searchPlaceholder": "Search skills...",
   "skills.packagePlaceholder": "Package name (e.g. vercel-labs/skills)",
   "skills.install": "Install",
@@ -179,6 +189,10 @@ const enUS: Record<TranslationKey, string> = {
   "mcp.availableAgents": "Available Agents",
   "mcp.noAgentsFound": "No Agents Found",
   "mcp.couldNotRetrieve": "Could not retrieve the agent list from the server.",
+  "mcp.configuredServersDesc": "MCP configurations returned by `add-mcp list` for the current scope.",
+  "mcp.availableAgentsDesc": "Agent targets recognized by `add-mcp list-agents`.",
+  "mcp.noOutput": "No output",
+  "mcp.noErrors": "No errors reported",
   "logs.searchPlaceholder": "Search logs...",
   "logs.show": "Show",
   "logs.records": "records",
@@ -254,6 +268,9 @@ const zhCN: Record<TranslationKey, string> = {
   "overview.recentActivity": "最近活动",
   "overview.noRecentOperations": "暂无操作记录。",
   "common.scope": "范围",
+  "skills.addSkill": "添加 Skill",
+  "skills.installFromPackage": "从包安装",
+  "skills.discoverSkills": "发现 Skills",
   "skills.searchPlaceholder": "搜索 Skills...",
   "skills.packagePlaceholder": "包名（如 vercel-labs/skills）",
   "skills.install": "安装",
@@ -295,6 +312,10 @@ const zhCN: Record<TranslationKey, string> = {
   "mcp.availableAgents": "可用 Agents",
   "mcp.noAgentsFound": "未找到 Agents",
   "mcp.couldNotRetrieve": "无法从服务器获取 Agents 列表。",
+  "mcp.configuredServersDesc": "当前范围下 `add-mcp list` 返回的 MCP 配置结果。",
+  "mcp.availableAgentsDesc": "`add-mcp list-agents` 识别出的可配置 agent 目标。",
+  "mcp.noOutput": "无输出",
+  "mcp.noErrors": "未报告错误",
   "logs.searchPlaceholder": "搜索日志...",
   "logs.show": "显示",
   "logs.records": "条记录",

@@ -7,9 +7,10 @@ interface SkillsInstallProps {
   scope: Scope;
   isPending: boolean;
   onInstall: (packageName: string) => void;
+  variant?: "card" | "plain";
 }
 
-export function SkillsInstall({ scope, isPending, onInstall }: SkillsInstallProps) {
+export function SkillsInstall({ scope, isPending, onInstall, variant = "card" }: SkillsInstallProps) {
   const { t } = useLocale();
   const [packageName, setPackageName] = useState("");
 
@@ -20,8 +21,10 @@ export function SkillsInstall({ scope, isPending, onInstall }: SkillsInstallProp
     setPackageName("");
   };
 
+  const isCard = variant === "card";
+
   return (
-    <div className="rounded-2xl bg-surface-800 border border-border p-6">
+    <div className={isCard ? "rounded-2xl bg-surface-800 border border-border p-6" : ""}>
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 rounded-lg bg-accent/10 border border-accent/20">
           <Download size={16} className="text-accent" />

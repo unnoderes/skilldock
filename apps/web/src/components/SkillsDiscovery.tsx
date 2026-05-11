@@ -9,9 +9,10 @@ import { SearchInput } from "./ui/SearchInput";
 interface SkillsDiscoveryProps {
   scope: Scope;
   onRequestInstall: (packageName: string) => void;
+  variant?: "card" | "plain";
 }
 
-export function SkillsDiscovery({ scope }: SkillsDiscoveryProps) {
+export function SkillsDiscovery({ scope, variant = "card" }: SkillsDiscoveryProps) {
   const { t } = useLocale();
   const [query, setQuery] = useState("");
   const { data, isFetching: isLoading, error } = useSkillsFind(query);
@@ -20,9 +21,11 @@ export function SkillsDiscovery({ scope }: SkillsDiscoveryProps) {
   const hasSearched = query.trim().length > 0 && result !== undefined;
   const showSpinner = query.trim().length > 0 && isLoading;
 
+  const isCard = variant === "card";
+
   return (
-    <div className="space-y-4">
-      <div className="rounded-2xl bg-surface-800 border border-border p-6">
+    <div className={isCard ? "space-y-4" : ""}>
+      <div className={isCard ? "rounded-2xl bg-surface-800 border border-border p-6" : ""}>
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-lg bg-surface-900 border border-border">
             <Search size={16} className="text-text-muted" />
