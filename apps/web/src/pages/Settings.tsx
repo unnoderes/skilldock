@@ -61,111 +61,108 @@ export function Settings() {
       <div className="bg-surface-800 border border-border rounded-xl rounded-tl-none overflow-hidden min-h-[500px]">
         {activeTab === "preferences" ? (
           <form onSubmit={handleSave} className="p-8 space-y-10 animate-in fade-in slide-in-from-left-2 duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-10">
-              {/* Left Column: Defaults & Display */}
-              <div className="space-y-8">
-                <div className="space-y-5">
-                  <p className="text-[10px] uppercase font-bold text-text-muted/60 tracking-widest px-1">Default Scopes</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <label className="flex flex-col gap-2.5">
-                      <span className="text-xs font-semibold">{t("settings.defaultSkillsScope")}</span>
-                      <select
-                        value={formData.defaultSkillsScope}
-                        onChange={e => setFormData(p => ({ ...p, defaultSkillsScope: e.target.value as Scope }))}
-                        className="bg-surface-900 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-2.5 px-4 transition-shadow"
-                      >
-                        <option value="project">Project</option>
-                        <option value="global">Global</option>
-                      </select>
-                    </label>
+            <div className="flex flex-col gap-10 max-w-4xl">
+              {/* Default Scopes */}
+              <div className="space-y-5">
+                <p className="text-[10px] uppercase font-bold text-text-muted/60 tracking-widest px-1">Default Scopes</p>
+                <div className="space-y-3">
+                  <label className="flex items-center justify-between gap-6 p-4 rounded-lg bg-surface-900/50 border border-border">
+                    <span className="text-sm font-semibold">{t("settings.defaultSkillsScope")}</span>
+                    <select
+                      value={formData.defaultSkillsScope}
+                      onChange={e => setFormData(p => ({ ...p, defaultSkillsScope: e.target.value as Scope }))}
+                      className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-4 transition-shadow w-40 text-right"
+                    >
+                      <option value="project">Project</option>
+                      <option value="global">Global</option>
+                    </select>
+                  </label>
 
-                    <label className="flex flex-col gap-2.5">
-                      <span className="text-xs font-semibold">{t("settings.defaultMcpScope")}</span>
-                      <select
-                        value={formData.defaultMcpScope}
-                        onChange={e => setFormData(p => ({ ...p, defaultMcpScope: e.target.value as Scope }))}
-                        className="bg-surface-900 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-2.5 px-4 transition-shadow"
-                      >
-                        <option value="project">Project</option>
-                        <option value="global">Global</option>
-                      </select>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="space-y-5 pt-6 border-t border-border/30">
-                  <p className="text-[10px] uppercase font-bold text-text-muted/60 tracking-widest px-1">Display & Logs</p>
-                  <div className="space-y-4">
-                    <label className="flex items-center justify-between gap-4 p-4 rounded-lg bg-surface-900/50 border border-border">
-                      <span className="text-sm font-semibold">{t("settings.recentLogsLimit")}</span>
-                      <input
-                        type="number"
-                        min={5}
-                        max={100}
-                        value={formData.defaultLogsLimit}
-                        onChange={e => setFormData(p => ({ ...p, defaultLogsLimit: Number(e.target.value) }))}
-                        className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-3 transition-shadow w-24 text-right"
-                      />
-                    </label>
-
-                    <label className="flex items-center justify-between gap-4 p-4 rounded-lg bg-surface-900/50 border border-border cursor-pointer select-none transition-all hover:bg-surface-900">
-                      <span className="text-sm font-semibold">{t("settings.collapseRawOutput")}</span>
-                      <input
-                        type="checkbox"
-                        checked={formData.collapseRawOutput}
-                        onChange={e => setFormData(p => ({ ...p, collapseRawOutput: e.target.checked }))}
-                        className="w-5 h-5 rounded border-border text-accent focus:ring-0 focus:ring-offset-0 bg-surface-700 shrink-0"
-                      />
-                    </label>
-                  </div>
+                  <label className="flex items-center justify-between gap-6 p-4 rounded-lg bg-surface-900/50 border border-border">
+                    <span className="text-sm font-semibold">{t("settings.defaultMcpScope")}</span>
+                    <select
+                      value={formData.defaultMcpScope}
+                      onChange={e => setFormData(p => ({ ...p, defaultMcpScope: e.target.value as Scope }))}
+                      className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-4 transition-shadow w-40 text-right"
+                    >
+                      <option value="project">Project</option>
+                      <option value="global">Global</option>
+                    </select>
+                  </label>
                 </div>
               </div>
 
-              {/* Right Column: Workspace Style */}
-              <div className="space-y-8">
-                <div className="space-y-5">
-                  <p className="text-[10px] uppercase font-bold text-text-muted/60 tracking-widest px-1">Workspace Style</p>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-surface-900/50 border border-border">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{t("settings.appearance")}</span>
-                        <span className="text-[10px] text-text-muted">{t("settings.appearanceDesc")}</span>
-                      </div>
+              {/* Display & Logs */}
+              <div className="space-y-5 pt-6 border-t border-border/30">
+                <p className="text-[10px] uppercase font-bold text-text-muted/60 tracking-widest px-1">Display & Logs</p>
+                <div className="space-y-3">
+                  <label className="flex items-center justify-between gap-6 p-4 rounded-lg bg-surface-900/50 border border-border">
+                    <span className="text-sm font-semibold">{t("settings.recentLogsLimit")}</span>
+                    <input
+                      type="number"
+                      min={5}
+                      max={100}
+                      value={formData.defaultLogsLimit}
+                      onChange={e => setFormData(p => ({ ...p, defaultLogsLimit: Number(e.target.value) }))}
+                      className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-4 transition-shadow w-40 text-right"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between gap-6 p-4 rounded-lg bg-surface-900/50 border border-border cursor-pointer select-none transition-all hover:bg-surface-900">
+                    <span className="text-sm font-semibold">{t("settings.collapseRawOutput")}</span>
+                    <input
+                      type="checkbox"
+                      checked={formData.collapseRawOutput}
+                      onChange={e => setFormData(p => ({ ...p, collapseRawOutput: e.target.checked }))}
+                      className="w-5 h-5 rounded border-border text-accent focus:ring-0 focus:ring-offset-0 bg-surface-700 shrink-0"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Workspace Style */}
+              <div className="space-y-5 pt-6 border-t border-border/30">
+                <p className="text-[10px] uppercase font-bold text-text-muted/60 tracking-widest px-1">Workspace Style</p>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-surface-900/50 border border-border">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{t("settings.appearance")}</span>
+                      <span className="text-[10px] text-text-muted">{t("settings.appearanceDesc")}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={toggleTheme}
+                      className="px-6 py-2 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-sm active:scale-95"
+                    >
+                      {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+                      {theme === 'dark' ? t("settings.lightMode") : t("settings.darkMode")}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-lg bg-surface-900/50 border border-border">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-semibold">{t("language.label")}</span>
+                      <span className="text-[10px] text-text-muted">{t("language.description")}</span>
+                    </div>
+                    <div className="flex gap-1.5 p-1 bg-surface-700 rounded-lg">
                       <button
                         type="button"
-                        onClick={toggleTheme}
-                        className="px-5 py-2 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-sm active:scale-95"
+                        onClick={() => setLocale("en-US")}
+                        className={`px-5 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                          locale === "en-US" ? "bg-accent text-white shadow-sm" : "text-text-muted hover:text-text"
+                        }`}
                       >
-                        {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
-                        {theme === 'dark' ? t("settings.lightMode") : t("settings.darkMode")}
+                        EN
                       </button>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-surface-900/50 border border-border">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{t("language.label")}</span>
-                        <span className="text-[10px] text-text-muted">{t("language.description")}</span>
-                      </div>
-                      <div className="flex gap-1.5 p-1 bg-surface-700 rounded-lg">
-                        <button
-                          type="button"
-                          onClick={() => setLocale("en-US")}
-                          className={`px-4 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-                            locale === "en-US" ? "bg-accent text-white shadow-sm" : "text-text-muted hover:text-text"
-                          }`}
-                        >
-                          EN
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setLocale("zh-CN")}
-                          className={`px-4 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-                            locale === "zh-CN" ? "bg-accent text-white shadow-sm" : "text-text-muted hover:text-text"
-                          }`}
-                        >
-                          中文
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setLocale("zh-CN")}
+                        className={`px-5 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                          locale === "zh-CN" ? "bg-accent text-white shadow-sm" : "text-text-muted hover:text-text"
+                        }`}
+                      >
+                        中文
+                      </button>
                     </div>
                   </div>
                 </div>
