@@ -190,41 +190,41 @@ export function Settings() {
           <div className="animate-in fade-in slide-in-from-right-2 duration-300">
             <div className="divide-y divide-border/40">
               <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] items-baseline px-8 py-6 gap-3 md:gap-6">
-                <span className="text-[10px] uppercase font-bold text-text-muted/70 tracking-widest">{t("settings.configPath")}</span>
+                <span className="text-xs uppercase font-bold text-text-muted/70 tracking-widest">{t("settings.configPath")}</span>
                 <div className="relative group">
-                  <code className="text-xs font-mono break-all text-text-muted selection:bg-accent/30 leading-relaxed block bg-surface-900/40 p-3 rounded-lg border border-border/20">
+                  <code className="text-sm font-mono break-all text-text-muted selection:bg-accent/30 leading-relaxed block bg-surface-900/40 p-4 rounded-lg border border-border/20">
                     {data?.metadata.configPath}
                   </code>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] items-baseline px-8 py-6 gap-3 md:gap-6">
-                <span className="text-[10px] uppercase font-bold text-text-muted/70 tracking-widest">{t("settings.logsPath")}</span>
+                <span className="text-xs uppercase font-bold text-text-muted/70 tracking-widest">{t("settings.logsPath")}</span>
                 <div className="relative group">
-                  <code className="text-xs font-mono break-all text-text-muted selection:bg-accent/30 leading-relaxed block bg-surface-900/40 p-3 rounded-lg border border-border/20">
+                  <code className="text-sm font-mono break-all text-text-muted selection:bg-accent/30 leading-relaxed block bg-surface-900/40 p-4 rounded-lg border border-border/20">
                     {data?.metadata.logPath}
                   </code>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] items-center px-8 py-6 gap-3 md:gap-6">
-                <span className="text-[10px] uppercase font-bold text-text-muted/70 tracking-widest">{t("settings.cliCommands")}</span>
+                <span className="text-xs uppercase font-bold text-text-muted/70 tracking-widest">{t("settings.cliCommands")}</span>
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between gap-6 p-3 rounded-lg bg-surface-900/50 border border-border/20">
-                    <span className="text-[10px] font-bold text-text-muted/60 px-1">{t("settings.skillsLabel")}</span>
-                    <code className="text-[11px] font-mono text-accent-light/90">{data?.metadata.cliCommands.skills}</code>
+                  <div className="flex items-center justify-between gap-6 p-4 rounded-lg bg-surface-900/50 border border-border/20">
+                    <span className="text-xs font-bold text-text-muted/60 px-1">{t("settings.skillsLabel")}</span>
+                    <code className="text-xs font-mono text-accent-light/90">{data?.metadata.cliCommands.skills}</code>
                   </div>
-                  <div className="flex items-center justify-between gap-6 p-3 rounded-lg bg-surface-900/50 border border-border/20">
-                    <span className="text-[10px] font-bold text-text-muted/60 px-1">{t("settings.addMcpLabel")}</span>
-                    <code className="text-[11px] font-mono text-accent-light/90">{data?.metadata.cliCommands.addMcp}</code>
+                  <div className="flex items-center justify-between gap-6 p-4 rounded-lg bg-surface-900/50 border border-border/20">
+                    <span className="text-xs font-bold text-text-muted/60 px-1">{t("settings.addMcpLabel")}</span>
+                    <code className="text-xs font-mono text-accent-light/90">{data?.metadata.cliCommands.addMcp}</code>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="px-8 py-10 border-t border-border/40 bg-surface-900/20">
-              <div className="p-5 rounded-lg bg-accent/5 border border-accent/20 max-w-2xl mx-auto">
-                <p className="text-[11px] leading-relaxed text-accent-light/70 italic text-center">
+              <div className="p-6 rounded-lg bg-accent/5 border border-accent/20 max-w-2xl mx-auto">
+                <p className="text-xs leading-relaxed text-accent-light/70 italic text-center">
                   {t("settings.securityNotice")}
                 </p>
               </div>
