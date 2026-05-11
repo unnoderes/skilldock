@@ -68,7 +68,8 @@ curl http://127.0.0.1:3301/healthz
 3. Opt-in write checks（仅在你明确接受会调用真实 CLI 时执行）
 4. Web UI checks
 5. Log redaction checks
-6. Cleanup checks
+6. Project Context checks（多项目注册、切换、CLI cwd 隔离）
+7. Cleanup checks
 
 ---
 
@@ -468,7 +469,241 @@ curl -X POST http://127.0.0.1:3301/api/mcp/add \
 
 ---
 
-## 6) 期望结果
+## 6) Project Context Checks
+
+Project Context smoke 用于验证多项目 registry、active project、project-scope CLI cwd、
+task metadata 和 operation logs metadata 是否形成同一个闭环。完整清单见：
+
+- [Project Context Runtime Smoke Checklist](project-context/07-runtime-smoke.md)
+
+### 6.1 `GET /api/projects`
+
+```bash
+curl http://127.0.0.1:3301/api/projects
+```
+
+预期：
+
+- HTTP 200
+- 返回：
+  - `projects`
+  - `activeProjectId`
+  - `launchProjectId`
+- `launchProjectId` 对应的项目必须存在，且 `isLaunchProject: true`
+- 项目记录包含：
+  - `id`
+  - `name`
+  - `path`
+  - `status`
+  - `isLaunchProject`
+  - `addedAt`
+  - `lastUsedAt`
+  - `lastValidatedAt`
+
+### 6.2 添加有效项目路径
+
+不要在文档或脚本里固定本机路径。建议使用临时目录：
+
+```bash
+SMOKE_PROJECT_A="$(mktemp -d)"
+
+curl -X POST http://127.0.0.1:3301/api/projects \
+  -H 'Content-Type: application/json' \
+  -d "{\"path\":\"$SMOKE_PROJECT_A\",\"makeActive\":true}"
+```
+
+预期：
+
+- HTTP 200
+- 新项目出现在 `projects` 中
+- 新项目 `status` 为 `valid`
+- 默认 `activeProjectId` 变为新项目 `id`
+- server 保存 canonical path
+
+记录响应中的项目 id，后续只使用 `projectId`：
+
+```txt
+PROJECT_A_ID=<response.projects 中临时目录对应的 id>
+```
+
+### 6.3 添加无效项目路径
+
+相对路径：
+
+```bash
+curl -i -X POST http://127.0.0.1:3301/api/projects \
+  -H 'Content-Type: application/json' \
+  -d '{"path":"relative/project","makeActive":true}'
+```
+
+不存在的绝对路径：
+
+```bash
+SMOKE_MISSING="$SMOKE_PROJECT_A-missing"
+
+curl -i -X POST http://127.0.0.1:3301/api/projects \
+  -H 'Content-Type: application/json' \
+  -d "{\"path\":\"$SMOKE_MISSING\",\"makeActive\":true}"
+```
+
+文件路径：
+
+```bash
+SMOKE_FILE="$(mktemp)"
+
+curl -i -X POST http://127.0.0.1:3301/api/projects \
+  -H 'Content-Type: application/json' \
+  -d "{\"path\":\"$SMOKE_FILE\",\"makeActive\":true}"
+```
+
+预期：
+
+- HTTP 400
+- error 分别类似：
+  - `INVALID_PROJECT_PATH`
+  - `PROJECT_NOT_FOUND`
+  - `PROJECT_NOT_DIRECTORY`
+- 不触发任何 Skills / MCP CLI
+- 不改变 active project
+
+### 6.4 切换 active project
+
+```bash
+SMOKE_PROJECT_B="$(mktemp -d)"
+
+curl -X POST http://127.0.0.1:3301/api/projects \
+  -H 'Content-Type: application/json' \
+  -d "{\"path\":\"$SMOKE_PROJECT_B\",\"makeActive\":false}"
+```
+
+记录响应中的 `PROJECT_B_ID` 后切换：
+
+```bash
+curl -X PUT http://127.0.0.1:3301/api/projects/active \
+  -H 'Content-Type: application/json' \
+  -d "{\"projectId\":\"$PROJECT_B_ID\"}"
+```
+
+预期：
+
+- HTTP 200
+- `activeProjectId` 等于 `PROJECT_B_ID`
+- 对应项目 `lastUsedAt` 更新
+- 不存在的 `projectId` 返回 `PROJECT_NOT_FOUND`
+
+### 6.5 Skills Project scope 查询
+
+```bash
+curl "http://127.0.0.1:3301/api/skills/list?scope=project&projectId=$PROJECT_B_ID"
+```
+
+预期：
+
+- HTTP 200，或 CLI 不可用时返回合理的结构化错误结果
+- 返回 JSON 包含 `result` 和 `skills`
+- `result.args` 只包含固定 Skills CLI 参数，不包含 raw project path
+- server 通过 `projectId` 解析 cwd，前端和调用方不传 raw path
+
+### 6.6 MCP Project scope 查询
+
+```bash
+curl "http://127.0.0.1:3301/api/mcp/list?scope=project&projectId=$PROJECT_B_ID"
+```
+
+预期：
+
+- HTTP 200，或 CLI 不可用时返回合理的结构化错误结果
+- 返回 `CommandResult`
+- `result.args` 只包含固定 MCP CLI 参数，不包含 raw project path
+- `add-mcp list` 仍以原始 stdout / stderr 为准，不做复杂解析
+
+### 6.7 Project scope opt-in 写操作
+
+> 警告：这会调用真实 CLI。默认使用明显不存在的 package 验证 failed task，
+> 不要求真实安装成功。
+
+```bash
+curl -X POST http://127.0.0.1:3301/api/skills/install \
+  -H 'Content-Type: application/json' \
+  -d "{
+    \"packageName\":\"definitely-not-a-real-skilldock-package-xyz\",
+    \"scope\":\"project\",
+    \"projectId\":\"$PROJECT_B_ID\",
+    \"agents\":[],
+    \"skillNames\":[],
+    \"copy\":false,
+    \"all\":false,
+    \"fullDepth\":false
+  }"
+```
+
+预期：
+
+- 返回 `{ taskId }`
+- task 可通过 `GET /api/tasks/:id` 查询
+- task 最终 `failed` 是可接受结果
+- task 和 logs 中记录提交时的 `project` 和 `scope`
+- 不出现未脱敏的 token / key / secret / password
+
+### 6.8 Task project metadata 检查
+
+```bash
+curl "http://127.0.0.1:3301/api/tasks/<taskId>"
+```
+
+预期：
+
+- `task.project.projectId` 等于写操作提交时的 `PROJECT_B_ID`
+- `task.project.projectName` 和 `task.project.projectPath` 来自 registry
+- `task.scope` 等于提交时的 scope
+- task 创建后切换 active project，不改变该 task 的 project metadata
+
+### 6.9 Logs project metadata 检查
+
+```bash
+curl "http://127.0.0.1:3301/api/logs?limit=10"
+```
+
+预期：
+
+- 对应 operation log 包含 `project` 和 `scope`
+- `project.projectId` 等于写操作提交时的 `PROJECT_B_ID`
+- `result.args` 不包含 raw project path
+- 敏感值被替换为 `[REDACTED]`
+
+### 6.10 invalid project 行为
+
+让已注册临时目录失效：
+
+```bash
+rmdir "$SMOKE_PROJECT_B"
+curl http://127.0.0.1:3301/api/projects
+```
+
+预期：
+
+- 对应项目状态变为 `missing`、`not-directory` 或 `inaccessible`
+- 如果 active project 失效，server fallback 到 launch project
+- 针对失效 `projectId` 的 project-scope 查询 / 写操作返回结构化错误，通常为 `PROJECT_INVALID`
+- 前端展示 invalid 状态，并禁用 project-scope 写操作
+
+### 6.11 删除 recent project 不删除磁盘目录
+
+```bash
+curl -X DELETE "http://127.0.0.1:3301/api/projects/$PROJECT_A_ID"
+```
+
+预期：
+
+- HTTP 200
+- `PROJECT_A_ID` 不再出现在 `projects` 中
+- `test -d "$SMOKE_PROJECT_A"` 仍成功
+- 不删除任何磁盘目录、Skills 配置或 MCP 配置
+- 删除 launch project 返回 `INVALID_REQUEST`
+
+---
+
+## 7) 期望结果
 
 完成 smoke 后，理想结果为：
 
@@ -479,13 +714,16 @@ curl -X POST http://127.0.0.1:3301/api/mcp/add \
 - `GET /api/tasks/:id` 可查询到 `queued/running/succeeded/failed`
 - `GET /api/tasks/:id/stream` 可返回 `snapshot` / `chunk` / `status`
 - `GET /api/logs?limit=5` 可看到 operation entry
+- `GET /api/projects` 可看到 launch project、active project 和 recent projects
+- Skills / MCP project-scope API 只接收 `projectId`，不接收 raw path
+- task 和 operation logs 可看到写操作发生时冻结的 project metadata
 - 敏感信息被脱敏为 `[REDACTED]`
 
 ---
 
-## 7) 故障排查
+## 8) 故障排查
 
-### 7.1 CLI 不可用
+### 8.1 CLI 不可用
 
 现象：
 
@@ -498,7 +736,7 @@ curl -X POST http://127.0.0.1:3301/api/mcp/add \
 - 手工运行 `npx add-mcp --version`
 - 确认本机网络、npm registry、npx 缓存正常
 
-### 7.2 npx 下载慢或失败
+### 8.2 npx 下载慢或失败
 
 现象：
 
@@ -512,7 +750,7 @@ curl -X POST http://127.0.0.1:3301/api/mcp/add \
 - 检查 npm registry 设置
 - 检查代理 / 网络环境
 
-### 7.3 端口占用
+### 8.3 端口占用
 
 现象：
 
@@ -524,7 +762,7 @@ curl -X POST http://127.0.0.1:3301/api/mcp/add \
 - 释放占用端口后重试
 - 确认 web / server 指向的是同一组实例
 
-### 7.4 SSE 连接断开
+### 8.4 SSE 连接断开
 
 现象：
 
@@ -537,7 +775,7 @@ curl -X POST http://127.0.0.1:3301/api/mcp/add \
 - 可继续用 `GET /api/tasks/:id` 验证最终状态
 - 若最终状态正常，则说明降级链路可用
 
-### 7.5 server 重启后 task 查不到
+### 8.5 server 重启后 task 查不到
 
 这是当前 MVP 已知限制，不一定是 bug：
 
@@ -545,23 +783,40 @@ curl -X POST http://127.0.0.1:3301/api/mcp/add \
 - server 重启后，旧 `taskId` 可能返回 404
 - 但已落盘的 operation logs 仍应保留在 `~/.skilldock/logs/operations.jsonl`
 
+### 8.6 project path 变为 invalid
+
+现象：
+
+- `/api/projects` 中项目状态变为 `missing`、`not-directory` 或 `inaccessible`
+- project-scope Skills / MCP 查询或写操作返回 `PROJECT_INVALID`
+
+预期与排查：
+
+- 这是 Project Context 的安全行为，不应绕过 registry 直接传 path
+- 确认目录是否被删除、权限是否变化、路径是否从目录变为文件
+- 如不再需要该项目，可从 recent projects 删除；这不会删除磁盘目录
+
 ---
 
-## 8) 清理说明
+## 9) 清理说明
 
 - 不要提交 `~/.skilldock/logs/**`
+- 不要提交 `~/.skilldock/projects.json`
 - 不要提交任何本地 `.env`、token、key、secret、password
 - 不要把 smoke 输出散落到仓库根目录
+- 不要把本机临时 project path 写成固定测试数据提交
 
 如果你执行了真实安装 / 添加操作，请在验证后清理：
 
 - Skills：通过当前 CLI 或 UI 的 remove 能力删除测试对象
 - MCP：通过当前 CLI 能力移除测试 server / 测试配置
 - 若只执行了“故意失败”的测试样例，通常无需额外清理配置，但仍建议检查最近 logs
+- Project Context：通过 `DELETE /api/projects/:id` 删除 recent project 记录；这不会删除磁盘目录
+- 临时目录：用 `rmdir "$SMOKE_PROJECT_A"` / `rmdir "$SMOKE_PROJECT_B"` 清理本机测试目录
 
 ---
 
-## 9) 最小执行清单
+## 10) 最小执行清单
 
 如只做最小闭环验证，可按下面顺序：
 
@@ -582,7 +837,16 @@ curl "http://127.0.0.1:3301/api/logs?limit=5"
 4. 订阅 `/api/tasks/:id/stream`
 5. 再查 `/api/logs?limit=5`
 
-## 10) 当前 MVP 限制
+如要继续验证 Project Context：
+
+1. 查询 `/api/projects`
+2. 用临时目录 `POST /api/projects`
+3. 用返回的 `projectId` 查询 Skills / MCP project scope
+4. 执行一个明确 opt-in 的 project-scope 写操作
+5. 查询 task / logs 中的 project metadata
+6. 删除 recent project 并确认磁盘目录仍存在
+
+## 11) 当前 MVP 限制
 
 - 不提供任意 shell 执行入口
 - server 仅暴露固定业务 API
@@ -590,3 +854,6 @@ curl "http://127.0.0.1:3301/api/logs?limit=5"
 - task active state 仅在 server 当前进程内保存，不跨重启持久化
 - 浏览器实时输出优先使用 SSE，断开后回退 polling
 - 本文档不要求 destructive 写操作成功，只要求可验证 task / stream / logs / redaction 链路
+- Project Context 只通过 registry 管理本地路径，Skills / MCP API 不接受 raw path
+- `GET /api/projects` 会 revalidate recent projects，磁盘状态变化会反映为 invalid 状态
+- 删除 recent project 只删除 registry 记录，不删除磁盘目录或 CLI 配置
