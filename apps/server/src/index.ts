@@ -645,6 +645,7 @@ function buildSettingsResponse(readResult: ConfigReadResult): SettingsResponse {
     metadata: {
       configPath: CONFIG_FILE_PATH,
       logPath: LOG_FILE_PATH,
+      projectsPath: PROJECTS_FILE_PATH,
       cliCommands: {
         skills: "npx skills",
         addMcp: "npx add-mcp",

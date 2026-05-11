@@ -35,6 +35,8 @@ export type TranslationKey =
   | "projects.addProjectFailed"
   | "projects.loadFailed"
   | "projects.invalidCannotSelect"
+  | "projects.invalidWriteDisabled"
+  | "projects.contextLine"
   | "projects.removeRecent"
   | "projects.launchCannotRemove"
   | "projects.launchProject"
@@ -111,6 +113,8 @@ export type TranslationKey =
   | "logs.fullCommand"
   | "logs.noStdout"
   | "logs.noStderr"
+  | "logs.project"
+  | "logs.scope"
   | "settings.userPreferences"
   | "settings.defaultSkillsScope"
   | "settings.defaultMcpScope"
@@ -124,6 +128,7 @@ export type TranslationKey =
   | "settings.systemContext"
   | "settings.configPath"
   | "settings.logsPath"
+  | "settings.projectsPath"
   | "settings.cliCommands"
   | "settings.skillsLabel"
   | "settings.addMcpLabel"
@@ -136,6 +141,10 @@ export type TranslationKey =
   | "taskDrawer.network"
   | "taskDrawer.transport"
   | "taskDrawer.finalResult"
+  | "taskDrawer.project"
+  | "taskDrawer.projectName"
+  | "taskDrawer.projectPath"
+  | "taskDrawer.scope"
   | "dialog.confirm"
   | "dialog.cancel"
   | "error.retry"
@@ -179,6 +188,8 @@ const enUS: Record<TranslationKey, string> = {
   "projects.addProjectFailed": "Could not add this project.",
   "projects.loadFailed": "Could not load projects.",
   "projects.invalidCannotSelect": "This project is unavailable and cannot be selected.",
+  "projects.invalidWriteDisabled": "Project-scope writes are disabled because the current project is unavailable.",
+  "projects.contextLine": "Project: {{name}} ({{path}})",
   "projects.removeRecent": "Remove from recent projects",
   "projects.launchCannotRemove": "Launch project cannot be removed.",
   "projects.launchProject": "Launch project",
@@ -255,6 +266,8 @@ const enUS: Record<TranslationKey, string> = {
   "logs.fullCommand": "Full command",
   "logs.noStdout": "No stdout output",
   "logs.noStderr": "No stderr output",
+  "logs.project": "Project",
+  "logs.scope": "Scope",
   "settings.userPreferences": "User Preferences",
   "settings.defaultSkillsScope": "Default Skills Scope",
   "settings.defaultMcpScope": "Default MCP Scope",
@@ -268,6 +281,7 @@ const enUS: Record<TranslationKey, string> = {
   "settings.systemContext": "System Context",
   "settings.configPath": "Configuration Path",
   "settings.logsPath": "Logs Path",
+  "settings.projectsPath": "Projects Registry",
   "settings.cliCommands": "CLI Commands (Fixed)",
   "settings.skillsLabel": "Skills",
   "settings.addMcpLabel": "Add MCP",
@@ -280,6 +294,10 @@ const enUS: Record<TranslationKey, string> = {
   "taskDrawer.network": "Network",
   "taskDrawer.transport": "Transport",
   "taskDrawer.finalResult": "Final Execution Result",
+  "taskDrawer.project": "Project",
+  "taskDrawer.projectName": "Name",
+  "taskDrawer.projectPath": "Path",
+  "taskDrawer.scope": "Scope",
   "dialog.confirm": "Confirm",
   "dialog.cancel": "Cancel",
   "error.retry": "Retry",
@@ -324,6 +342,8 @@ const zhCN: Record<TranslationKey, string> = {
   "projects.addProjectFailed": "无法添加该项目。",
   "projects.loadFailed": "无法加载项目列表。",
   "projects.invalidCannotSelect": "该项目不可用，不能切换到它。",
+  "projects.invalidWriteDisabled": "当前项目不可用，已禁用项目范围写操作。",
+  "projects.contextLine": "项目：{{name}}（{{path}}）",
   "projects.removeRecent": "从最近项目移除",
   "projects.launchCannotRemove": "启动项目不能移除。",
   "projects.launchProject": "启动项目",
@@ -400,6 +420,8 @@ const zhCN: Record<TranslationKey, string> = {
   "logs.fullCommand": "完整命令",
   "logs.noStdout": "无标准输出",
   "logs.noStderr": "无标准错误输出",
+  "logs.project": "项目",
+  "logs.scope": "范围",
   "settings.userPreferences": "用户偏好",
   "settings.defaultSkillsScope": "默认 Skills 范围",
   "settings.defaultMcpScope": "默认 MCP 范围",
@@ -413,6 +435,7 @@ const zhCN: Record<TranslationKey, string> = {
   "settings.systemContext": "系统上下文",
   "settings.configPath": "配置路径",
   "settings.logsPath": "日志路径",
+  "settings.projectsPath": "项目注册表",
   "settings.cliCommands": "CLI 命令（固定）",
   "settings.skillsLabel": "Skills",
   "settings.addMcpLabel": "Add MCP",
@@ -425,6 +448,10 @@ const zhCN: Record<TranslationKey, string> = {
   "taskDrawer.network": "网络",
   "taskDrawer.transport": "传输方式",
   "taskDrawer.finalResult": "最终执行结果",
+  "taskDrawer.project": "项目",
+  "taskDrawer.projectName": "名称",
+  "taskDrawer.projectPath": "路径",
+  "taskDrawer.scope": "范围",
   "dialog.confirm": "确认",
   "dialog.cancel": "取消",
   "error.retry": "重试",

@@ -200,6 +200,7 @@ export type SkillDockConfig = {
 export type SettingsMetadata = {
   configPath: string;
   logPath: string;
+  projectsPath: string;
   cliCommands: {
     skills: "npx skills";
     addMcp: "npx add-mcp";
