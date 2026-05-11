@@ -126,25 +126,13 @@ export function Logs() {
 
                 <div className="mt-5">
                   <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-2">{t("logs.command")}</h5>
-                  <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.command")}</span>
-                      <span className="font-mono font-bold text-accent">{log.result.command}</span>
-                    </div>
-                    {log.result.args.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.args")}</span>
-                        <span className="font-mono">{log.result.args.join(" ")}</span>
-                      </div>
-                    )}
-                  </div>
                   <pre className="p-3 rounded-lg border border-surface-600/50 text-xs">
                     <span className="text-accent font-bold">{log.result.command}</span>
                     {log.result.args.length > 0 ? " " + log.result.args.join(" ") : ""}
                   </pre>
                 </div>
 
-                <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="mt-5 flex flex-col gap-5">
                   <section>
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-accent" />
