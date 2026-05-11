@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save, RefreshCw, ShieldCheck, Database, FileCode, Sun, Moon } from "lucide-react";
+import { Settings as SettingsIcon, Save, RefreshCw, ShieldCheck, Database, FileCode, FolderOpen, Sun, Moon } from "lucide-react";
 import type { SkillDockConfig, Scope } from "@skilldock/shared";
 import { useSettings } from "../hooks/useSettings";
 import { useTheme } from "../contexts/ThemeContext";
@@ -182,7 +182,7 @@ export function Settings() {
           </form>
         ) : (
           <div className="animate-in fade-in slide-in-from-right-2 duration-300 p-8 space-y-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
               {/* Config Section */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-text-muted">
@@ -225,6 +225,32 @@ export function Settings() {
                       onClick={() => {
                         if (data?.metadata.logPath) {
                           navigator.clipboard.writeText(data.metadata.logPath);
+                        }
+                      }}
+                      className="text-[10px] font-bold text-accent hover:text-accent-light transition-colors uppercase tracking-wider"
+                    >
+                      Copy Path
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Projects Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-text-muted">
+                  <FolderOpen size={16} />
+                  <span className="text-xs uppercase font-bold tracking-widest">{t("settings.projectsPath")}</span>
+                </div>
+                <div className="bg-surface-900/40 p-5 rounded-xl border border-border/20 space-y-3">
+                  <code className="text-sm font-mono break-all text-text-muted leading-relaxed block">
+                    {data?.metadata.projectsPath}
+                  </code>
+                  <div className="flex items-center justify-between pt-2 border-t border-border/10">
+                    <span className="text-[10px] text-text-muted/60 italic">Where project registry is stored</span>
+                    <button
+                      onClick={() => {
+                        if (data?.metadata.projectsPath) {
+                          navigator.clipboard.writeText(data.metadata.projectsPath);
                         }
                       }}
                       className="text-[10px] font-bold text-accent hover:text-accent-light transition-colors uppercase tracking-wider"

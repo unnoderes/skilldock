@@ -82,6 +82,28 @@ export function TaskDrawer({
               </div>
             </section>
 
+            {task.project && (
+              <section className="space-y-2">
+                <h4 className="text-[10px] uppercase font-bold tracking-widest text-text-muted">{t("taskDrawer.project")}</h4>
+                <div className="space-y-2 font-mono text-[11px]">
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">{t("taskDrawer.projectName")}</span>
+                    <span className="truncate max-w-[140px]" title={task.project.projectName}>{task.project.projectName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-muted">{t("taskDrawer.projectPath")}</span>
+                    <span className="break-all text-right max-w-[140px]" title={task.project.projectPath}>{task.project.projectPath}</span>
+                  </div>
+                  {task.scope && (
+                    <div className="flex justify-between">
+                      <span className="text-text-muted">{t("taskDrawer.scope")}</span>
+                      <span className="bg-surface-900 px-2 rounded border border-border">{task.scope}</span>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
             <section className="space-y-2">
               <h4 className="text-[10px] uppercase font-bold tracking-widest text-text-muted">{t("taskDrawer.network")}</h4>
               <div className="flex items-center justify-between text-[11px] font-mono">
