@@ -64,10 +64,10 @@ export function Settings() {
             <div className="flex flex-col gap-6 max-w-2xl mx-auto">
               {/* Default Scopes */}
               <div className="space-y-3">
-                <p className="text-xs uppercase font-bold text-text-muted tracking-widest">Default Scopes</p>
+                <p className="text-xs uppercase font-bold text-text-muted tracking-widest">DEBUG: Scopes</p>
                 <div className="space-y-2">
-                  <label className="flex items-center justify-between gap-6 p-4 px-5 rounded-lg bg-surface-900/50 border border-border hover:bg-surface-900/80 transition-colors cursor-pointer">
-                    <span className="text-sm font-medium whitespace-nowrap flex-1">{t("settings.defaultSkillsScope")}</span>
+                  <label className="grid grid-cols-[1fr_auto] items-center gap-6 p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all cursor-pointer">
+                    <span className="text-sm font-medium whitespace-nowrap">{t("settings.defaultSkillsScope")}</span>
                     <select
                       value={formData.defaultSkillsScope}
                       onChange={e => setFormData(p => ({ ...p, defaultSkillsScope: e.target.value as Scope }))}
@@ -78,8 +78,8 @@ export function Settings() {
                     </select>
                   </label>
 
-                  <label className="flex items-center justify-between gap-6 p-4 px-5 rounded-lg bg-surface-900/50 border border-border hover:bg-surface-900/80 transition-colors cursor-pointer">
-                    <span className="text-sm font-medium whitespace-nowrap flex-1">{t("settings.defaultMcpScope")}</span>
+                  <label className="grid grid-cols-[1fr_auto] items-center gap-6 p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all cursor-pointer">
+                    <span className="text-sm font-medium whitespace-nowrap">{t("settings.defaultMcpScope")}</span>
                     <select
                       value={formData.defaultMcpScope}
                       onChange={e => setFormData(p => ({ ...p, defaultMcpScope: e.target.value as Scope }))}
@@ -124,7 +124,7 @@ export function Settings() {
               <div className="space-y-3 pt-6 border-t border-border/30">
                 <p className="text-xs uppercase font-bold text-text-muted tracking-widest">Workspace Style</p>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between p-4 px-5 rounded-lg bg-surface-900/50 border border-border hover:bg-surface-900/80 transition-colors">
+                  <div className="grid grid-cols-[1fr_auto] items-center p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{t("settings.appearance")}</span>
                       <span className="text-xs text-text-muted mt-0.5">{t("settings.appearanceDesc")}</span>
@@ -132,19 +132,19 @@ export function Settings() {
                     <button
                       type="button"
                       onClick={toggleTheme}
-                      className="px-5 py-2 bg-accent text-white rounded-full text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-sm active:scale-95"
+                      className="px-5 py-2 bg-accent text-white rounded-full text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-sm active:scale-95 shrink-0"
                     >
                       {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
                       {theme === 'dark' ? t("settings.lightMode") : t("settings.darkMode")}
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 px-5 rounded-lg bg-surface-900/50 border border-border hover:bg-surface-900/80 transition-colors">
+                  <div className="grid grid-cols-[1fr_auto] items-center p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{t("language.label")}</span>
                       <span className="text-xs text-text-muted mt-0.5">{t("language.description")}</span>
                     </div>
-                    <div className="flex gap-1 p-1 bg-surface-700 rounded-lg">
+                    <div className="flex gap-1 p-1 bg-surface-700 rounded-lg shrink-0">
                       <button
                         type="button"
                         onClick={() => setLocale("en-US")}
