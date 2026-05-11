@@ -206,28 +206,6 @@ export function Settings() {
                   </code>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] items-center px-8 py-6 gap-3 md:gap-6">
-                <span className="text-xs uppercase font-bold text-text-muted/70 tracking-widest">{t("settings.cliCommands")}</span>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between gap-6 p-4 rounded-lg bg-surface-900/50 border border-border/20">
-                    <span className="text-xs font-bold text-text-muted/60 px-1">{t("settings.skillsLabel")}</span>
-                    <code className="text-xs font-mono text-accent-light/90">{data?.metadata.cliCommands.skills}</code>
-                  </div>
-                  <div className="flex items-center justify-between gap-6 p-4 rounded-lg bg-surface-900/50 border border-border/20">
-                    <span className="text-xs font-bold text-text-muted/60 px-1">{t("settings.addMcpLabel")}</span>
-                    <code className="text-xs font-mono text-accent-light/90">{data?.metadata.cliCommands.addMcp}</code>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="px-8 py-10 border-t border-border/40 bg-surface-900/20">
-              <div className="p-6 rounded-lg bg-accent/5 border border-accent/20 max-w-2xl mx-auto">
-                <p className="text-xs leading-relaxed text-accent-light/70 italic text-center">
-                  {t("settings.securityNotice")}
-                </p>
-              </div>
             </div>
           </div>
         )}
