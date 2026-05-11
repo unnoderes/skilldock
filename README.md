@@ -41,4 +41,5 @@ npx ./skilldock-0.0.0.tgz
 - MVP scope: [docs/03-mvp-scope.md](docs/03-mvp-scope.md)
 - Dev plan: [docs/05-dev-plan.md](docs/05-dev-plan.md)
 - Runtime smoke: [docs/11-runtime-smoke.md](docs/11-runtime-smoke.md)
+- Project Context: [docs/project-context/README.md](docs/project-context/README.md)
 - Release readiness review: [docs/12-mvp-release-readiness.md](docs/12-mvp-release-readiness.md)

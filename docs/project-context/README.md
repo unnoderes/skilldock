@@ -22,6 +22,7 @@ Skills / MCP / Tasks / Logs 展示同一个 project context
 - [04. Frontend Workflows](04-frontend-workflows.md)
 - [05. Implementation Plan](05-implementation-plan.md)
 - [06. Agent Task Cards](06-agent-task-cards.md)
+- [07. Runtime Smoke Checklist](07-runtime-smoke.md)
 
 ## 一句话目标
 
@@ -36,4 +37,3 @@ Skills / MCP / Tasks / Logs 展示同一个 project context
 - CLI 仍通过固定白名单 API 和 `execa(command, args, { cwd })` 执行。
 - 不自建 Skills registry。
 - 不自写 MCP 配置文件解析器。
-
