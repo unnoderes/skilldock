@@ -1,0 +1,7 @@
+- `pnpm install` to install workspace deps
+- `pnpm dev` to run web and server in parallel
+- `pnpm typecheck` to run required TS checks across the workspace
+- `pnpm build` to build all workspace packages/apps
+- `pnpm --filter @skilldock/server build` to build the server only
+- `node apps/server/dist/index.js` to run the built server from the current working directory
+- Standard Linux tools available: `git`, `rg`, `find`, `sed`, `cat`, `curl`.

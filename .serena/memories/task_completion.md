@@ -1,0 +1,1 @@
+After each implementation, run at least `pnpm typecheck`. If build-chain behavior is touched, also run `pnpm build`. Before merge inspect `git diff`. Every coding task should end with commit + push to its task branch and provide PR base/head/title/body info. Avoid committing local agent state like `.serena/` unless explicitly requested.
