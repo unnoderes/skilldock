@@ -95,31 +95,28 @@ export function Settings() {
 
                 <div className="space-y-5 pt-6 border-t border-border/30">
                   <p className="text-[10px] uppercase font-bold text-text-muted/60 tracking-widest px-1">Display & Logs</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5">
-                    <label className="flex flex-col gap-2.5">
-                      <span className="text-xs font-semibold">{t("settings.recentLogsLimit")}</span>
+                  <div className="space-y-4">
+                    <label className="flex items-center justify-between gap-4 p-4 rounded-lg bg-surface-900/50 border border-border">
+                      <span className="text-sm font-semibold">{t("settings.recentLogsLimit")}</span>
                       <input
                         type="number"
                         min={5}
                         max={100}
                         value={formData.defaultLogsLimit}
                         onChange={e => setFormData(p => ({ ...p, defaultLogsLimit: Number(e.target.value) }))}
-                        className="bg-surface-900 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-2.5 px-4 transition-shadow h-11"
+                        className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-3 transition-shadow w-24 text-right"
                       />
                     </label>
 
-                    <div className="flex flex-col gap-2.5">
-                      <span className="text-xs font-semibold opacity-0 select-none">Placeholder</span>
-                      <label className="flex items-center gap-3 px-4 rounded-lg bg-surface-900/50 border border-border cursor-pointer select-none transition-all hover:bg-surface-900 hover:border-accent/40 h-11">
-                        <input
-                          type="checkbox"
-                          checked={formData.collapseRawOutput}
-                          onChange={e => setFormData(p => ({ ...p, collapseRawOutput: e.target.checked }))}
-                          className="w-4 h-4 rounded border-border text-accent focus:ring-0 focus:ring-offset-0 bg-surface-900 shrink-0"
-                        />
-                        <span className="text-xs font-medium text-text-muted">{t("settings.collapseRawOutput")}</span>
-                      </label>
-                    </div>
+                    <label className="flex items-center justify-between gap-4 p-4 rounded-lg bg-surface-900/50 border border-border cursor-pointer select-none transition-all hover:bg-surface-900">
+                      <span className="text-sm font-semibold">{t("settings.collapseRawOutput")}</span>
+                      <input
+                        type="checkbox"
+                        checked={formData.collapseRawOutput}
+                        onChange={e => setFormData(p => ({ ...p, collapseRawOutput: e.target.checked }))}
+                        className="w-5 h-5 rounded border-border text-accent focus:ring-0 focus:ring-offset-0 bg-surface-700 shrink-0"
+                      />
+                    </label>
                   </div>
                 </div>
               </div>
