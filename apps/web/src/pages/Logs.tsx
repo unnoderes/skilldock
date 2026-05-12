@@ -84,6 +84,9 @@ export function Logs() {
                       </span>
                     </div>
                     <p className="text-[11px] font-mono text-text-muted truncate">
+                      {log.project && (
+                        <span className="text-accent-light">{log.project.projectName} · </span>
+                      )}
                       {log.result.command} {log.result.args.join(" ")}
                     </p>
                   </div>
@@ -106,6 +109,18 @@ export function Logs() {
 
               <div className="p-5 pt-0 border-t border-border bg-surface-900/50">
                 <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-xs">
+                  {log.project && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.project")}</span>
+                      <span className="font-mono text-accent-light truncate max-w-[200px]" title={log.project.projectPath}>{log.project.projectName}</span>
+                    </div>
+                  )}
+                  {log.scope && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.scope")}</span>
+                      <span className="font-mono bg-surface-800 px-2 py-0.5 rounded border border-border">{log.scope}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.exitCode")}</span>
                     <span className={`font-mono font-bold ${log.result.exitCode === 0 ? "text-success" : "text-danger"}`}>{log.result.exitCode}</span>

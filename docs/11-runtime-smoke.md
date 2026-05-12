@@ -68,7 +68,8 @@ curl http://127.0.0.1:3301/healthz
 3. Opt-in write checks（仅在你明确接受会调用真实 CLI 时执行）
 4. Web UI checks
 5. Log redaction checks
-6. Cleanup checks
+6. Project Context checks（多项目注册、切换、CLI cwd 隔离）
+7. Cleanup checks
 
 ---
 
