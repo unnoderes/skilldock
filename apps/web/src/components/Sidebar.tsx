@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { useStatus } from "../hooks/useStatus";
 import { useLocale } from "../contexts/LocaleContext";
-import { ProjectSelector } from "./ProjectSelector";
 
 export function Sidebar({ currentView, setView }: { currentView: string, setView: (v: string) => void }) {
   const { data: status } = useStatus();
@@ -32,7 +31,6 @@ export function Sidebar({ currentView, setView }: { currentView: string, setView
           <div className="w-6 h-6 bg-accent rounded-md flex items-center justify-center font-bold text-white text-xs">SD</div>
           <h1 className="font-bold tracking-tight text-lg">SkillDock</h1>
         </div>
-        <ProjectSelector />
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${allAvailable ? "bg-success" : "bg-danger animate-pulse"}`} />
           <span className="text-[10px] uppercase font-bold tracking-widest text-text-muted">
