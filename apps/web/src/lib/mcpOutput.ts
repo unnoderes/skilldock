@@ -13,19 +13,65 @@ export interface McpAgentItem {
   description?: string;
 }
 
-const DECORATIVE_RE = /^(?:[┌┐└┘├┤┬┴┼─═│║\s+=\-*\/])*$/;
+/* ─── Noise patterns ─── */
+
+// Purely decorative lines (box-drawing chars, spaces, symbols)
+const DECORATIVE_RE = /^(?:[┌┐└┘├┤┬┴┼─═│║\s+=\-*\/█▓▒░╔╗╚╝])*$/;
+
+// Lines overwhelmingly decorative symbols (banner fragments, borders)
+const MOSTLY_DECORATIVE_RE = /^[\s┌┐└┘├┤┬┴┼─═│║█▓▒░╔╗╚╝●•·›►▶\-–—_=+|/\\*]{3,}$/;
+
+// Banner lines containing block-drawing characters
+const BANNER_RE = /[█▓▒░]/;
+
+// Table headers and section labels
+const TABLE_HEADER_RE = /^(Argument|MCP Client|Aliases|Local|Global|Server|Name|Transport|Scope|Status)\s+/i;
+const SEPARATOR_RE = /^[\s\-–—═━┅┄┈]+$/;
+const HEADER_LABEL_RE = /^(Supported agents|Installed MCP servers|MCP servers|Available agents|Results?)\s*[:：]?\s*$/i;
+
+// Empty-state messages that should trigger normal empty UI instead of cards
+const EMPTY_STATE_RE = /no agents detected|no servers?|no mcp|no config(uration)?|nothing (found|installed|to show)|not detected|empty/i;
+
+// Instructional noise that should not be rendered as list items
+const INSTRUCTIONAL_RE = /usage:|example:|install with/i;
+
+export function isDecorativeLine(line: string): boolean {
+  const trimmed = line.trim();
+  if (trimmed.length === 0) return true;
+  if (DECORATIVE_RE.test(trimmed)) return true;
+  if (MOSTLY_DECORATIVE_RE.test(trimmed)) return true;
+  if (BANNER_RE.test(trimmed)) return true;
+  if (SEPARATOR_RE.test(trimmed)) return true;
+  if (HEADER_LABEL_RE.test(trimmed)) return true;
+  if (TABLE_HEADER_RE.test(trimmed)) return true;
+  if (INSTRUCTIONAL_RE.test(trimmed)) return true;
+  return false;
+}
+
+export function isEmptyStateLine(line: string): boolean {
+  return EMPTY_STATE_RE.test(line);
+}
+
+/* ─── Cleaning helpers ─── */
+
+function cleanLine(line: string): string {
+  return stripAnsi(line)
+    .replace(/^[├└┌┐│─═\s●•·›►▶█▓▒░╔╗╚╝]+/, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function cleanLinePreserveSpacing(line: string): string {
+  return stripAnsi(line)
+    .replace(/^[├└┌┐│─═\s●•·›►▶█▓▒░╔╗╚╝]+/, "")
+    .replace(/\s+$/, "");
+}
+
+/* ─── Content extraction ─── */
+
 const URL_RE = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/;
 const TRANSPORT_RE = /\b(sse|http|stdio|websocket|ws)\b/i;
 const SCOPE_RE = /\b(project|global)\b/i;
-
-function isDecorativeLine(line: string): boolean {
-  return DECORATIVE_RE.test(line) || line.trim().length === 0;
-}
-
-function looksLikeHeader(line: string): boolean {
-  const lower = line.toLowerCase();
-  return lower.includes("install with") || lower.includes("usage:") || lower.includes("example:");
-}
 
 function extractUrl(line: string): string | undefined {
   const match = line.match(URL_RE);
@@ -42,16 +88,13 @@ function extractScope(line: string): string | undefined {
   return match ? match[1].toLowerCase() : undefined;
 }
 
-function cleanLine(line: string): string {
-  return stripAnsi(line)
-    .replace(/^\s*[├└┌┐│─═\s]+/, "")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-}
+/* ─── add-mcp list ─── */
 
 export function parseMcpServers(stdout: string): McpServerItem[] | null {
   const rawLines = stdout.split("\n");
-  const cleaned = rawLines.map(cleanLine).filter((l) => l.length > 0 && !isDecorativeLine(l) && !looksLikeHeader(l));
+  const cleaned = rawLines
+    .map(cleanLine)
+    .filter((l) => l.length > 0 && !isDecorativeLine(l) && !isEmptyStateLine(l));
 
   if (cleaned.length === 0) return null;
 
@@ -66,7 +109,7 @@ export function parseMcpServers(stdout: string): McpServerItem[] | null {
     const isProbablyNewEntry =
       !line.startsWith(" ") &&
       !line.startsWith("  ") &&
-      (url !== undefined || transport !== undefined || /^[a-z0-9_-]+/i.test(line.split(/\s/)[0] ?? ""));
+      (url !== undefined || transport !== undefined || /^[a-z0-9_/-]+/i.test(line.split(/\s/)[0] ?? ""));
 
     if (isProbablyNewEntry || current === null) {
       if (current) items.push(current);
@@ -90,34 +133,56 @@ export function parseMcpServers(stdout: string): McpServerItem[] | null {
   return items.length > 0 ? items : null;
 }
 
+/* ─── add-mcp list-agents ─── */
+
 export function parseMcpAgents(stdout: string): McpAgentItem[] | null {
   const rawLines = stdout.split("\n");
-  const cleaned = rawLines.map(cleanLine).filter((l) => l.length > 0 && !isDecorativeLine(l) && !looksLikeHeader(l));
+  const stripped = rawLines.map(cleanLinePreserveSpacing);
+
+  const cleaned = stripped.filter((l) => {
+    const trimmed = l.trim();
+    return trimmed.length > 0 && !isDecorativeLine(trimmed) && !isEmptyStateLine(trimmed);
+  });
 
   if (cleaned.length === 0) return null;
 
   const items: McpAgentItem[] = [];
 
-  for (let i = 0; i < cleaned.length; i++) {
-    const line = cleaned[i];
-    if (line.toLowerCase().startsWith("install with")) continue;
+  for (const line of cleaned) {
+    const trimmed = line.trim();
 
-    const name = line.split(/\s+/)[0] ?? line;
-    let description: string | undefined;
-    const rest = line.slice(name.length).trim();
-    if (rest.length > 0) description = rest;
+    // Skip residual table headers / separators
+    if (/^(Argument|MCP Client|Aliases|Local|Global)$/i.test(trimmed)) continue;
+    if (/^[─═━┅┄┈\-–—]+$/.test(trimmed)) continue;
 
-    if (name.length > 0) {
-      items.push({ name, description });
+    // Split by 2+ spaces to respect table columns
+    const columns = line.split(/\s{2,}/).map((c) => c.trim()).filter(Boolean);
+    const name = columns[0] ?? "";
+    if (!name) continue;
+
+    // Defensive: reject known header words and non-identifier tokens
+    if (/^(argument|mcp client|aliases|local|global|server|name|transport|scope|status)$/i.test(name)) continue;
+
+    // Require agent-like identifiers (start with letter, alphanumeric + hyphen/underscore)
+    if (!/^[a-z][a-z0-9_-]*$/i.test(name)) continue;
+
+    // Everything after the first column becomes description
+    let description: string | undefined = columns.slice(1).join(" ").trim();
+    if (!description || /^[─═━\-–—]+$/.test(description)) {
+      description = undefined;
     }
+
+    items.push({ name, description });
   }
 
   return items.length > 0 ? items : null;
 }
 
+/* ─── Fallback text cleaning ─── */
+
 export function cleanedMcpOutput(stdout: string): string[] {
   return stdout
     .split("\n")
     .map(cleanLine)
-    .filter((l) => l.length > 0 && !isDecorativeLine(l));
+    .filter((l) => l.length > 0 && !isDecorativeLine(l) && !isEmptyStateLine(l));
 }
