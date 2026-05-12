@@ -1,8 +1,9 @@
 import React from "react";
-import { Server, Activity, Terminal, CheckCircle2, XCircle, History } from "lucide-react";
+import { Folder, Activity, Terminal, History } from "lucide-react";
 import { useStatus } from "../hooks/useStatus";
 import { useLogs } from "../hooks/useLogs";
 import { useLocale } from "../contexts/LocaleContext";
+import { ProjectSelector } from "../components/ProjectSelector";
 
 export function Overview() {
   const { data: status, isLoading: isStatusLoading } = useStatus();
@@ -15,28 +16,10 @@ export function Overview() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <section className="p-6 rounded-2xl bg-surface-800 border border-border flex flex-col gap-4">
           <div className="flex items-center gap-3 text-accent-light">
-            <Server size={20} />
-            <h3 className="font-bold tracking-tight">{t("overview.cliHealth")}</h3>
+            <Folder size={20} />
+            <h3 className="font-bold tracking-tight">{t("projects.project")}</h3>
           </div>
-          <div className="space-y-3">
-            {isStatusLoading ? (
-              <div className="h-20 animate-pulse bg-surface-700 rounded-xl" />
-            ) : (
-              status?.cli.map((cli) => (
-                <div key={cli.name} className="flex items-center justify-between p-3 rounded-xl bg-surface-900 border border-border/50">
-                  <span className="font-medium text-sm capitalize">{cli.name}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-mono text-text-muted">{cli.available ? cli.version : "N/A"}</span>
-                    {cli.available ? (
-                      <CheckCircle2 size={16} className="text-success" />
-                    ) : (
-                      <XCircle size={16} className="text-danger" />
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          <ProjectSelector />
         </section>
 
         <section className="p-6 rounded-2xl bg-surface-800 border border-border flex flex-col gap-4">
