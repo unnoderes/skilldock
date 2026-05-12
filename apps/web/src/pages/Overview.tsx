@@ -17,7 +17,7 @@ export function Overview() {
         <section className="p-6 rounded-2xl bg-surface-800 border border-border flex flex-col gap-4">
           <div className="flex items-center gap-3 text-accent-light">
             <Folder size={20} />
-            <h3 className="font-bold tracking-tight">{t("projects.project")}</h3>
+            <h3 className="font-bold tracking-tight">{t("overview.targetProject")}</h3>
           </div>
           <ProjectSelector />
         </section>
