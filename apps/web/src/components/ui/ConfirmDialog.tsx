@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, AlertTriangle } from "lucide-react";
 import { useLocale } from "../../contexts/LocaleContext";
@@ -20,63 +20,72 @@ export function ConfirmDialog({
   onCancel: () => void;
   isDangerous?: boolean;
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const { t } = useLocale();
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (!isOpen) return;
 
-    if (isOpen) {
-      if (!dialog.open) dialog.showModal();
-    } else {
-      if (dialog.open) dialog.close();
-    }
-  }, [isOpen]);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onCancel();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onCancel]);
 
   if (!isOpen) return null;
 
   return createPortal(
-    <dialog
-      ref={dialogRef}
-      className="bg-surface-700 text-text border border-border rounded-2xl shadow-2xl p-0 backdrop:bg-surface-900/80 backdrop:backdrop-blur-sm max-w-md w-full overflow-hidden"
-      onClose={onCancel}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/80 p-4 backdrop-blur-sm"
+      onClick={onCancel}
+      role="presentation"
     >
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${isDangerous ? 'bg-danger/20 text-danger' : 'bg-accent/20 text-accent'}`}>
-              <AlertTriangle size={20} />
+      <div
+        className="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-surface-700 text-text shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="p-6">
+          <div className="mb-4 flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`rounded-lg p-2 ${isDangerous ? "bg-danger/20 text-danger" : "bg-accent/20 text-accent"}`}>
+                <AlertTriangle size={20} />
+              </div>
+              <h3 id="confirm-dialog-title" className="text-lg font-bold">{title}</h3>
             </div>
-            <h3 className="text-lg font-bold">{title}</h3>
+            <button onClick={onCancel} className="text-text-muted transition-colors hover:text-text">
+              <X size={20} />
+            </button>
           </div>
-          <button onClick={onCancel} className="text-text-muted hover:text-text transition-colors">
-            <X size={20} />
-          </button>
-        </div>
 
-        <div className="space-y-2 mb-8">
-          {message.map((line, i) => (
-            <p key={i} className="text-sm text-text-muted">{line}</p>
-          ))}
-        </div>
+          <div className="mb-8 space-y-2">
+            {message.map((line, i) => (
+              <p key={i} className="text-sm text-text-muted">{line}</p>
+            ))}
+          </div>
 
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium rounded-lg border border-border hover:bg-surface-600 transition-colors"
-          >
-            {t("dialog.cancel")}
-          </button>
-          <button
-            onClick={onConfirm}
-            className={`px-4 py-2 text-sm font-medium rounded-lg text-white transition-opacity hover:opacity-90 ${isDangerous ? 'bg-danger' : 'bg-accent'}`}
-          >
-            {confirmLabel || t("dialog.confirm")}
-          </button>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={onCancel}
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-surface-600"
+            >
+              {t("dialog.cancel")}
+            </button>
+            <button
+              onClick={onConfirm}
+              className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 ${isDangerous ? "bg-danger" : "bg-accent"}`}
+            >
+              {confirmLabel || t("dialog.confirm")}
+            </button>
+          </div>
         </div>
       </div>
-    </dialog>,
+    </div>,
     document.body
   );
 }

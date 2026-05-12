@@ -146,6 +146,9 @@ export type TranslationKey =
   | "taskDrawer.projectName"
   | "taskDrawer.projectPath"
   | "taskDrawer.scope"
+  | "taskDrawer.console"
+  | "taskDrawer.idleTitle"
+  | "taskDrawer.idleDescription"
   | "dialog.confirm"
   | "dialog.cancel"
   | "error.retry"
@@ -300,6 +303,9 @@ const enUS: Record<TranslationKey, string> = {
   "taskDrawer.projectName": "Name",
   "taskDrawer.projectPath": "Path",
   "taskDrawer.scope": "Scope",
+  "taskDrawer.console": "Task Console",
+  "taskDrawer.idleTitle": "No active task",
+  "taskDrawer.idleDescription": "Run a Skills or MCP write operation to stream output here.",
   "dialog.confirm": "Confirm",
   "dialog.cancel": "Cancel",
   "error.retry": "Retry",
@@ -455,6 +461,9 @@ const zhCN: Record<TranslationKey, string> = {
   "taskDrawer.projectName": "名称",
   "taskDrawer.projectPath": "路径",
   "taskDrawer.scope": "范围",
+  "taskDrawer.console": "任务控制台",
+  "taskDrawer.idleTitle": "当前没有活动任务",
+  "taskDrawer.idleDescription": "触发 Skills 或 MCP 写操作后，输出会持续显示在这里。",
   "dialog.confirm": "确认",
   "dialog.cancel": "取消",
   "error.retry": "重试",
