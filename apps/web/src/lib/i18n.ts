@@ -22,6 +22,7 @@ export type TranslationKey =
   | "overview.runtime"
   | "overview.recentActivity"
   | "overview.noRecentOperations"
+  | "overview.targetProject"
   | "common.scope"
   | "projects.project"
   | "projects.loading"
@@ -175,6 +176,7 @@ const enUS: Record<TranslationKey, string> = {
   "overview.runtime": "Runtime",
   "overview.recentActivity": "Recent Activity",
   "overview.noRecentOperations": "No recent operations recorded.",
+  "overview.targetProject": "Target Project",
   "common.scope": "Scope",
   "projects.project": "Project",
   "projects.loading": "Loading project",
@@ -329,6 +331,7 @@ const zhCN: Record<TranslationKey, string> = {
   "overview.runtime": "运行环境",
   "overview.recentActivity": "最近活动",
   "overview.noRecentOperations": "暂无操作记录。",
+  "overview.targetProject": "目标项目",
   "common.scope": "范围",
   "projects.project": "项目",
   "projects.loading": "正在加载项目",
