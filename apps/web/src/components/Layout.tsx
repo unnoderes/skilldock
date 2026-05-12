@@ -37,6 +37,8 @@ export function Layout({
     settings: t("nav.settings"),
   };
 
+  const contentBottomPadding = isDrawerOpen ? "pb-[calc(60vh+2rem)]" : "pb-20";
+
   return (
     <div className="flex min-h-screen bg-surface-900 text-text selection:bg-accent selection:text-white">
       <Sidebar currentView={currentView} setView={setView} />
@@ -68,7 +70,7 @@ export function Layout({
           </div>
         </header>
 
-        <div className="flex-1 p-8 pb-32">
+        <div className={`flex-1 p-8 ${contentBottomPadding}`}>
           {children}
         </div>
 
