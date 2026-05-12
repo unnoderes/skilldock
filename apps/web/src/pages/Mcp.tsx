@@ -5,7 +5,8 @@ import { useMcpList, useMcpAgents, useMcpAdd } from "../hooks/useMcp";
 import { useProjects } from "../hooks/useProjects";
 import { ScopeToggle } from "../components/ui/ScopeToggle";
 import { EmptyState } from "../components/ui/EmptyState";
-import { CommandResultView } from "../components/ui/CommandResultView";
+import { McpServerList } from "../components/McpServerList";
+import { McpAgentList } from "../components/McpAgentList";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { useLocale } from "../contexts/LocaleContext";
 
@@ -125,12 +126,7 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
           {isListLoading ? (
             <div className="h-64 rounded-2xl bg-surface-800 border border-border animate-pulse" />
           ) : mcpListData ? (
-            <CommandResultView
-              title={t("mcp.configuredServers")}
-              description={t("mcp.configuredServersDesc")}
-              result={mcpListData}
-              scope={scope}
-            />
+            <McpServerList result={mcpListData} scope={scope} />
           ) : (
             <EmptyState title={t("mcp.noMcpConfig")} message={t("mcp.unableToFetch")} />
           )}
@@ -146,11 +142,7 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
           {isAgentsLoading ? (
             <div className="h-64 rounded-2xl bg-surface-800 border border-border animate-pulse" />
           ) : agentsData ? (
-            <CommandResultView
-              title={t("mcp.availableAgents")}
-              description={t("mcp.availableAgentsDesc")}
-              result={agentsData}
-            />
+            <McpAgentList result={agentsData} />
           ) : (
             <EmptyState title={t("mcp.noAgentsFound")} message={t("mcp.couldNotRetrieve")} />
           )}
