@@ -78,19 +78,14 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
           <span>{addMutation.error instanceof Error ? addMutation.error.message : t("common.operationFailed")}</span>
         </div>
       )}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
-          <div className="min-w-0 text-xs text-text-muted">
-            <div className="font-bold text-text">{activeProject?.name ?? t("projects.loading")}</div>
-            <div className="truncate max-w-xs">{activeProject?.path ?? ""}</div>
-            {projectWriteDisabled ? (
-              <div className="mt-1 text-danger">{t("projects.invalidWriteDisabled")}</div>
-            ) : null}
-          </div>
+      <header className="flex items-center gap-3 flex-wrap">
+        <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
+        <div className="min-w-0 text-xs text-text-muted truncate">
+          <span className="font-bold text-text">{activeProject?.name ?? t("projects.loading")}</span>
+          {activeProject?.path ? <span className="ml-1">· {activeProject.path}</span> : ""}
+          {projectWriteDisabled && <span className="ml-1 text-danger">{t("projects.invalidWriteDisabled")}</span>}
         </div>
-
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           <button
             type="button"
             onClick={() => setAgentsDialogOpen(true)}
@@ -99,7 +94,7 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
             <LayoutGrid size={14} />
             {t("mcp.viewAgents")}
           </button>
-          <form onSubmit={handleAddMcp} className="flex items-center gap-2 min-w-0">
+          <form onSubmit={handleAddMcp} className="flex items-center gap-2">
             <input
               type="text"
               placeholder={t("mcp.targetPlaceholder")}
