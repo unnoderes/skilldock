@@ -99,41 +99,7 @@ export function CommandResultView({
         </div>
       </div>
 
-      {/* Raw details */}
-      <details className="group border-t border-border">
-        <summary className="px-4 py-2.5 text-[11px] text-accent-light cursor-pointer hover:underline list-none flex items-center gap-1.5 select-none">
-          <span className="inline-block transition-transform group-open:rotate-90">▶</span>
-          {t("resultPanel.fullDetails")}
-        </summary>
-        <div className="px-4 py-3 space-y-3 bg-surface-900/20">
-          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[11px]">
-            <span className="text-text-muted font-mono">{t("logs.command")}</span>
-            <span className="font-mono text-text">{result.command}</span>
-            <span className="text-text-muted font-mono">{t("logs.args")}</span>
-            <span className="font-mono text-text break-all">{result.args.join(" ")}</span>
-            <span className="text-text-muted font-mono">{t("logs.exitCode")}</span>
-            <span className={`font-mono font-bold ${success ? "text-success" : "text-danger"}`}>
-              {result.exitCode}
-            </span>
-            <span className="text-text-muted font-mono">{t("logs.duration")}</span>
-            <span className="font-mono text-text">{result.durationMs}ms</span>
-          </div>
-
-          {result.stdout && (
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase font-bold text-text-muted">{t("logs.standardOutput")}</span>
-              <pre className="text-[11px] p-2 max-h-40">{result.stdout}</pre>
-            </div>
-          )}
-
-          {result.stderr && (
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase font-bold text-text-muted">{t("logs.standardError")}</span>
-              <pre className="text-[11px] p-2 max-h-40 text-danger">{result.stderr}</pre>
-            </div>
-          )}
-        </div>
-      </details>
+      {/* Full raw command details are intentionally hidden for the current UI. */}
     </div>
   );
 }

@@ -1,12 +1,11 @@
 import React, { useMemo } from "react";
-import { Server, ChevronDown, ExternalLink } from "lucide-react";
+import { Server, ExternalLink } from "lucide-react";
 import type { CommandResult } from "@skilldock/shared";
 import { useLocale } from "../contexts/LocaleContext";
 import { parseMcpServers, cleanedMcpOutput } from "../lib/mcpOutput";
 import { EmptyState } from "./ui/EmptyState";
-import { CommandResultView } from "./ui/CommandResultView";
 
-export function McpServerList({ result, scope }: { result: CommandResult; scope?: string }) {
+export function McpServerList({ result }: { result: CommandResult; scope?: string }) {
   const { t } = useLocale();
 
   const items = useMemo(() => parseMcpServers(result.stdout), [result.stdout]);
@@ -85,21 +84,7 @@ export function McpServerList({ result, scope }: { result: CommandResult; scope?
         <EmptyState title={t("mcp.noMcpConfig")} message={t("mcp.unableToFetch")} />
       )}
 
-      {/* Secondary raw details */}
-      <details className="group">
-        <summary className="flex items-center gap-1.5 text-[11px] text-accent-light cursor-pointer hover:underline select-none">
-          <ChevronDown size={12} className="transition-transform group-open:rotate-180" />
-          {t("resultPanel.fullDetails")}
-        </summary>
-        <div className="mt-3">
-          <CommandResultView
-            title={t("mcp.configuredServers")}
-            description={t("mcp.configuredServersDesc")}
-            result={result}
-            scope={scope}
-          />
-        </div>
-      </details>
+      {/* Secondary raw details are intentionally hidden for the current UI. */}
     </div>
   );
 }

@@ -6,8 +6,6 @@ export function ResultPanel({
   title,
   result,
   error,
-  compact = false,
-  collapseRawOutput = true,
 }: {
   title: string;
   result: CommandResult;
@@ -34,24 +32,7 @@ export function ResultPanel({
         {primaryOutput || t("resultPanel.emptyOutput")}
       </pre>
 
-      {!compact && (
-        <details className="mt-1 group" open={!collapseRawOutput}>
-          <summary className="text-xs text-accent-light cursor-pointer hover:underline list-none flex items-center gap-1">
-            <span className="group-open:rotate-90 transition-transform">▶</span>
-            {t("resultPanel.fullDetails")}
-          </summary>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase font-bold text-text-muted ml-1">stdout</span>
-              <pre className="text-[11px] p-2 max-h-48">{result.stdout || t("logs.empty")}</pre>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase font-bold text-text-muted ml-1">stderr</span>
-              <pre className="text-[11px] p-2 max-h-48">{result.stderr || t("logs.empty")}</pre>
-            </div>
-          </div>
-        </details>
-      )}
+      {/* Full stdout/stderr details are intentionally hidden for the current UI. */}
     </div>
   );
 }

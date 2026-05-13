@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { History, ChevronRight, Terminal, Clock, Calendar, AlertTriangle } from "lucide-react";
+import { History, Terminal, Clock, Calendar, AlertTriangle } from "lucide-react";
 import { SearchInput } from "../components/ui/SearchInput";
 import { useLogs } from "../hooks/useLogs";
 import { useLocale } from "../contexts/LocaleContext";
@@ -68,8 +68,8 @@ export function Logs() {
           </div>
         ) : (
           filteredLogs.map((log) => (
-            <details key={log.id} className="group rounded-2xl border border-border bg-surface-800 overflow-hidden transition-all hover:border-accent/30">
-              <summary className="p-5 flex items-center justify-between cursor-pointer list-none hover:bg-surface-700/30">
+            <article key={log.id} className="rounded-2xl border border-border bg-surface-800 overflow-hidden transition-all hover:border-accent/30">
+              <div className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-6 min-w-0">
                   <div className={`p-2.5 rounded-xl shrink-0 ${log.result.exitCode === 0 ? "bg-success/10 text-success" : "bg-danger/10 text-danger"}`}>
                     <Terminal size={20} />
@@ -103,76 +103,11 @@ export function Logs() {
                       <span>{new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   </div>
-                  <ChevronRight size={18} className="text-text-muted group-open:rotate-90 transition-transform" />
-                </div>
-              </summary>
-
-              <div className="p-5 pt-0 border-t border-border bg-surface-900/50">
-                <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-xs">
-                  {log.project && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.project")}</span>
-                      <span className="font-mono text-accent-light truncate max-w-[200px]" title={log.project.projectPath}>{log.project.projectName}</span>
-                    </div>
-                  )}
-                  {log.scope && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.scope")}</span>
-                      <span className="font-mono bg-surface-800 px-2 py-0.5 rounded border border-border">{log.scope}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.exitCode")}</span>
-                    <span className={`font-mono font-bold ${log.result.exitCode === 0 ? "text-success" : "text-danger"}`}>{log.result.exitCode}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.duration")}</span>
-                    <span className="font-mono">{log.result.durationMs}ms</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.timestamp")}</span>
-                    <span>{new Date(log.timestamp).toLocaleDateString()} {new Date(log.timestamp).toLocaleTimeString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.source")}</span>
-                    <span>{log.source}</span>
-                  </div>
-                </div>
-
-                <div className="mt-5">
-                  <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-2">{t("logs.command")}</h5>
-                  <pre className="p-3 rounded-lg border border-surface-600/50 text-xs">
-                    <span className="text-accent font-bold">{log.result.command}</span>
-                    {log.result.args.length > 0 ? " " + log.result.args.join(" ") : ""}
-                  </pre>
-                </div>
-
-                <div className="mt-5 flex flex-col gap-5">
-                  <section>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-accent" />
-                      <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.standardOutput")}</h5>
-                    </div>
-                    {log.result.stdout ? (
-                      <pre className="p-3 rounded-lg border border-surface-600/50 text-xs max-h-48 overflow-auto">{log.result.stdout}</pre>
-                    ) : (
-                      <div className="p-3 rounded-lg border border-dashed border-border text-xs text-text-muted italic">{t("logs.noStdout")}</div>
-                    )}
-                  </section>
-                  <section>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-danger" />
-                      <h5 className="text-[10px] uppercase font-bold text-text-muted tracking-widest">{t("logs.standardError")}</h5>
-                    </div>
-                    {log.result.stderr ? (
-                      <pre className="p-3 rounded-lg border border-surface-600/50 border-l-2 border-l-danger text-xs max-h-48 overflow-auto">{log.result.stderr}</pre>
-                    ) : (
-                      <div className="p-3 rounded-lg border border-dashed border-border text-xs text-text-muted italic">{t("logs.noStderr")}</div>
-                    )}
-                  </section>
                 </div>
               </div>
-            </details>
+
+              {/* Per-log full detail cards are intentionally hidden for the current UI. */}
+            </article>
           ))
         )}
       </div>

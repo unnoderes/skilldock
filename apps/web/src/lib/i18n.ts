@@ -158,7 +158,6 @@ export type TranslationKey =
   | "common.operationFailed"
   | "resultPanel.duration"
   | "resultPanel.emptyOutput"
-  | "resultPanel.fullDetails"
   | "language.english"
   | "language.chinese"
   | "language.label"
@@ -318,7 +317,6 @@ const enUS: Record<TranslationKey, string> = {
   "common.operationFailed": "Operation failed. Please try again.",
   "resultPanel.duration": "duration",
   "resultPanel.emptyOutput": "(empty output)",
-  "resultPanel.fullDetails": "Full Details (stdout/stderr)",
   "language.english": "English",
   "language.chinese": "简体中文",
   "language.label": "Language",
@@ -479,7 +477,6 @@ const zhCN: Record<TranslationKey, string> = {
   "common.operationFailed": "操作失败，请重试。",
   "resultPanel.duration": "耗时",
   "resultPanel.emptyOutput": "（无输出）",
-  "resultPanel.fullDetails": "完整详情（stdout/stderr）",
   "language.english": "English",
   "language.chinese": "简体中文",
   "language.label": "语言",
