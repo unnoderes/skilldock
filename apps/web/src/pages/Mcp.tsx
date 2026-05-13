@@ -71,7 +71,7 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 lg:h-[calc(100vh-13rem)] lg:min-h-[36rem] lg:overflow-hidden">
       {addMutation.error && (
         <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
           <AlertTriangle size={16} />
@@ -79,8 +79,8 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-        <section className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+        <section className="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
           <div className="flex items-center gap-3">
             <List size={20} className="text-accent-light" />
             <h3 className="font-bold tracking-tight uppercase text-xs tracking-widest text-text-muted">{t("mcp.configuredServers")}</h3>
@@ -95,7 +95,7 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
           )}
         </section>
 
-        <aside className="lg:sticky lg:top-20">
+        <aside className="lg:self-stretch lg:overflow-y-auto">
           <McpActionPanel
             scope={scope}
             onScopeChange={setScope}
