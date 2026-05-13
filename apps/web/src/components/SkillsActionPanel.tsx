@@ -25,7 +25,7 @@ export function SkillsActionPanel({
   const { t } = useLocale();
 
   return (
-    <div className="space-y-5 p-5 rounded-2xl bg-surface-800 border border-border">
+    <div className="space-y-5 p-5">
       <div>
         <h3 className="text-sm font-bold mb-1">{t("skills.addSkill")}</h3>
         <p className="text-xs text-text-muted">

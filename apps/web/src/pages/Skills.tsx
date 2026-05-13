@@ -146,7 +146,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         />
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6 items-start">
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => (
@@ -213,7 +213,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           )}
         </section>
 
-        <aside className="lg:sticky lg:top-20">
+        <aside className="lg:sticky lg:top-24 lg:min-h-[calc(100vh-12rem)] rounded-2xl bg-surface-800 border border-border overflow-y-auto">
           <SkillsActionPanel
             scope={scope}
             onScopeChange={setScope}
