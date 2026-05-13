@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Plus, LayoutGrid, List, AlertTriangle } from "lucide-react";
+import { AlertTriangle, List } from "lucide-react";
 import type { ProjectRecord, Scope } from "@skilldock/shared";
 import { useMcpList, useMcpAgents, useMcpAdd } from "../hooks/useMcp";
 import { useProjects } from "../hooks/useProjects";
-import { ScopeToggle } from "../components/ui/ScopeToggle";
 import { EmptyState } from "../components/ui/EmptyState";
 import { McpServerList } from "../components/McpServerList";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { AgentsDialog } from "../components/ui/AgentsDialog";
 import { useLocale } from "../contexts/LocaleContext";
+import { McpActionPanel } from "../components/McpActionPanel";
 
 export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
   const [scope, setScope] = useState<Scope>("project");
@@ -71,76 +71,46 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {addMutation.error && (
         <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
           <AlertTriangle size={16} />
           <span>{addMutation.error instanceof Error ? addMutation.error.message : t("common.operationFailed")}</span>
         </div>
       )}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
-          <div className="min-w-0 text-xs text-text-muted">
-            <div className="font-bold text-text">{activeProject?.name ?? t("projects.loading")}</div>
-            <div className="truncate max-w-xs">{activeProject?.path ?? ""}</div>
-            {projectWriteDisabled ? (
-              <div className="mt-1 text-danger">{t("projects.invalidWriteDisabled")}</div>
-            ) : null}
+
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <List size={20} className="text-accent-light" />
+            <h3 className="font-bold tracking-tight uppercase text-xs tracking-widest text-text-muted">{t("mcp.configuredServers")}</h3>
           </div>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setAgentsDialogOpen(true)}
-            className="h-9 px-3 border border-border rounded-lg text-xs font-medium text-text-muted hover:text-text hover:border-text-muted transition-colors flex items-center gap-1.5"
-          >
-            <LayoutGrid size={14} />
-            {t("mcp.viewAgents")}
-          </button>
-          <form onSubmit={handleAddMcp} className="flex flex-wrap sm:flex-nowrap items-center gap-2">
-            <input
-              type="text"
-              placeholder={t("mcp.targetPlaceholder")}
-              value={target}
-              onChange={e => setTarget(e.target.value)}
-              className="h-9 w-full sm:w-64 px-3 text-xs bg-surface-800 border border-border rounded-lg"
-            />
-            <input
-              type="text"
-              placeholder={t("mcp.namePlaceholder")}
-              value={name}
-              onChange={e => setName(e.target.value)}
-              className="h-9 w-full sm:w-40 px-3 text-xs bg-surface-800 border border-border rounded-lg"
-            />
-            <button
-              type="submit"
-              disabled={!target.trim() || addMutation.isPending || projectWriteDisabled}
-              title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
-              className="h-9 px-4 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 whitespace-nowrap hover:opacity-90 disabled:opacity-50"
-            >
-              <Plus size={14} />
-              {t("mcp.addServerButton")}
-            </button>
-          </form>
-        </div>
-      </header>
+          {isListLoading ? (
+            <div className="h-64 rounded-2xl bg-surface-800 border border-border animate-pulse" />
+          ) : mcpListData ? (
+            <McpServerList result={mcpListData} scope={scope} />
+          ) : (
+            <EmptyState title={t("mcp.noMcpConfig")} message={t("mcp.unableToFetch")} />
+          )}
+        </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center gap-3">
-          <List size={20} className="text-accent-light" />
-          <h3 className="font-bold tracking-tight uppercase text-xs tracking-widest text-text-muted">{t("mcp.configuredServers")}</h3>
-        </div>
-
-        {isListLoading ? (
-          <div className="h-64 rounded-2xl bg-surface-800 border border-border animate-pulse" />
-        ) : mcpListData ? (
-          <McpServerList result={mcpListData} scope={scope} />
-        ) : (
-          <EmptyState title={t("mcp.noMcpConfig")} message={t("mcp.unableToFetch")} />
-        )}
-      </section>
+        <aside className="lg:sticky lg:top-20">
+          <McpActionPanel
+            scope={scope}
+            onScopeChange={setScope}
+            activeProject={activeProject}
+            projectWriteDisabled={projectWriteDisabled}
+            onAddRequest={handleAddMcp}
+            onViewAgents={() => setAgentsDialogOpen(true)}
+            target={target}
+            name={name}
+            onTargetChange={setTarget}
+            onNameChange={setName}
+            isPending={addMutation.isPending}
+          />
+        </aside>
+      </div>
 
       {confirmState && (
         <ConfirmDialog

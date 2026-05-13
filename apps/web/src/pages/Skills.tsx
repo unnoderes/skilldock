@@ -9,8 +9,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { ApiError } from "../lib/api";
 import { useLocale } from "../contexts/LocaleContext";
-import { SkillAddMenu } from "../components/SkillAddMenu";
-import { SkillInstallDialog } from "../components/SkillInstallDialog";
+import { SkillsActionPanel } from "../components/SkillsActionPanel";
 import { SkillDiscoveryDialog } from "../components/SkillDiscoveryDialog";
 
 export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
@@ -33,7 +32,6 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
     confirmLabel?: string;
   } | null>(null);
 
-  const [installDialogOpen, setInstallDialogOpen] = useState(false);
   const [discoverDialogOpen, setDiscoverDialogOpen] = useState(false);
 
   const filteredSkills = skillsData?.skills.filter(s =>
@@ -130,7 +128,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {mutationError && (
         <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
           <XCircle size={16} />
@@ -140,104 +138,93 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
 
       <header className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
         <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
-        <div className="min-w-0 text-xs text-text-muted">
-          <div className="font-bold text-text">{activeProject?.name ?? t("projects.loading")}</div>
-          <div className="truncate max-w-xs">{activeProject?.path ?? ""}</div>
-          {projectWriteDisabled ? (
-            <div className="mt-1 text-danger">{t("projects.invalidWriteDisabled")}</div>
-          ) : null}
-        </div>
         <SearchInput
           placeholder={t("skills.searchPlaceholder")}
           value={search}
           onChange={setSearch}
           className="sm:w-64"
         />
-        <div className="sm:ml-auto">
-          <SkillAddMenu
-            onInstall={() => setInstallDialogOpen(true)}
-            onDiscover={() => setDiscoverDialogOpen(true)}
-            disabled={projectWriteDisabled}
-            disabledReason={t("projects.invalidWriteDisabled")}
-          />
-        </div>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-40 rounded-2xl bg-surface-800 border border-border animate-pulse" />
-          ))
-        ) : filteredSkills.length === 0 ? (
-          <div className="col-span-full">
-            <EmptyState
-              title={t("skills.noSkillsFound")}
-              message={search ? t("skills.noSearchMatch", { search, scope }) : t("skills.noSkillsInstalled", { scope })}
-              action={!search && (
-                <div className="flex flex-col sm:flex-row gap-3 items-center">
-                  <button
-                    onClick={() => setInstallDialogOpen(true)}
-                    disabled={projectWriteDisabled}
-                    title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
-                    className="px-4 py-2 bg-accent text-white rounded-lg text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
-                  >
-                    {t("skills.installFromPackage")}
-                  </button>
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+        <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-40 rounded-2xl bg-surface-800 border border-border animate-pulse" />
+            ))
+          ) : filteredSkills.length === 0 ? (
+            <div className="col-span-full">
+              <EmptyState
+                title={t("skills.noSkillsFound")}
+                message={search ? t("skills.noSearchMatch", { search, scope }) : t("skills.noSkillsInstalled", { scope })}
+                action={!search && (
                   <button
                     onClick={() => setDiscoverDialogOpen(true)}
                     disabled={projectWriteDisabled}
                     title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
-                    className="px-4 py-2 border border-border rounded-lg text-xs font-bold hover:bg-surface-600 disabled:opacity-50 transition-colors"
+                    className="px-4 py-2 border border-border rounded-lg text-xs font-bold hover:bg-surface-600 disabled:opacity-50 transition-colors whitespace-nowrap"
                   >
                     {t("skills.discoverSkills")}
                   </button>
+                )}
+              />
+            </div>
+          ) : (
+            filteredSkills.map((skill) => (
+              <article key={skill.name} className="group p-6 rounded-2xl bg-surface-800 border border-border hover:border-accent/50 transition-all flex flex-col gap-4 relative overflow-hidden">
+                <div className="flex items-start justify-between">
+                  <div className="p-3 rounded-xl bg-surface-900 border border-border group-hover:border-accent/30 transition-colors">
+                    <Package size={20} className="text-text-muted group-hover:text-accent transition-colors" />
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleUpdate(skill)}
+                      disabled={projectWriteDisabled}
+                      className="p-2 hover:bg-accent/10 hover:text-accent rounded-lg text-text-muted transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted"
+                      title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : t("skills.updateButton")}
+                    >
+                      <RefreshCw size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleRemove(skill)}
+                      disabled={projectWriteDisabled}
+                      className="p-2 hover:bg-danger/10 hover:text-danger rounded-lg text-text-muted transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted"
+                      title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : t("skills.removeButton")}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-              )}
-            />
-          </div>
-        ) : (
-          filteredSkills.map((skill) => (
-            <article key={skill.name} className="group p-6 rounded-2xl bg-surface-800 border border-border hover:border-accent/50 transition-all flex flex-col gap-4 relative overflow-hidden">
-              <div className="flex items-start justify-between">
-                <div className="p-3 rounded-xl bg-surface-900 border border-border group-hover:border-accent/30 transition-colors">
-                  <Package size={20} className="text-text-muted group-hover:text-accent transition-colors" />
-                </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => handleUpdate(skill)}
-                    disabled={projectWriteDisabled}
-                    className="p-2 hover:bg-accent/10 hover:text-accent rounded-lg text-text-muted transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted"
-                    title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : t("skills.updateButton")}
-                  >
-                    <RefreshCw size={14} />
-                  </button>
-                  <button
-                    onClick={() => handleRemove(skill)}
-                    disabled={projectWriteDisabled}
-                    className="p-2 hover:bg-danger/10 hover:text-danger rounded-lg text-text-muted transition-colors disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted"
-                    title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : t("skills.removeButton")}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
 
-              <div>
-                <h4 className="font-bold tracking-tight text-lg mb-1">{skill.name}</h4>
-                <p className="text-xs text-text-muted font-mono truncate">{skill.path || t("skills.installedInSystem")}</p>
-              </div>
+                <div>
+                  <h4 className="font-bold tracking-tight text-lg mb-1">{skill.name}</h4>
+                  <p className="text-xs text-text-muted font-mono truncate">{skill.path || t("skills.installedInSystem")}</p>
+                </div>
 
-              <div className="mt-auto pt-4 flex flex-wrap gap-2">
-                {skill.agents?.map(agent => (
-                  <span key={agent} className="px-2 py-0.5 rounded-md bg-surface-900 border border-border text-[10px] font-bold text-text-muted uppercase tracking-tight">
-                    {agent}
-                  </span>
-                )) || <span className="text-[10px] italic text-text-muted">{t("skills.noAgents")}</span>}
-              </div>
-            </article>
-          ))
-        )}
-      </section>
+                <div className="mt-auto pt-4 flex flex-wrap gap-2">
+                  {skill.agents?.map(agent => (
+                    <span key={agent} className="px-2 py-0.5 rounded-md bg-surface-900 border border-border text-[10px] font-bold text-text-muted uppercase tracking-tight">
+                      {agent}
+                    </span>
+                  )) || <span className="text-[10px] italic text-text-muted">{t("skills.noAgents")}</span>}
+                </div>
+              </article>
+            ))
+          )}
+        </section>
+
+        <aside className="lg:sticky lg:top-20">
+          <SkillsActionPanel
+            scope={scope}
+            onScopeChange={setScope}
+            activeProject={activeProject}
+            projectWriteDisabled={projectWriteDisabled}
+            onInstallRequest={handleInstallRequest}
+            onDiscoverOpen={() => setDiscoverDialogOpen(true)}
+            isPending={installMutation.isPending}
+          />
+        </aside>
+      </div>
 
       {confirmState && (
         <ConfirmDialog
@@ -248,15 +235,6 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           onConfirm={confirmState.onConfirm}
           onCancel={() => setConfirmState(null)}
           isDangerous={confirmState.isDangerous}
-        />
-      )}
-
-      {installDialogOpen && (
-        <SkillInstallDialog
-          scope={scope}
-          isPending={installMutation.isPending}
-          onInstall={handleInstallRequest}
-          onClose={() => setInstallDialogOpen(false)}
         />
       )}
 
