@@ -90,35 +90,35 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setAgentsDialogOpen(true)}
-            className="px-3 py-1.5 border border-border rounded-lg text-xs font-medium text-text-muted hover:text-text hover:border-text-muted transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 h-8 border border-border rounded-lg text-xs font-medium text-text-muted hover:text-text hover:border-text-muted transition-colors flex items-center gap-1.5"
           >
             <LayoutGrid size={14} />
             {t("mcp.viewAgents")}
           </button>
-          <form onSubmit={handleAddMcp} className="flex gap-2">
+          <form onSubmit={handleAddMcp} className="flex flex-wrap items-center gap-2">
             <input
               type="text"
               placeholder={t("mcp.targetPlaceholder")}
               value={target}
               onChange={e => setTarget(e.target.value)}
-              className="text-xs py-1.5 w-64 bg-surface-800 border-border rounded-lg"
+              className="text-xs h-8 w-64 bg-surface-800 border border-border rounded-lg px-3"
             />
             <input
               type="text"
               placeholder={t("mcp.namePlaceholder")}
               value={name}
               onChange={e => setName(e.target.value)}
-              className="text-xs py-1.5 w-40 bg-surface-800 border-border rounded-lg"
+              className="text-xs h-8 w-40 bg-surface-800 border border-border rounded-lg px-3"
             />
             <button
               type="submit"
               disabled={!target.trim() || addMutation.isPending || projectWriteDisabled}
               title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
-              className="px-4 py-1.5 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
+              className="px-4 h-8 bg-accent text-white rounded-lg text-xs font-bold whitespace-nowrap shrink-0 flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
             >
               <Plus size={14} />
               {t("mcp.addServerButton")}
