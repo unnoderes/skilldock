@@ -6,8 +6,8 @@ import { useProjects } from "../hooks/useProjects";
 import { ScopeToggle } from "../components/ui/ScopeToggle";
 import { EmptyState } from "../components/ui/EmptyState";
 import { McpServerList } from "../components/McpServerList";
-import { McpAgentList } from "../components/McpAgentList";
 import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { AgentsDialog } from "../components/ui/AgentsDialog";
 import { useLocale } from "../contexts/LocaleContext";
 
 export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
@@ -25,6 +25,8 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
     confirmLabel?: string;
     onConfirm: () => void;
   } | null>(null);
+
+  const [agentsDialogOpen, setAgentsDialogOpen] = useState(false);
 
   // Form states
   const [target, setTarget] = useState("");
@@ -88,66 +90,57 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
           </div>
         </div>
 
-        <form onSubmit={handleAddMcp} className="flex gap-2">
-          <input
-            type="text"
-            placeholder={t("mcp.targetPlaceholder")}
-            value={target}
-            onChange={e => setTarget(e.target.value)}
-            className="text-xs py-1.5 w-64 bg-surface-800 border-border rounded-lg"
-          />
-          <input
-            type="text"
-            placeholder={t("mcp.namePlaceholder")}
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="text-xs py-1.5 w-40 bg-surface-800 border-border rounded-lg"
-          />
+        <div className="flex items-center gap-2">
           <button
-            type="submit"
-            disabled={!target.trim() || addMutation.isPending || projectWriteDisabled}
-            title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
-            className="px-4 py-1.5 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
+            type="button"
+            onClick={() => setAgentsDialogOpen(true)}
+            className="px-3 py-1.5 border border-border rounded-lg text-xs font-medium text-text-muted hover:text-text hover:border-text-muted transition-colors flex items-center gap-1.5"
           >
-            <Plus size={14} />
-            {t("mcp.addServerButton")}
+            <LayoutGrid size={14} />
+            {t("mcp.viewAgents")}
           </button>
-        </form>
+          <form onSubmit={handleAddMcp} className="flex gap-2">
+            <input
+              type="text"
+              placeholder={t("mcp.targetPlaceholder")}
+              value={target}
+              onChange={e => setTarget(e.target.value)}
+              className="text-xs py-1.5 w-64 bg-surface-800 border-border rounded-lg"
+            />
+            <input
+              type="text"
+              placeholder={t("mcp.namePlaceholder")}
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="text-xs py-1.5 w-40 bg-surface-800 border-border rounded-lg"
+            />
+            <button
+              type="submit"
+              disabled={!target.trim() || addMutation.isPending || projectWriteDisabled}
+              title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
+              className="px-4 py-1.5 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
+            >
+              <Plus size={14} />
+              {t("mcp.addServerButton")}
+            </button>
+          </form>
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* MCP List Section */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <List size={20} className="text-accent-light" />
-            <h3 className="font-bold tracking-tight uppercase text-xs tracking-widest text-text-muted">{t("mcp.configuredServers")}</h3>
-          </div>
+      <section className="space-y-4">
+        <div className="flex items-center gap-3">
+          <List size={20} className="text-accent-light" />
+          <h3 className="font-bold tracking-tight uppercase text-xs tracking-widest text-text-muted">{t("mcp.configuredServers")}</h3>
+        </div>
 
-          {isListLoading ? (
-            <div className="h-64 rounded-2xl bg-surface-800 border border-border animate-pulse" />
-          ) : mcpListData ? (
-            <McpServerList result={mcpListData} scope={scope} />
-          ) : (
-            <EmptyState title={t("mcp.noMcpConfig")} message={t("mcp.unableToFetch")} />
-          )}
-        </section>
-
-        {/* Agents Section */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <LayoutGrid size={20} className="text-warning" />
-            <h3 className="font-bold tracking-tight uppercase text-xs tracking-widest text-text-muted">{t("mcp.availableAgents")}</h3>
-          </div>
-
-          {isAgentsLoading ? (
-            <div className="h-64 rounded-2xl bg-surface-800 border border-border animate-pulse" />
-          ) : agentsData ? (
-            <McpAgentList result={agentsData} />
-          ) : (
-            <EmptyState title={t("mcp.noAgentsFound")} message={t("mcp.couldNotRetrieve")} />
-          )}
-        </section>
-      </div>
+        {isListLoading ? (
+          <div className="h-64 rounded-2xl bg-surface-800 border border-border animate-pulse" />
+        ) : mcpListData ? (
+          <McpServerList result={mcpListData} scope={scope} />
+        ) : (
+          <EmptyState title={t("mcp.noMcpConfig")} message={t("mcp.unableToFetch")} />
+        )}
+      </section>
 
       {confirmState && (
         <ConfirmDialog
@@ -159,6 +152,13 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
           onCancel={() => setConfirmState(null)}
         />
       )}
+
+      <AgentsDialog
+        isOpen={agentsDialogOpen}
+        onClose={() => setAgentsDialogOpen(false)}
+        agentsData={agentsData}
+        isLoading={isAgentsLoading}
+      />
     </div>
   );
 }

@@ -96,6 +96,9 @@ export type TranslationKey =
   | "mcp.availableAgentsDesc"
   | "mcp.noOutput"
   | "mcp.noErrors"
+  | "mcp.viewAgents"
+  | "mcp.agentsDialogTitle"
+  | "mcp.agentsDialogClose"
   | "logs.searchPlaceholder"
   | "logs.show"
   | "logs.records"
@@ -253,6 +256,9 @@ const enUS: Record<TranslationKey, string> = {
   "mcp.availableAgentsDesc": "Agent targets recognized by `add-mcp list-agents`.",
   "mcp.noOutput": "No output",
   "mcp.noErrors": "No errors reported",
+  "mcp.viewAgents": "Available Agents",
+  "mcp.agentsDialogTitle": "Available Agents",
+  "mcp.agentsDialogClose": "Close",
   "logs.searchPlaceholder": "Search logs...",
   "logs.show": "Show",
   "logs.records": "records",
@@ -411,6 +417,9 @@ const zhCN: Record<TranslationKey, string> = {
   "mcp.availableAgentsDesc": "`add-mcp list-agents` 识别出的可配置 agent 目标。",
   "mcp.noOutput": "无输出",
   "mcp.noErrors": "未报告错误",
+  "mcp.viewAgents": "可用 Agents",
+  "mcp.agentsDialogTitle": "可用 Agents",
+  "mcp.agentsDialogClose": "关闭",
   "logs.searchPlaceholder": "搜索日志...",
   "logs.show": "显示",
   "logs.records": "条记录",
