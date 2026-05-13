@@ -128,25 +128,25 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {mutationError && (
-        <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
-          <XCircle size={16} />
-          <span>{mutationError instanceof ApiError ? mutationError.message : t("common.operationFailed")}</span>
-        </div>
-      )}
+    <div className="flex flex-col lg:flex-row gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+      <div className="flex-1 flex flex-col gap-6 min-w-0 overflow-y-auto">
+        {mutationError && (
+          <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
+            <XCircle size={16} />
+            <span>{mutationError instanceof ApiError ? mutationError.message : t("common.operationFailed")}</span>
+          </div>
+        )}
 
-      <header className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-        <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
-        <SearchInput
-          placeholder={t("skills.searchPlaceholder")}
-          value={search}
-          onChange={setSearch}
-          className="sm:w-64"
-        />
-      </header>
+        <header className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+          <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
+          <SearchInput
+            placeholder={t("skills.searchPlaceholder")}
+            value={search}
+            onChange={setSearch}
+            className="sm:w-64"
+          />
+        </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6 items-start">
         <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => (
@@ -212,8 +212,9 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
             ))
           )}
         </section>
+      </div>
 
-        <aside className="lg:sticky lg:top-24 lg:min-h-[calc(100vh-12rem)] rounded-2xl bg-surface-800 border border-border overflow-y-auto">
+      <aside className="w-full lg:w-[360px] lg:h-[calc(100vh-7rem)] shrink-0 bg-surface-800 border border-border overflow-y-auto">
           <SkillsActionPanel
             scope={scope}
             onScopeChange={setScope}
@@ -224,27 +225,26 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
             isPending={installMutation.isPending}
           />
         </aside>
+
+        {confirmState && (
+          <ConfirmDialog
+            isOpen={confirmState.isOpen}
+            title={confirmState.title}
+            message={confirmState.message}
+            confirmLabel={confirmState.confirmLabel}
+            onConfirm={confirmState.onConfirm}
+            onCancel={() => setConfirmState(null)}
+            isDangerous={confirmState.isDangerous}
+          />
+        )}
+
+        {discoverDialogOpen && (
+          <SkillDiscoveryDialog
+            scope={scope}
+            onRequestInstall={handleInstallRequest}
+            onClose={() => setDiscoverDialogOpen(false)}
+          />
+        )}
       </div>
-
-      {confirmState && (
-        <ConfirmDialog
-          isOpen={confirmState.isOpen}
-          title={confirmState.title}
-          message={confirmState.message}
-          confirmLabel={confirmState.confirmLabel}
-          onConfirm={confirmState.onConfirm}
-          onCancel={() => setConfirmState(null)}
-          isDangerous={confirmState.isDangerous}
-        />
-      )}
-
-      {discoverDialogOpen && (
-        <SkillDiscoveryDialog
-          scope={scope}
-          onRequestInstall={handleInstallRequest}
-          onClose={() => setDiscoverDialogOpen(false)}
-        />
-      )}
-    </div>
   );
 }
