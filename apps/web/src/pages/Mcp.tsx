@@ -105,14 +105,14 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
               placeholder={t("mcp.targetPlaceholder")}
               value={target}
               onChange={e => setTarget(e.target.value)}
-              className="text-xs h-8 w-44 bg-surface-800 border border-border rounded-lg px-3 shrink-0"
+              className="text-xs h-8 w-36 bg-surface-800 border border-border rounded-lg px-3 shrink-0"
             />
             <input
               type="text"
               placeholder={t("mcp.namePlaceholder")}
               value={name}
               onChange={e => setName(e.target.value)}
-              className="text-xs h-8 w-32 bg-surface-800 border border-border rounded-lg px-3 shrink-0"
+              className="text-xs h-8 w-28 bg-surface-800 border border-border rounded-lg px-3 shrink-0"
             />
             <button
               type="submit"
