@@ -25,7 +25,7 @@ export function Layout({
   activeTask: ActiveTask | null;
   onCloseTask: () => void;
 }) {
-  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { locale, toggleLocale, t } = useLocale();
 
