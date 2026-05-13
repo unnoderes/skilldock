@@ -90,29 +90,29 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setAgentsDialogOpen(true)}
-            className="px-3 py-1.5 h-8 border border-border rounded-lg text-xs font-medium text-text-muted hover:text-text hover:border-text-muted transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 h-8 border border-border rounded-lg text-xs font-medium text-text-muted hover:text-text hover:border-text-muted transition-colors flex items-center gap-1.5 shrink-0"
           >
             <LayoutGrid size={14} />
             {t("mcp.viewAgents")}
           </button>
-          <form onSubmit={handleAddMcp} className="flex flex-wrap items-center gap-2">
+          <form onSubmit={handleAddMcp} className="flex items-center gap-2 min-w-0">
             <input
               type="text"
               placeholder={t("mcp.targetPlaceholder")}
               value={target}
               onChange={e => setTarget(e.target.value)}
-              className="text-xs h-8 w-64 bg-surface-800 border border-border rounded-lg px-3"
+              className="text-xs h-8 w-44 bg-surface-800 border border-border rounded-lg px-3 shrink-0"
             />
             <input
               type="text"
               placeholder={t("mcp.namePlaceholder")}
               value={name}
               onChange={e => setName(e.target.value)}
-              className="text-xs h-8 w-40 bg-surface-800 border border-border rounded-lg px-3"
+              className="text-xs h-8 w-32 bg-surface-800 border border-border rounded-lg px-3 shrink-0"
             />
             <button
               type="submit"
