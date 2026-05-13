@@ -1,10 +1,9 @@
 import React, { useMemo } from "react";
-import { Bot, ChevronDown } from "lucide-react";
+import { Bot } from "lucide-react";
 import type { CommandResult } from "@skilldock/shared";
 import { useLocale } from "../contexts/LocaleContext";
 import { parseMcpAgents, cleanedMcpOutput } from "../lib/mcpOutput";
 import { EmptyState } from "./ui/EmptyState";
-import { CommandResultView } from "./ui/CommandResultView";
 
 export function McpAgentList({ result }: { result: CommandResult }) {
   const { t } = useLocale();
@@ -58,20 +57,7 @@ export function McpAgentList({ result }: { result: CommandResult }) {
         <EmptyState title={t("mcp.noAgentsFound")} message={t("mcp.couldNotRetrieve")} />
       )}
 
-      {/* Secondary raw details */}
-      <details className="group">
-        <summary className="flex items-center gap-1.5 text-[11px] text-accent-light cursor-pointer hover:underline select-none">
-          <ChevronDown size={12} className="transition-transform group-open:rotate-180" />
-          {t("resultPanel.fullDetails")}
-        </summary>
-        <div className="mt-3">
-          <CommandResultView
-            title={t("mcp.availableAgents")}
-            description={t("mcp.availableAgentsDesc")}
-            result={result}
-          />
-        </div>
-      </details>
+      {/* Secondary raw details are intentionally hidden for the current UI. */}
     </div>
   );
 }
