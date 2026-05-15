@@ -72,8 +72,8 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
-      <div className="flex-1 flex flex-col gap-6 min-w-0 overflow-y-auto">
+    <div className="flex flex-col lg:flex-row gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 lg:h-[calc(100vh-13rem)] lg:min-h-[36rem] lg:overflow-hidden">
+      <div className="flex-1 flex flex-col gap-6 min-w-0 lg:overflow-y-auto lg:pr-1">
         {addMutation.error && (
           <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
             <AlertTriangle size={16} />
@@ -101,7 +101,7 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
         </section>
       </div>
 
-      <aside className="w-full lg:w-[360px] lg:h-[calc(100vh-7rem)] shrink-0 bg-surface-800 border border-border overflow-y-auto">
+      <aside className="w-full lg:w-[360px] lg:self-stretch shrink-0 bg-surface-800 border border-border overflow-y-auto">
         <McpActionPanel
           activeProject={activeProject}
           projectWriteDisabled={projectWriteDisabled}
