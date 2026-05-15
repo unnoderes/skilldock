@@ -9,6 +9,7 @@ import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { AgentsDialog } from "../components/ui/AgentsDialog";
 import { useLocale } from "../contexts/LocaleContext";
 import { McpActionPanel } from "../components/McpActionPanel";
+import { ScopeToggle } from "../components/ui/ScopeToggle";
 
 export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
   const [scope, setScope] = useState<Scope>("project");
@@ -71,15 +72,19 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {addMutation.error && (
-        <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
-          <AlertTriangle size={16} />
-          <span>{addMutation.error instanceof Error ? addMutation.error.message : t("common.operationFailed")}</span>
-        </div>
-      )}
+    <div className="flex flex-col lg:flex-row gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 h-full">
+      <div className="flex-1 flex flex-col gap-6 min-w-0 overflow-y-auto">
+        {addMutation.error && (
+          <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
+            <AlertTriangle size={16} />
+            <span>{addMutation.error instanceof Error ? addMutation.error.message : t("common.operationFailed")}</span>
+          </div>
+        )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+        <header className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+          <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
+        </header>
+
         <section className="space-y-4">
           <div className="flex items-center gap-3">
             <List size={20} className="text-accent-light" />
@@ -94,23 +99,21 @@ export function Mcp({ onTaskStart }: { onTaskStart: (tid: string, title: string)
             <EmptyState title={t("mcp.noMcpConfig")} message={t("mcp.unableToFetch")} />
           )}
         </section>
-
-        <aside className="lg:sticky lg:top-20">
-          <McpActionPanel
-            scope={scope}
-            onScopeChange={setScope}
-            activeProject={activeProject}
-            projectWriteDisabled={projectWriteDisabled}
-            onAddRequest={handleAddMcp}
-            onViewAgents={() => setAgentsDialogOpen(true)}
-            target={target}
-            name={name}
-            onTargetChange={setTarget}
-            onNameChange={setName}
-            isPending={addMutation.isPending}
-          />
-        </aside>
       </div>
+
+      <aside className="w-full lg:w-[360px] lg:h-[calc(100vh-7rem)] shrink-0 bg-surface-800 border border-border overflow-y-auto">
+        <McpActionPanel
+          activeProject={activeProject}
+          projectWriteDisabled={projectWriteDisabled}
+          onAddRequest={handleAddMcp}
+          onViewAgents={() => setAgentsDialogOpen(true)}
+          target={target}
+          name={name}
+          onTargetChange={setTarget}
+          onNameChange={setName}
+          isPending={addMutation.isPending}
+        />
+      </aside>
 
       {confirmState && (
         <ConfirmDialog

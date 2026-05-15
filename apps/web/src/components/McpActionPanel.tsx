@@ -1,12 +1,9 @@
 import React from "react";
 import { Plus, LayoutGrid, AlertTriangle } from "lucide-react";
-import type { ProjectRecord, Scope } from "@skilldock/shared";
-import { ScopeToggle } from "./ui/ScopeToggle";
+import type { ProjectRecord } from "@skilldock/shared";
 import { useLocale } from "../contexts/LocaleContext";
 
 export function McpActionPanel({
-  scope,
-  onScopeChange,
   activeProject,
   projectWriteDisabled,
   onAddRequest,
@@ -17,8 +14,6 @@ export function McpActionPanel({
   onNameChange,
   isPending,
 }: {
-  scope: Scope;
-  onScopeChange: (scope: Scope) => void;
   activeProject: ProjectRecord | null;
   projectWriteDisabled: boolean;
   onAddRequest: (e: React.FormEvent) => void;
@@ -32,7 +27,7 @@ export function McpActionPanel({
   const { t } = useLocale();
 
   return (
-    <div className="space-y-5 p-5 rounded-2xl bg-surface-800 border border-border">
+    <div className="space-y-5 p-5">
       <div>
         <h3 className="text-sm font-bold mb-1">{t("mcp.addServerButton")}</h3>
         <p className="text-xs text-text-muted">
@@ -47,13 +42,6 @@ export function McpActionPanel({
             <span>{t("projects.invalidWriteDisabled")}</span>
           </div>
         )}
-      </div>
-
-      <div>
-        <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted mb-2 block">
-          {t("common.scope")}
-        </label>
-        <ScopeToggle label={t("common.scope")} value={scope} onChange={onScopeChange} />
       </div>
 
       <form onSubmit={onAddRequest} className="space-y-3">
