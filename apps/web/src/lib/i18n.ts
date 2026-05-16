@@ -118,6 +118,15 @@ export type TranslationKey =
   | "logs.show"
   | "logs.records"
   | "logs.refreshHistory"
+  | "logs.clearHistory"
+  | "logs.clearingHistory"
+  | "logs.clearDisabled"
+  | "logs.clearSuccess"
+  | "logs.clearFailed"
+  | "logs.clearConfirmTitle"
+  | "logs.clearConfirmMessage"
+  | "logs.clearConfirmSafety"
+  | "logs.clearConfirmButton"
   | "logs.loadFailed"
   | "logs.noMatchingEntries"
   | "logs.standardOutput"
@@ -304,6 +313,15 @@ const enUS: Record<TranslationKey, string> = {
   "logs.show": "Show",
   "logs.records": "records",
   "logs.refreshHistory": "Refresh History",
+  "logs.clearHistory": "Clear Logs",
+  "logs.clearingHistory": "Clearing...",
+  "logs.clearDisabled": "No operation history to clear.",
+  "logs.clearSuccess": "Operation history was cleared.",
+  "logs.clearFailed": "Could not clear operation history. Please try again.",
+  "logs.clearConfirmTitle": "Clear operation history?",
+  "logs.clearConfirmMessage": "This clears only recorded operation history.",
+  "logs.clearConfirmSafety": "Configurations, projects, skills, and MCP settings will not be changed.",
+  "logs.clearConfirmButton": "Clear History",
   "logs.loadFailed": "Failed to load logs. Please try again.",
   "logs.noMatchingEntries": "No matching log entries found.",
   "logs.standardOutput": "Standard Output",
@@ -491,6 +509,15 @@ const zhCN: Record<TranslationKey, string> = {
   "logs.show": "显示",
   "logs.records": "条记录",
   "logs.refreshHistory": "刷新历史",
+  "logs.clearHistory": "清空日志",
+  "logs.clearingHistory": "正在清空...",
+  "logs.clearDisabled": "当前没有可清理的操作历史。",
+  "logs.clearSuccess": "操作历史已清空。",
+  "logs.clearFailed": "清空操作历史失败，请重试。",
+  "logs.clearConfirmTitle": "清空操作历史？",
+  "logs.clearConfirmMessage": "此操作只会清理已记录的操作历史。",
+  "logs.clearConfirmSafety": "配置、项目、Skills 和 MCP 设置不会受到影响。",
+  "logs.clearConfirmButton": "清空历史",
   "logs.loadFailed": "加载日志失败，请重试。",
   "logs.noMatchingEntries": "未找到匹配的日志条目。",
   "logs.standardOutput": "标准输出",
