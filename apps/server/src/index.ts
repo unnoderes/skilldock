@@ -13,6 +13,7 @@ import type {
   AppStatus,
   CliName,
   CommandResult,
+  LogsClearResponse,
   LogsListResponse,
   OperationLogEntry,
   ProjectAddRequest,
@@ -620,6 +621,13 @@ async function readOperationLogs(): Promise<OperationLogEntry[]> {
   }
 }
 
+async function clearOperationLogs(): Promise<LogsClearResponse> {
+  const clearedCount = (await readOperationLogs()).length;
+  await ensureLogDirectory();
+  await writeFile(LOG_FILE_PATH, "", "utf8");
+  return { cleared: true, clearedCount };
+}
+
 function resolveLogPageSize(pageSize?: number, limit?: number): number {
   const requestedPageSize = pageSize ?? limit ?? DEFAULT_LOG_PAGE_SIZE;
   return ALLOWED_LOG_PAGE_SIZES.includes(requestedPageSize as (typeof ALLOWED_LOG_PAGE_SIZES)[number])
@@ -1215,6 +1223,8 @@ server.get("/api/logs", async (request): Promise<LogsListResponse> => {
   const logs = searchOperationLogs(await readOperationLogs(), query.q);
   return paginateOperationLogs(logs, query.page ?? DEFAULT_LOG_PAGE, pageSize);
 });
+
+server.post("/api/logs/clear", async (): Promise<LogsClearResponse> => clearOperationLogs());
 
 server.get("/healthz", async () => ({ ok: true }));
 
