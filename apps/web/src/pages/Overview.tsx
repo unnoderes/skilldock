@@ -82,9 +82,6 @@ export function Overview() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-bold truncate tracking-tight">{log.source}</p>
-                      <p className="text-[10px] font-mono text-text-muted truncate">
-                        {log.result.command} {log.result.args.join(" ")}
-                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-6 shrink-0 font-mono text-[11px] text-text-muted">
