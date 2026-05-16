@@ -77,6 +77,21 @@ export type TranslationKey =
   | "skills.discoveryInstall"
   | "skills.searching"
   | "skills.searchError"
+  | "skills.selectionTitle"
+  | "skills.selectionCount"
+  | "skills.selectionCountWithTotal"
+  | "skills.selectAllFiltered"
+  | "skills.clearSelection"
+  | "skills.selectSkill"
+  | "skills.bulkActions"
+  | "skills.updateSelectedButton"
+  | "skills.removeSelectedButton"
+  | "skills.bulkUpdateTitle"
+  | "skills.bulkUpdateMessage"
+  | "skills.bulkRemoveTitle"
+  | "skills.bulkRemoveMessage"
+  | "skills.selectedNamesSummary"
+  | "skills.selectedNamesMore"
   | "mcp.addServerTitle"
   | "mcp.addServerMessage"
   | "mcp.addServerName"
@@ -236,6 +251,21 @@ const enUS: Record<TranslationKey, string> = {
   "skills.discoveryInstall": "Install",
   "skills.searching": "Searching for \"{{query}}\"...",
   "skills.searchError": "Search failed. Please try again.",
+  "skills.selectionTitle": "Selection",
+  "skills.selectionCount": "{{count}} selected",
+  "skills.selectionCountWithTotal": "{{count}} selected of {{total}} current results",
+  "skills.selectAllFiltered": "Select all current results",
+  "skills.clearSelection": "Clear selection",
+  "skills.selectSkill": "Select skill {{name}}",
+  "skills.bulkActions": "Bulk actions",
+  "skills.updateSelectedButton": "Update selected",
+  "skills.removeSelectedButton": "Remove selected",
+  "skills.bulkUpdateTitle": "Update Selected Skills",
+  "skills.bulkUpdateMessage": "You are about to update {{count}} selected skills.",
+  "skills.bulkRemoveTitle": "Remove Selected Skills",
+  "skills.bulkRemoveMessage": "You are about to remove {{count}} selected skills.",
+  "skills.selectedNamesSummary": "Selected skills: {{names}}",
+  "skills.selectedNamesMore": "+{{count}} more",
   "mcp.addServerTitle": "Add MCP Server",
   "mcp.addServerMessage": "You are about to add MCP server: {{target}}",
   "mcp.addServerName": "Name: {{name}}",
@@ -396,6 +426,21 @@ const zhCN: Record<TranslationKey, string> = {
   "skills.discoveryInstall": "安装",
   "skills.searching": "正在搜索 \"{{query}}\"...",
   "skills.searchError": "搜索失败，请重试。",
+  "skills.selectionTitle": "选择",
+  "skills.selectionCount": "已选择 {{count}} 项",
+  "skills.selectionCountWithTotal": "当前筛选结果共 {{total}} 项，已选择 {{count}} 项",
+  "skills.selectAllFiltered": "全选当前结果",
+  "skills.clearSelection": "清空选择",
+  "skills.selectSkill": "选择 Skill {{name}}",
+  "skills.bulkActions": "批量操作",
+  "skills.updateSelectedButton": "更新所选项",
+  "skills.removeSelectedButton": "移除所选项",
+  "skills.bulkUpdateTitle": "更新所选 Skills",
+  "skills.bulkUpdateMessage": "即将更新 {{count}} 个已选 Skill。",
+  "skills.bulkRemoveTitle": "移除所选 Skills",
+  "skills.bulkRemoveMessage": "即将移除 {{count}} 个已选 Skill。",
+  "skills.selectedNamesSummary": "已选 Skills：{{names}}",
+  "skills.selectedNamesMore": "另 {{count}} 项",
   "mcp.addServerTitle": "添加 MCP Server",
   "mcp.addServerMessage": "即将添加 MCP Server：{{target}}",
   "mcp.addServerName": "名称：{{name}}",
