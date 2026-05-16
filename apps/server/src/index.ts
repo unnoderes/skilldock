@@ -48,6 +48,9 @@ const LOG_DIRECTORY = path.join(SKILLDOCK_DIRECTORY, "logs");
 const LOG_FILE_PATH = path.join(LOG_DIRECTORY, "operations.jsonl");
 const LAUNCH_PROJECT_PATH = process.cwd();
 const DEFAULT_LOG_LIMIT = 50;
+const DEFAULT_LOG_PAGE = 1;
+const DEFAULT_LOG_PAGE_SIZE = 20;
+const ALLOWED_LOG_PAGE_SIZES = [10, 20, 50, 100] as const;
 const MAX_LOG_LIMIT = 100;
 const MAX_TASKS = 100;
 const MAX_TASK_OUTPUT_CHUNKS = 400;
@@ -97,7 +100,10 @@ const mcpListQuerySchema = z.object({
 });
 
 const logsListQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(MAX_LOG_LIMIT).optional(),
+  page: z.coerce.number().int().optional().catch(DEFAULT_LOG_PAGE),
+  pageSize: z.coerce.number().int().optional().catch(undefined),
+  q: z.string().trim().max(500).optional().catch(undefined),
+  limit: z.coerce.number().int().min(1).max(MAX_LOG_LIMIT).optional().catch(undefined),
 });
 
 const projectRecordSchema = z.object({
@@ -591,7 +597,7 @@ async function persistOperationLog(
   }
 }
 
-async function readRecentOperationLogs(limit: number): Promise<OperationLogEntry[]> {
+async function readOperationLogs(): Promise<OperationLogEntry[]> {
   try {
     const content = await readFile(LOG_FILE_PATH, "utf8");
     return content
@@ -605,7 +611,6 @@ async function readRecentOperationLogs(limit: number): Promise<OperationLogEntry
           return [];
         }
       })
-      .slice(-limit)
       .reverse();
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
@@ -613,6 +618,40 @@ async function readRecentOperationLogs(limit: number): Promise<OperationLogEntry
     }
     throw error;
   }
+}
+
+function resolveLogPageSize(pageSize?: number, limit?: number): number {
+  const requestedPageSize = pageSize ?? limit ?? DEFAULT_LOG_PAGE_SIZE;
+  return ALLOWED_LOG_PAGE_SIZES.includes(requestedPageSize as (typeof ALLOWED_LOG_PAGE_SIZES)[number])
+    ? requestedPageSize
+    : DEFAULT_LOG_PAGE_SIZE;
+}
+
+function searchOperationLogs(logs: OperationLogEntry[], query?: string): OperationLogEntry[] {
+  const normalizedQuery = query?.trim().toLowerCase();
+  if (!normalizedQuery) return logs;
+
+  return logs.filter((log) => JSON.stringify(log).toLowerCase().includes(normalizedQuery));
+}
+
+function paginateOperationLogs(logs: OperationLogEntry[], requestedPage: number, pageSize: number): LogsListResponse {
+  const totalItems = logs.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const positivePage = requestedPage > 0 ? requestedPage : DEFAULT_LOG_PAGE;
+  const page = totalPages > 0 ? Math.min(positivePage, totalPages) : DEFAULT_LOG_PAGE;
+  const startIndex = (page - 1) * pageSize;
+
+  return {
+    logs: logs.slice(startIndex, startIndex + pageSize),
+    pagination: {
+      page,
+      pageSize,
+      totalItems,
+      totalPages,
+      hasPreviousPage: totalPages > 0 && page > 1,
+      hasNextPage: totalPages > 0 && page < totalPages,
+    },
+  };
 }
 
 type ConfigReadResult = {
@@ -1172,10 +1211,9 @@ server.get("/api/tasks/:id/stream", async (request, reply) => {
 
 server.get("/api/logs", async (request): Promise<LogsListResponse> => {
   const query = logsListQuerySchema.parse(request.query);
-  const { config } = await readSkillDockConfig();
-  return {
-    logs: await readRecentOperationLogs(query.limit ?? config.defaultLogsLimit),
-  };
+  const pageSize = resolveLogPageSize(query.pageSize, query.limit);
+  const logs = searchOperationLogs(await readOperationLogs(), query.q);
+  return paginateOperationLogs(logs, query.page ?? DEFAULT_LOG_PAGE, pageSize);
 });
 
 server.get("/healthz", async () => ({ ok: true }));
