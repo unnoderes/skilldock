@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Package, RefreshCw, Trash2, XCircle } from "lucide-react";
+import { Check, Package, RefreshCw, Trash2, XCircle } from "lucide-react";
 import type { ProjectRecord, Scope, SkillRecord } from "@skilldock/shared";
 import { SearchInput } from "../components/ui/SearchInput";
 import {
@@ -182,6 +182,10 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
     });
   };
 
+  const toggleSkillSelection = (skillName: string) => {
+    handleSkillSelectionChange(skillName, !selectedSkillNameSet.has(skillName));
+  };
+
   const handleSelectAllFiltered = () => {
     setSelectedSkillNames(Array.from(new Set(filteredSkillNames)));
   };
@@ -336,30 +340,44 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
               return (
                 <article
                   key={skill.name}
+                  onClick={() => toggleSkillSelection(skill.name)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      toggleSkillSelection(skill.name);
+                    }
+                  }}
+                  aria-pressed={isSelected}
+                  aria-label={t("skills.selectSkill", { name: skill.name })}
                   className={`group relative flex flex-col gap-4 overflow-hidden rounded-2xl border p-6 transition-all ${
                     isSelected
-                      ? "border-accent/60 bg-accent/5 ring-1 ring-accent/20"
+                      ? "border-accent/60 bg-accent/5 shadow-lg shadow-accent/5 ring-1 ring-accent/20"
                       : "border-border bg-surface-800 hover:border-accent/50"
-                  }`}
+                  } cursor-pointer`}
                 >
+                  {isSelected ? (
+                    <div className="pointer-events-none absolute left-4 top-4 flex h-6 w-6 items-center justify-center rounded-full border border-accent/40 bg-accent text-white shadow-sm shadow-accent/20">
+                      <Check size={13} strokeWidth={3} />
+                    </div>
+                  ) : null}
+
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={(event) => handleSkillSelectionChange(skill.name, event.target.checked)}
-                        aria-label={t("skills.selectSkill", { name: skill.name })}
-                        title={t("skills.selectSkill", { name: skill.name })}
-                        className="mt-1 h-4 w-4 cursor-pointer rounded border-border bg-surface-700 text-accent focus:ring-0 focus:ring-offset-0"
-                      />
-                      <div className="rounded-xl border border-border bg-surface-900 p-3 transition-colors group-hover:border-accent/30">
+                      <div className={`rounded-xl border bg-surface-900 p-3 transition-colors ${
+                        isSelected ? "border-accent/30" : "border-border group-hover:border-accent/30"
+                      }`}>
                         <Package size={20} className="text-text-muted transition-colors group-hover:text-accent" />
                       </div>
                     </div>
 
                     <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                       <button
-                        onClick={() => handleUpdate(skill)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleUpdate(skill);
+                        }}
                         disabled={projectWriteDisabled}
                         className="rounded-lg p-2 text-text-muted transition-colors hover:bg-accent/10 hover:text-accent disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted"
                         title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : t("skills.updateButton")}
@@ -367,7 +385,10 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
                         <RefreshCw size={14} />
                       </button>
                       <button
-                        onClick={() => handleRemove(skill)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleRemove(skill);
+                        }}
                         disabled={projectWriteDisabled}
                         className="rounded-lg p-2 text-text-muted transition-colors hover:bg-danger/10 hover:text-danger disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-muted"
                         title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : t("skills.removeButton")}

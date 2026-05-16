@@ -29,6 +29,9 @@
   --warning: #facc15;
   --text: #f3f4f6;
   --text-muted: #a3a3a3;
+  --scrollbar-track: #111111;
+  --scrollbar-thumb: #4a4a4a;
+  --scrollbar-thumb-hover: #666666;
 }
 
 [data-theme="light"] {
@@ -44,10 +47,42 @@
   --warning: #ca8a04;
   --text: #1e293b;
   --text-muted: #64748b;
+  --scrollbar-track: #e2e8f0;
+  --scrollbar-thumb: #94a3b8;
+  --scrollbar-thumb-hover: #64748b;
 }
 
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--color-surface-900); color: var(--color-text); font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; line-height: 1.5; }
+
+html {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+* {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
 
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
