@@ -1,6 +1,7 @@
 import type {
   AppStatus,
   CommandResult,
+  LogsClearResponse,
   LogsListQuery,
   LogsListResponse,
   McpAddRequest,
@@ -189,6 +190,10 @@ export function fetchLogs(query: LogsListQuery | number): Promise<LogsListRespon
 
   const search = params.toString();
   return request<LogsListResponse>(`/api/logs${search ? `?${search}` : ""}`);
+}
+
+export function clearLogs(): Promise<LogsClearResponse> {
+  return request<LogsClearResponse>("/api/logs/clear", { method: "POST" });
 }
 
 export { ApiError };

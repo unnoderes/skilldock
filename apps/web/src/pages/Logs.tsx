@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { History, Terminal, Clock, Calendar, AlertTriangle } from "lucide-react";
+import { History, Terminal, Clock, Calendar, AlertTriangle, Trash2 } from "lucide-react";
 import type { OperationLogEntry } from "@skilldock/shared";
 import { SearchInput } from "../components/ui/SearchInput";
 import { Pagination } from "../components/ui/Pagination";
-import { useLogs } from "../hooks/useLogs";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
+import { useClearLogs, useLogs } from "../hooks/useLogs";
 import { useLocale } from "../contexts/LocaleContext";
 
 const DEFAULT_PAGE = 1;
@@ -30,11 +31,16 @@ export function Logs() {
   const [page, setPage] = useState(initialQuery.page);
   const [pageSize, setPageSize] = useState(initialQuery.pageSize);
   const [search, setSearch] = useState(initialQuery.search);
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
+  const [clearFeedback, setClearFeedback] = useState<"success" | "error" | null>(null);
   const { data, isLoading, error, refetch } = useLogs({ page, pageSize, q: search });
+  const clearLogs = useClearLogs();
   const { t } = useLocale();
 
   const logs: OperationLogEntry[] = data?.logs ?? [];
   const pagination = data?.pagination;
+  const hasLogs = (pagination?.totalItems ?? logs.length) > 0;
+  const clearDisabled = isLoading || clearLogs.isPending || !hasLogs;
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -75,6 +81,21 @@ export function Logs() {
     setPage(DEFAULT_PAGE);
   };
 
+  const handleClearLogs = () => {
+    setClearFeedback(null);
+    setIsClearDialogOpen(false);
+    clearLogs.mutate(undefined, {
+      onSuccess: () => {
+        setPage(DEFAULT_PAGE);
+        setClearFeedback("success");
+        void refetch();
+      },
+      onError: () => {
+        setClearFeedback("error");
+      },
+    });
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-surface-800 p-6 rounded-2xl border border-border">
@@ -101,14 +122,39 @@ export function Logs() {
           </div>
         </div>
 
-        <button
-          onClick={() => void refetch()}
-          className="px-4 py-2 text-xs font-bold border border-border rounded-xl hover:bg-surface-700 transition-colors flex items-center gap-2"
-        >
-          <History size={14} />
-          {t("logs.refreshHistory")}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => void refetch()}
+            className="px-4 py-2 text-xs font-bold border border-border rounded-xl hover:bg-surface-700 transition-colors flex items-center gap-2"
+          >
+            <History size={14} />
+            {t("logs.refreshHistory")}
+          </button>
+          <button
+            onClick={() => {
+              setClearFeedback(null);
+              setIsClearDialogOpen(true);
+            }}
+            disabled={clearDisabled}
+            title={!hasLogs ? t("logs.clearDisabled") : undefined}
+            className="px-4 py-2 text-xs font-bold border border-danger/40 text-danger rounded-xl hover:bg-danger/10 disabled:hover:bg-transparent transition-colors flex items-center gap-2"
+          >
+            <Trash2 size={14} />
+            {clearLogs.isPending ? t("logs.clearingHistory") : t("logs.clearHistory")}
+          </button>
+        </div>
       </header>
+
+      {clearFeedback && (
+        <div className={`p-4 rounded-xl border text-sm flex items-center gap-3 ${
+          clearFeedback === "success"
+            ? "bg-success/10 border-success/30 text-success"
+            : "bg-danger/10 border-danger/30 text-danger"
+        }`}>
+          <AlertTriangle size={16} />
+          <span>{clearFeedback === "success" ? t("logs.clearSuccess") : t("logs.clearFailed")}</span>
+        </div>
+      )}
 
       {error && (
         <div className="p-4 rounded-xl bg-danger/10 border border-danger/30 text-danger text-sm flex items-center gap-3">
@@ -185,6 +231,19 @@ export function Logs() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={isClearDialogOpen}
+        title={t("logs.clearConfirmTitle")}
+        message={[
+          t("logs.clearConfirmMessage"),
+          t("logs.clearConfirmSafety"),
+        ]}
+        confirmLabel={t("logs.clearConfirmButton")}
+        onConfirm={handleClearLogs}
+        onCancel={() => setIsClearDialogOpen(false)}
+        isDangerous
+      />
     </div>
   );
 }
