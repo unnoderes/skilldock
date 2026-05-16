@@ -47,7 +47,6 @@ const CONFIG_FILE_PATH = path.join(SKILLDOCK_DIRECTORY, "config.json");
 const PROJECTS_FILE_PATH = path.join(SKILLDOCK_DIRECTORY, "projects.json");
 const LOG_DIRECTORY = path.join(SKILLDOCK_DIRECTORY, "logs");
 const LOG_FILE_PATH = path.join(LOG_DIRECTORY, "operations.jsonl");
-const LAUNCH_PROJECT_PATH = process.cwd();
 const DEFAULT_LOG_LIMIT = 50;
 const DEFAULT_LOG_PAGE = 1;
 const DEFAULT_LOG_PAGE_SIZE = 20;
@@ -61,7 +60,24 @@ export type StartServerOptions = {
   host?: string;
   port?: number;
   staticRoot?: string;
+  launchProjectPath?: string;
 };
+
+function resolveLaunchProjectPath(explicitPath?: string): string {
+  const configuredPath = explicitPath?.trim() || process.env.SKILLDOCK_LAUNCH_PROJECT_PATH?.trim();
+  if (configuredPath && path.isAbsolute(configuredPath)) {
+    return path.resolve(configuredPath);
+  }
+
+  const initCwd = process.env.INIT_CWD?.trim();
+  if (initCwd && path.isAbsolute(initCwd)) {
+    return path.resolve(initCwd);
+  }
+
+  return process.cwd();
+}
+
+let launchProjectPath = resolveLaunchProjectPath();
 const DEFAULT_SETTINGS_CONFIG: SkillDockConfig = {
   defaultSkillsScope: "project",
   defaultMcpScope: "project",
@@ -468,8 +484,8 @@ async function writeProjectsRegistry(projects: ProjectRecord[]): Promise<void> {
 }
 
 async function ensureLaunchProject(projects: ProjectRecord[]): Promise<{ projects: ProjectRecord[]; launchProjectId: string; changed: boolean }> {
-  const launchProjectPath = await validateProjectPath(LAUNCH_PROJECT_PATH);
-  const launchProjectId = buildProjectId(launchProjectPath);
+  const canonicalLaunchProjectPath = await validateProjectPath(launchProjectPath);
+  const launchProjectId = buildProjectId(canonicalLaunchProjectPath);
   const timestamp = nowIso();
   const indexedProjects = indexProjectsById(projects);
   const existingLaunchProject = indexedProjects.get(launchProjectId);
@@ -477,9 +493,9 @@ async function ensureLaunchProject(projects: ProjectRecord[]): Promise<{ project
   const { projects: normalizedProjects, changed: normalizedChanged } = normalizeLaunchFlags(projects, launchProjectId);
 
   if (existingLaunchProject) {
-    const nextLaunchProject = createProjectRecord(launchProjectPath, {
+    const nextLaunchProject = createProjectRecord(canonicalLaunchProjectPath, {
       ...existingLaunchProject,
-      path: launchProjectPath,
+      path: canonicalLaunchProjectPath,
       isLaunchProject: true,
     });
     const launchChanged = JSON.stringify(existingLaunchProject) !== JSON.stringify(nextLaunchProject);
@@ -493,7 +509,7 @@ async function ensureLaunchProject(projects: ProjectRecord[]): Promise<{ project
   return {
     projects: [
       ...normalizedProjects,
-      createProjectRecord(launchProjectPath, {
+      createProjectRecord(canonicalLaunchProjectPath, {
         isLaunchProject: true,
         addedAt: timestamp,
         lastUsedAt: timestamp,
@@ -1242,6 +1258,7 @@ async function registerStaticAssets(staticRoot?: string): Promise<void> {
 }
 
 export async function startServer(options: StartServerOptions = {}): Promise<string> {
+  launchProjectPath = resolveLaunchProjectPath(options.launchProjectPath);
   await registerStaticAssets(options.staticRoot);
   return server.listen({
     port: options.port ?? PORT,
