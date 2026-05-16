@@ -122,7 +122,7 @@ export function ProjectSelector() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const recentProjects = useMemo(
-    () => projects.filter((project) => project.id !== activeProjectId),
+    () => projects.filter((project: ProjectRecord) => project.id !== activeProjectId),
     [activeProjectId, projects],
   );
 
@@ -187,7 +187,7 @@ export function ProjectSelector() {
               {t("projects.recentProjects")}
             </p>
             {recentProjects.length > 0 ? (
-              recentProjects.map((project) => (
+              recentProjects.map((project: ProjectRecord) => (
                 <ProjectRow
                   key={project.id}
                   project={project}

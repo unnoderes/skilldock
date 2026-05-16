@@ -1,4 +1,5 @@
 import React from "react";
+import type { OperationLogEntry } from "@skilldock/shared";
 import { Folder, Activity, Terminal, History } from "lucide-react";
 import { useStatus } from "../hooks/useStatus";
 import { useLogs } from "../hooks/useLogs";
@@ -73,7 +74,7 @@ export function Overview() {
             <div className="p-12 text-center text-text-muted text-sm italic">{t("overview.noRecentOperations")}</div>
           ) : (
             <div className="divide-y divide-border">
-              {logsData.logs.map((log) => (
+              {logsData.logs.map((log: OperationLogEntry) => (
                 <div key={log.id} className="p-4 hover:bg-surface-700/50 transition-colors flex items-center justify-between gap-6">
                   <div className="flex items-center gap-4 min-w-0">
                     <div className={`p-2 rounded-lg shrink-0 ${log.result.exitCode === 0 ? "bg-success/10 text-success" : "bg-danger/10 text-danger"}`}>
