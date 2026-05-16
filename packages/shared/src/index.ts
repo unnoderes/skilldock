@@ -182,11 +182,24 @@ export type McpCommandResponse = {
 };
 
 export type LogsListQuery = {
+  page?: number;
+  pageSize?: number;
+  q?: string;
   limit?: number;
+};
+
+export type LogsPagination = {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
 };
 
 export type LogsListResponse = {
   logs: OperationLogEntry[];
+  pagination: LogsPagination;
 };
 
 export type SkillDockConfig = {
