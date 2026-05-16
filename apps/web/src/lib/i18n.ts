@@ -134,6 +134,18 @@ export type TranslationKey =
   | "logs.noStderr"
   | "logs.project"
   | "logs.scope"
+  | "logs.pagination.first"
+  | "logs.pagination.previous"
+  | "logs.pagination.next"
+  | "logs.pagination.last"
+  | "logs.pagination.jumpTo"
+  | "logs.pagination.go"
+  | "logs.pagination.page"
+  | "logs.pagination.of"
+  | "logs.pagination.total"
+  | "logs.pagination.showing"
+  | "logs.pagination.to"
+  | "logs.pagination.items"
   | "settings.userPreferences"
   | "settings.defaultSkillsScope"
   | "settings.defaultMcpScope"
@@ -308,6 +320,18 @@ const enUS: Record<TranslationKey, string> = {
   "logs.noStderr": "No stderr output",
   "logs.project": "Project",
   "logs.scope": "Scope",
+  "logs.pagination.first": "First page",
+  "logs.pagination.previous": "Previous page",
+  "logs.pagination.next": "Next page",
+  "logs.pagination.last": "Last page",
+  "logs.pagination.jumpTo": "Jump to",
+  "logs.pagination.go": "Go",
+  "logs.pagination.page": "Page",
+  "logs.pagination.of": "of",
+  "logs.pagination.total": "Total",
+  "logs.pagination.showing": "Showing",
+  "logs.pagination.to": "to",
+  "logs.pagination.items": "records",
   "settings.userPreferences": "User Preferences",
   "settings.defaultSkillsScope": "Default Skills Scope",
   "settings.defaultMcpScope": "Default MCP Scope",
@@ -483,6 +507,18 @@ const zhCN: Record<TranslationKey, string> = {
   "logs.noStderr": "无标准错误输出",
   "logs.project": "项目",
   "logs.scope": "范围",
+  "logs.pagination.first": "首页",
+  "logs.pagination.previous": "上一页",
+  "logs.pagination.next": "下一页",
+  "logs.pagination.last": "尾页",
+  "logs.pagination.jumpTo": "跳转到",
+  "logs.pagination.go": "跳转",
+  "logs.pagination.page": "第",
+  "logs.pagination.of": "共",
+  "logs.pagination.total": "总计",
+  "logs.pagination.showing": "显示",
+  "logs.pagination.to": "至",
+  "logs.pagination.items": "条记录",
   "settings.userPreferences": "用户偏好",
   "settings.defaultSkillsScope": "默认 Skills 范围",
   "settings.defaultMcpScope": "默认 MCP 范围",
