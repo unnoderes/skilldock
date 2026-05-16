@@ -202,6 +202,11 @@ export type LogsListResponse = {
   pagination: LogsPagination;
 };
 
+export type LogsClearResponse = {
+  cleared: true;
+  clearedCount: number;
+};
+
 export type SkillDockConfig = {
   defaultSkillsScope: Scope;
   defaultMcpScope: Scope;
