@@ -1,6 +1,7 @@
 import type {
   AppStatus,
   CommandResult,
+  LogsListQuery,
   LogsListResponse,
   McpAddRequest,
   ProjectAddRequest,
@@ -176,8 +177,18 @@ export function createTaskEventSource(
 export type { TaskStreamEvent };
 
 // Logs
-export function fetchLogs(limit: number): Promise<LogsListResponse> {
-  return request<LogsListResponse>(`/api/logs?limit=${limit}`);
+export function fetchLogs(query: LogsListQuery | number): Promise<LogsListResponse> {
+  if (typeof query === "number") {
+    return request<LogsListResponse>(`/api/logs?limit=${query}`);
+  }
+
+  const params = new URLSearchParams();
+  if (query.page !== undefined) params.set("page", String(query.page));
+  if (query.pageSize !== undefined) params.set("pageSize", String(query.pageSize));
+  if (query.q?.trim()) params.set("q", query.q.trim());
+
+  const search = params.toString();
+  return request<LogsListResponse>(`/api/logs${search ? `?${search}` : ""}`);
 }
 
 export { ApiError };

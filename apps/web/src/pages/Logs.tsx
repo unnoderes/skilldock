@@ -1,20 +1,79 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { History, Terminal, Clock, Calendar, AlertTriangle } from "lucide-react";
+import type { OperationLogEntry } from "@skilldock/shared";
 import { SearchInput } from "../components/ui/SearchInput";
+import { Pagination } from "../components/ui/Pagination";
 import { useLogs } from "../hooks/useLogs";
 import { useLocale } from "../contexts/LocaleContext";
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+
+function readPositiveInt(value: string | null, fallback: number): number {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function readLogsQueryState() {
+  const params = new URLSearchParams(window.location.search);
+  const pageSize = readPositiveInt(params.get("logsPageSize"), DEFAULT_PAGE_SIZE);
+  return {
+    page: readPositiveInt(params.get("logsPage"), DEFAULT_PAGE),
+    pageSize: PAGE_SIZE_OPTIONS.includes(pageSize) ? pageSize : DEFAULT_PAGE_SIZE,
+    search: params.get("logsQ") ?? "",
+  };
+}
+
 export function Logs() {
-  const [limit, setLimit] = useState(50);
-  const { data, isLoading, error, refetch } = useLogs(limit);
-  const [search, setSearch] = useState("");
+  const initialQuery = useMemo(readLogsQueryState, []);
+  const [page, setPage] = useState(initialQuery.page);
+  const [pageSize, setPageSize] = useState(initialQuery.pageSize);
+  const [search, setSearch] = useState(initialQuery.search);
+  const { data, isLoading, error, refetch } = useLogs({ page, pageSize, q: search });
   const { t } = useLocale();
 
-  const filteredLogs = data?.logs.filter(log =>
-    log.source.toLowerCase().includes(search.toLowerCase()) ||
-    log.result.command.toLowerCase().includes(search.toLowerCase()) ||
-    log.result.args.join(" ").toLowerCase().includes(search.toLowerCase())
-  ) ?? [];
+  const logs: OperationLogEntry[] = data?.logs ?? [];
+  const pagination = data?.pagination;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (page === DEFAULT_PAGE) {
+      params.delete("logsPage");
+    } else {
+      params.set("logsPage", String(page));
+    }
+    if (pageSize === DEFAULT_PAGE_SIZE) {
+      params.delete("logsPageSize");
+    } else {
+      params.set("logsPageSize", String(pageSize));
+    }
+    if (search.trim()) {
+      params.set("logsQ", search.trim());
+    } else {
+      params.delete("logsQ");
+    }
+
+    const query = params.toString();
+    const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+    window.history.replaceState(null, "", nextUrl);
+  }, [page, pageSize, search]);
+
+  useEffect(() => {
+    if (pagination && pagination.page !== page) {
+      setPage(pagination.page);
+    }
+  }, [page, pagination]);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(DEFAULT_PAGE);
+  };
+
+  const handlePageSizeChange = (value: number) => {
+    setPageSize(value);
+    setPage(DEFAULT_PAGE);
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -23,15 +82,15 @@ export function Logs() {
           <SearchInput
             placeholder={t("logs.searchPlaceholder")}
             value={search}
-            onChange={setSearch}
+            onChange={handleSearchChange}
             className="w-80"
           />
 
           <div className="flex items-center gap-3">
             <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest whitespace-nowrap">{t("logs.show")}</span>
             <select
-              value={limit}
-              onChange={e => setLimit(Number(e.target.value))}
+              value={pageSize}
+              onChange={e => handlePageSizeChange(Number(e.target.value))}
               className="py-1 px-3 text-xs bg-surface-900 border-border rounded-lg outline-none focus:ring-1 focus:ring-accent"
             >
               <option value={10}>10 {t("logs.records")}</option>
@@ -62,12 +121,12 @@ export function Logs() {
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-24 rounded-2xl bg-surface-800 border border-border animate-pulse" />
           ))
-        ) : filteredLogs.length === 0 ? (
+        ) : logs.length === 0 ? (
           <div className="p-12 text-center text-text-muted border border-dashed border-border rounded-2xl">
             {t("logs.noMatchingEntries")}
           </div>
         ) : (
-          filteredLogs.map((log) => (
+          logs.map((log) => (
             <article key={log.id} className="rounded-2xl border border-border bg-surface-800 overflow-hidden transition-all hover:border-accent/30">
               <div className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-6 min-w-0">
@@ -83,12 +142,6 @@ export function Logs() {
                         EXIT {log.result.exitCode}
                       </span>
                     </div>
-                    <p className="text-[11px] font-mono text-text-muted truncate">
-                      {log.project && (
-                        <span className="text-accent-light">{log.project.projectName} · </span>
-                      )}
-                      {log.result.command} {log.result.args.join(" ")}
-                    </p>
                   </div>
                 </div>
 
@@ -111,6 +164,27 @@ export function Logs() {
           ))
         )}
       </div>
+
+      {pagination && (
+        <Pagination
+          pagination={pagination}
+          onPageChange={setPage}
+          labels={{
+            first: t("logs.pagination.first"),
+            previous: t("logs.pagination.previous"),
+            next: t("logs.pagination.next"),
+            last: t("logs.pagination.last"),
+            jumpTo: t("logs.pagination.jumpTo"),
+            go: t("logs.pagination.go"),
+            page: t("logs.pagination.page"),
+            of: t("logs.pagination.of"),
+            total: t("logs.pagination.total"),
+            showing: t("logs.pagination.showing"),
+            to: t("logs.pagination.to"),
+            items: t("logs.pagination.items"),
+          }}
+        />
+      )}
     </div>
   );
 }
