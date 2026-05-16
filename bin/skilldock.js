@@ -102,7 +102,12 @@ try {
 
   const { startServer } = await import("../apps/server/dist/index.js");
   const staticRoot = path.join(rootDir, "apps", "web", "dist");
-  const url = await startServer({ host, port, staticRoot });
+  const url = await startServer({
+    host,
+    port,
+    staticRoot,
+    launchProjectPath: rootDir,
+  });
 
   if (url !== displayUrl) {
     console.log(`SkillDock running at ${url}`);
