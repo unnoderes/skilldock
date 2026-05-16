@@ -1,4 +1,5 @@
 import React from "react";
+import type { CliStatus } from "@skilldock/shared";
 import {
   LayoutDashboard,
   Package,
@@ -22,7 +23,7 @@ export function Sidebar({ currentView, setView }: { currentView: string, setView
     { id: "settings", label: t("nav.settings"), icon: Settings },
   ];
 
-  const allAvailable = status?.cli.every(c => c.available);
+  const allAvailable = status?.cli.every((cli: CliStatus) => cli.available);
 
   return (
     <aside className="w-64 bg-surface-800 border-r border-border flex flex-col h-screen sticky top-0 shrink-0">
@@ -57,7 +58,7 @@ export function Sidebar({ currentView, setView }: { currentView: string, setView
       </nav>
 
       <div className="p-6 border-t border-border space-y-4">
-        {status?.cli.map((cli) => (
+        {status?.cli.map((cli: CliStatus) => (
           <div key={cli.name} className="flex flex-col gap-1">
             <div className="flex items-center justify-between">
               <span className="text-[10px] uppercase font-bold text-text-muted">{cli.name}</span>
