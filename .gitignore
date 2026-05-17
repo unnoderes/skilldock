@@ -41,3 +41,5 @@ tmp/
 # SkillDock local state
 .skilldock/
 .serena/
+.claude/
+.agents/
