@@ -51,3 +51,5 @@ tmp/
 .serena/
 .claude/
 .agents/
+docs/
+AGENTS.md
