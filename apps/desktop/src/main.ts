@@ -1,6 +1,11 @@
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import fs from "node:fs";
+import { createRequire } from "node:module";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+
+const require = createRequire(import.meta.url);
+const { app, BrowserWindow, ipcMain, shell } = require("electron") as typeof import("electron");
 
 type EmbeddedServerModule = {
   startServer(options?: {
@@ -16,10 +21,31 @@ const DESKTOP_RENDERER_URL = process.env.SKILLDOCK_DESKTOP_RENDERER_URL?.trim();
 const isDevRenderer = Boolean(DESKTOP_RENDERER_URL);
 const desktopDir = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(desktopDir, "..", "..", "..");
+const desktopLogPath = path.join(os.tmpdir(), "skilldock-desktop.log");
 
-let mainWindow: BrowserWindow | null = null;
+type BrowserWindowInstance = InstanceType<typeof BrowserWindow>;
+
+let mainWindow: BrowserWindowInstance | null = null;
 let embeddedServerModule: EmbeddedServerModule | null = null;
 let embeddedServerUrl: string | null = null;
+
+function logDesktop(message: string, error?: unknown): void {
+  const details = error instanceof Error
+    ? `${error.message}\n${error.stack ?? ""}`
+    : error == null
+      ? ""
+      : String(error);
+
+  try {
+    fs.appendFileSync(
+      desktopLogPath,
+      `[${new Date().toISOString()}] ${message}${details ? `\n${details}` : ""}\n`,
+      "utf8",
+    );
+  } catch {
+    // Swallow logging failures to avoid affecting app startup.
+  }
+}
 
 function isAllowedExternalUrl(value: string): boolean {
   try {
@@ -41,16 +67,24 @@ async function openExternalUrl(url: string): Promise<void> {
 async function startEmbeddedServer(): Promise<string> {
   if (embeddedServerUrl) return embeddedServerUrl;
 
+  logDesktop("Starting embedded server.");
   const serverEntry = path.join(appRoot, "apps", "server", "dist", "index.js");
   const staticRoot = path.join(appRoot, "apps", "web", "dist");
 
-  embeddedServerModule = await import(pathToFileURL(serverEntry).href) as EmbeddedServerModule;
-  embeddedServerUrl = await embeddedServerModule.startServer({
-    host: "127.0.0.1",
-    port: 0,
-    staticRoot,
-    launchProjectPath: app.getPath("home"),
-  });
+  try {
+    embeddedServerModule = await import(pathToFileURL(serverEntry).href) as EmbeddedServerModule;
+    embeddedServerUrl = await embeddedServerModule.startServer({
+      host: "127.0.0.1",
+      port: 0,
+      staticRoot,
+      launchProjectPath: app.getPath("home"),
+    });
+  } catch (error) {
+    logDesktop("Embedded server failed to start.", error);
+    throw error;
+  }
+
+  logDesktop(`Embedded server started at ${embeddedServerUrl}.`);
 
   return embeddedServerUrl;
 }
@@ -76,6 +110,7 @@ async function resolveRendererUrl(): Promise<string> {
 }
 
 async function createMainWindow(): Promise<void> {
+  logDesktop("Creating main window.");
   const rendererUrl = await resolveRendererUrl();
   const rendererOrigin = new URL(rendererUrl).origin;
 
@@ -95,6 +130,18 @@ async function createMainWindow(): Promise<void> {
     },
   });
 
+  const revealWindow = () => {
+    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
+      logDesktop("Revealing main window.");
+      mainWindow.show();
+    }
+  };
+
+  const showFallbackTimer = setTimeout(() => {
+    logDesktop("Main window show fallback timer fired.");
+    revealWindow();
+  }, 1500);
+
   mainWindow.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
     if (isAllowedExternalUrl(url)) {
       void shell.openExternal(url);
@@ -111,10 +158,27 @@ async function createMainWindow(): Promise<void> {
   });
 
   mainWindow.once("ready-to-show", () => {
-    mainWindow?.show();
+    logDesktop("Main window ready-to-show.");
+    clearTimeout(showFallbackTimer);
+    revealWindow();
+  });
+
+  mainWindow.once("closed", () => {
+    clearTimeout(showFallbackTimer);
+  });
+
+  mainWindow.webContents.on("did-finish-load", () => {
+    logDesktop("Main window did-finish-load.");
+  });
+
+  mainWindow.webContents.on("did-fail-load", (_event: unknown, errorCode: number, errorDescription: string) => {
+    logDesktop(`Main window did-fail-load: ${errorCode} ${errorDescription}`);
   });
 
   await mainWindow.loadURL(rendererUrl);
+  logDesktop(`Main window loadURL resolved for ${rendererUrl}.`);
+  clearTimeout(showFallbackTimer);
+  revealWindow();
 }
 
 ipcMain.handle("desktop:getVersion", () => app.getVersion());
@@ -138,5 +202,20 @@ app.on("activate", () => {
   }
 });
 
-await app.whenReady();
-await createMainWindow();
+process.on("uncaughtException", (error) => {
+  logDesktop("Uncaught exception in desktop process.", error);
+});
+
+process.on("unhandledRejection", (reason) => {
+  logDesktop("Unhandled rejection in desktop process.", reason);
+});
+
+logDesktop("Desktop process booting.");
+void app.whenReady()
+  .then(async () => {
+    logDesktop("Electron app ready.");
+    await createMainWindow();
+  })
+  .catch((error) => {
+    logDesktop("Electron app failed during whenReady flow.", error);
+  });
