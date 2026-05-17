@@ -2,8 +2,8 @@ appId: com.skilldock.desktop
 productName: SkillDock
 asar: false
 directories:
-  app: ../..
-  output: dist/packaged
+  app: .
+  output: apps/desktop/dist/packaged
 files:
   - apps/desktop/dist/**/*
   - apps/server/dist/**/*
