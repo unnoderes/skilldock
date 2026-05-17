@@ -222,7 +222,10 @@ export function Logs() {
             last: t("logs.pagination.last"),
             jumpTo: t("logs.pagination.jumpTo"),
             go: t("logs.pagination.go"),
-            page: t("logs.pagination.page"),
+            pageIndicator: t("logs.pagination.pageIndicator", {
+              page: String(pagination.page),
+              totalPages: String(Math.max(pagination.totalPages, 1)),
+            }),
             of: t("logs.pagination.of"),
             total: t("logs.pagination.total"),
             showing: t("logs.pagination.showing"),

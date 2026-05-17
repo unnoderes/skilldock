@@ -2,6 +2,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 
 type Theme = "dark" | "light";
 
+const DEFAULT_THEME: Theme = "light";
+
+function getStoredTheme(): Theme | null {
+  if (typeof window === "undefined") return null;
+  const stored = localStorage.getItem(STORAGE_KEY);
+  return stored === "light" || stored === "dark" ? stored : null;
+}
+
 const ThemeContext = createContext<{
   theme: Theme;
   setTheme: (t: Theme) => void;
@@ -12,11 +20,7 @@ const STORAGE_KEY = "skilldock-theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "light" || stored === "dark") return stored;
-    }
-    return "dark";
+    return getStoredTheme() ?? DEFAULT_THEME;
   });
 
   const setTheme = useCallback((newTheme: Theme) => {

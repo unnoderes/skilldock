@@ -9,7 +9,7 @@ type PaginationLabels = {
   last: string;
   jumpTo: string;
   go: string;
-  page: string;
+  pageIndicator: string;
   of: string;
   total: string;
   showing: string;
@@ -84,8 +84,7 @@ export function Pagination({
         <span className="font-bold text-text">{lastItem}</span> {labels.of}{" "}
         <span className="font-bold text-text">{totalItems}</span> {labels.items}
         <span className="mx-2 text-border">|</span>
-        {labels.page} <span className="font-bold text-text">{page}</span> {labels.of}{" "}
-        <span className="font-bold text-text">{Math.max(totalPages, 1)}</span>
+        {labels.pageIndicator}
       </div>
 
       <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">

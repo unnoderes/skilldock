@@ -6,7 +6,8 @@
     <title>SkillDock</title>
     <script>
       (function() {
-        var theme = localStorage.getItem('skilldock-theme') || 'dark';
+        var storedTheme = localStorage.getItem('skilldock-theme');
+        var theme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'light';
         document.documentElement.setAttribute('data-theme', theme);
       })();
     </script>

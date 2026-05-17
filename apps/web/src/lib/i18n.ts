@@ -149,6 +149,7 @@ export type TranslationKey =
   | "logs.pagination.last"
   | "logs.pagination.jumpTo"
   | "logs.pagination.go"
+  | "logs.pagination.pageIndicator"
   | "logs.pagination.page"
   | "logs.pagination.of"
   | "logs.pagination.total"
@@ -344,6 +345,7 @@ const enUS: Record<TranslationKey, string> = {
   "logs.pagination.last": "Last page",
   "logs.pagination.jumpTo": "Jump to",
   "logs.pagination.go": "Go",
+  "logs.pagination.pageIndicator": "Page {{page}} of {{totalPages}}",
   "logs.pagination.page": "Page",
   "logs.pagination.of": "of",
   "logs.pagination.total": "Total",
@@ -540,6 +542,7 @@ const zhCN: Record<TranslationKey, string> = {
   "logs.pagination.last": "尾页",
   "logs.pagination.jumpTo": "跳转到",
   "logs.pagination.go": "跳转",
+  "logs.pagination.pageIndicator": "第 {{page}} 页，共 {{totalPages}} 页",
   "logs.pagination.page": "第",
   "logs.pagination.of": "共",
   "logs.pagination.total": "总计",
