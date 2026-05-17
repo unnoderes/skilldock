@@ -19,14 +19,20 @@
   },
   "scripts": {
     "dev": "node ./scripts/dev.mjs",
+    "dev:desktop": "node ./scripts/dev-desktop.mjs",
     "start": "node ./bin/skilldock.js",
     "build": "pnpm -r build",
+    "build:desktop": "pnpm --filter @skilldock/desktop build",
+    "dist:desktop:win": "pnpm build && electron-builder --config apps/desktop/electron-builder.yml --win nsis",
+    "dist:desktop:mac": "pnpm build && electron-builder --config apps/desktop/electron-builder.yml --mac dmg",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "prepack": "pnpm build"
   },
   "devDependencies": {
     "@types/node": "latest",
+    "electron": "latest",
+    "electron-builder": "latest",
     "typescript": "latest"
   },
   "dependencies": {

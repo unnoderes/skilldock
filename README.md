@@ -12,6 +12,25 @@ pnpm dev
 - Web: http://localhost:5173
 - Server: http://localhost:3301
 
+Desktop development shell:
+
+```bash
+pnpm dev:desktop
+```
+
+Desktop packaging:
+
+```bash
+pnpm dist:desktop:win
+pnpm dist:desktop:mac
+```
+
+Notes:
+
+- `pnpm dev:desktop` keeps the existing Vite + Fastify workflow and opens an Electron shell around it.
+- Production desktop builds reuse `apps/server/dist` and `apps/web/dist`; the Electron main process still starts the local white-listed API server.
+- Build Windows packages on Windows and macOS packages on macOS for the smoothest signing and packaging flow.
+
 ## npx Usage
 
 SkillDock can be packaged as an npx-runnable local app. The published package exposes

@@ -1,0 +1,21 @@
+appId: com.skilldock.desktop
+productName: SkillDock
+asar: false
+directories:
+  app: ../..
+  output: dist/packaged
+files:
+  - apps/desktop/dist/**/*
+  - apps/server/dist/**/*
+  - apps/web/dist/**/*
+  - packages/shared/dist/**/*
+  - package.json
+extraMetadata:
+  main: apps/desktop/dist/main.js
+win:
+  target:
+    - nsis
+mac:
+  target:
+    - dmg
+artifactName: skilldock-${version}-${os}-${arch}.${ext}
