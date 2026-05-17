@@ -16,7 +16,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored === "light" || stored === "dark") return stored;
     }
-    return "dark";
+    return "light";
   });
 
   const setTheme = useCallback((newTheme: Theme) => {
