@@ -40,7 +40,7 @@ export function Layout({
   const contentBottomPadding = isDrawerOpen ? "pb-[calc(60vh+2rem)]" : "pb-20";
 
   return (
-    <div className="flex min-h-screen bg-surface-900 text-text selection:bg-accent selection:text-white">
+    <div className="app-shell flex min-h-screen bg-surface-900 text-text selection:bg-accent selection:text-white">
       <Sidebar currentView={currentView} setView={setView} />
 
       <main className="flex-1 flex flex-col relative overflow-x-hidden">
