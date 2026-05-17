@@ -1266,6 +1266,21 @@ export async function startServer(options: StartServerOptions = {}): Promise<str
   });
 }
 
+export async function stopServer(): Promise<void> {
+  try {
+    await server.close();
+  } catch (error) {
+    if (
+      error instanceof Error
+      && (error.message.includes("Server is not running") || error.message.includes("Not running"))
+    ) {
+      return;
+    }
+
+    throw error;
+  }
+}
+
 export { server };
 
 const entryFile = process.argv[1] ? path.resolve(process.argv[1]) : undefined;
