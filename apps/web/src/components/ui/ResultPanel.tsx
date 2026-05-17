@@ -7,6 +7,7 @@ import {
 } from "../../lib/outputNormalization";
 
 type ResultViewMode = "clean" | "raw";
+type ResultPanelTone = "default" | "success" | "failed";
 
 const STREAM_LABEL_KEY: Record<ResultOutputSection["key"], "resultPanel.error" | "resultPanel.stdout" | "resultPanel.stderr"> = {
   error: "resultPanel.error",
@@ -14,17 +15,25 @@ const STREAM_LABEL_KEY: Record<ResultOutputSection["key"], "resultPanel.error" |
   stderr: "resultPanel.stderr",
 };
 
+const PANEL_TONE_CLASS: Record<ResultPanelTone, string> = {
+  default: "border-border/80 bg-surface-800/40",
+  success: "border-success/15 bg-success/5",
+  failed: "border-danger/20 bg-danger/5",
+};
+
 export function ResultPanel({
   title,
   result,
   error,
   compact,
+  tone = "default",
 }: {
   title: string;
   result: CommandResult;
   error?: string;
   compact?: boolean;
   collapseRawOutput?: boolean;
+  tone?: ResultPanelTone;
 }) {
   const { t } = useLocale();
   const [viewMode, setViewMode] = useState<ResultViewMode>("clean");
@@ -48,21 +57,25 @@ export function ResultPanel({
     : t("resultPanel.emptyRawOutput");
 
   return (
-    <div className={`flex flex-col gap-3 rounded-xl border bg-surface-800 p-4 ${error ? "border-danger/30" : "border-border"}`}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col">
-          <span className="mb-1 text-xs font-bold uppercase tracking-wider text-text-muted">{title}</span>
-          <div className="flex items-center gap-3 text-xs font-mono text-text-muted">
-            <span>exitCode: <span className={result.exitCode === 0 ? "text-success" : "text-danger"}>{result.exitCode}</span></span>
-            <span>{t("resultPanel.duration")}: {result.durationMs}ms</span>
+    <section className={`flex flex-col gap-4 rounded-2xl border px-4 py-4 sm:px-5 ${PANEL_TONE_CLASS[tone]}`}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-text-muted">{title}</span>
+            <span className="rounded-full border border-border/70 bg-surface-900/60 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-text-muted">
+              {t("resultPanel.outputView")}
+            </span>
           </div>
+          <p className="text-sm text-text-muted">
+            {t("resultPanel.outputDescription")}
+          </p>
         </div>
 
-        <div className="inline-flex self-start rounded-lg border border-surface-600/50 bg-surface-900/50 p-1">
+        <div className="inline-flex self-start rounded-xl border border-surface-600/50 bg-surface-900/60 p-1">
           <button
             type="button"
             onClick={() => setViewMode("clean")}
-            className={`rounded-md px-3 py-1 text-[11px] font-bold uppercase tracking-wide transition-colors ${
+            className={`rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide transition-colors ${
               viewMode === "clean"
                 ? "bg-accent text-white shadow-sm"
                 : "text-text-muted hover:bg-surface-700 hover:text-text"
@@ -73,7 +86,7 @@ export function ResultPanel({
           <button
             type="button"
             onClick={() => setViewMode("raw")}
-            className={`rounded-md px-3 py-1 text-[11px] font-bold uppercase tracking-wide transition-colors ${
+            className={`rounded-lg px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide transition-colors ${
               viewMode === "raw"
                 ? "bg-accent text-white shadow-sm"
                 : "text-text-muted hover:bg-surface-700 hover:text-text"
@@ -91,21 +104,21 @@ export function ResultPanel({
             const isErrorStream = section.key === "error" || section.key === "stderr";
 
             return (
-              <section key={section.key} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                    isErrorStream ? "text-danger/80" : "text-text-muted"
+              <section key={section.key} className="space-y-1.5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className={`text-[10px] font-bold uppercase tracking-[0.22em] ${
+                    isErrorStream ? "text-danger" : "text-text-muted"
                   }`}>
                     {t(STREAM_LABEL_KEY[section.key])}
                   </span>
                 </div>
                 <pre
-                  className={`overflow-auto rounded-lg border p-3 text-xs whitespace-pre-wrap break-all ${
+                  className={`task-result-output ${
                     compact ? "max-h-56" : "max-h-72"
                   } ${
                     isErrorStream
-                      ? "border-danger/20 bg-danger/5"
-                      : "border-surface-600/50 bg-surface-900/50"
+                      ? "task-result-output--error"
+                      : "task-result-output--neutral"
                   }`}
                 >
                   {content}
@@ -115,10 +128,10 @@ export function ResultPanel({
           })}
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed border-surface-600/50 bg-surface-900/40 px-4 py-5 text-sm text-text-muted">
+        <div className="rounded-xl border border-dashed border-surface-600/50 bg-surface-900/35 px-4 py-5 text-sm text-text-muted">
           {emptyMessage}
         </div>
       )}
-    </div>
+    </section>
   );
 }

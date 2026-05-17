@@ -178,6 +178,8 @@ export type TranslationKey =
   | "taskDrawer.created"
   | "taskDrawer.started"
   | "taskDrawer.finished"
+  | "taskDrawer.duration"
+  | "taskDrawer.exitCode"
   | "taskDrawer.network"
   | "taskDrawer.transport"
   | "taskDrawer.finalResult"
@@ -186,6 +188,12 @@ export type TranslationKey =
   | "taskDrawer.projectPath"
   | "taskDrawer.scope"
   | "taskDrawer.console"
+  | "taskDrawer.succeededSummary"
+  | "taskDrawer.failedSummary"
+  | "taskDrawer.succeededSubtitle"
+  | "taskDrawer.failedSubtitle"
+  | "taskDrawer.outputStream"
+  | "taskDrawer.outputEntries"
   | "taskDrawer.idleTitle"
   | "taskDrawer.idleDescription"
   | "dialog.confirm"
@@ -198,6 +206,8 @@ export type TranslationKey =
   | "resultPanel.stderr"
   | "resultPanel.error"
   | "resultPanel.duration"
+  | "resultPanel.outputView"
+  | "resultPanel.outputDescription"
   | "resultPanel.emptyOutput"
   | "resultPanel.emptyCleanOutput"
   | "resultPanel.emptyRawOutput"
@@ -380,6 +390,8 @@ const enUS: Record<TranslationKey, string> = {
   "taskDrawer.created": "Created",
   "taskDrawer.started": "Started",
   "taskDrawer.finished": "Finished",
+  "taskDrawer.duration": "Duration",
+  "taskDrawer.exitCode": "Exit Code",
   "taskDrawer.network": "Network",
   "taskDrawer.transport": "Transport",
   "taskDrawer.finalResult": "Final Execution Result",
@@ -388,6 +400,12 @@ const enUS: Record<TranslationKey, string> = {
   "taskDrawer.projectPath": "Path",
   "taskDrawer.scope": "Scope",
   "taskDrawer.console": "Task Console",
+  "taskDrawer.succeededSummary": "Completed",
+  "taskDrawer.failedSummary": "Failed",
+  "taskDrawer.succeededSubtitle": "The task finished cleanly. Review the normalized output below if needed.",
+  "taskDrawer.failedSubtitle": "The task ended with an error. Review the error-focused output before retrying.",
+  "taskDrawer.outputStream": "Execution Stream",
+  "taskDrawer.outputEntries": "entries",
   "taskDrawer.idleTitle": "No active task",
   "taskDrawer.idleDescription": "Run a Skills or MCP write operation to stream output here.",
   "dialog.confirm": "Confirm",
@@ -400,6 +418,8 @@ const enUS: Record<TranslationKey, string> = {
   "resultPanel.stderr": "stderr",
   "resultPanel.error": "error",
   "resultPanel.duration": "duration",
+  "resultPanel.outputView": "Result View",
+  "resultPanel.outputDescription": "Switch between cleaned output and raw streams without leaving the completion context.",
   "resultPanel.emptyOutput": "(empty output)",
   "resultPanel.emptyCleanOutput": "No cleaned output available.",
   "resultPanel.emptyRawOutput": "No raw output available.",
@@ -583,6 +603,8 @@ const zhCN: Record<TranslationKey, string> = {
   "taskDrawer.created": "创建时间",
   "taskDrawer.started": "开始时间",
   "taskDrawer.finished": "完成时间",
+  "taskDrawer.duration": "耗时",
+  "taskDrawer.exitCode": "退出码",
   "taskDrawer.network": "网络",
   "taskDrawer.transport": "传输方式",
   "taskDrawer.finalResult": "最终执行结果",
@@ -591,6 +613,12 @@ const zhCN: Record<TranslationKey, string> = {
   "taskDrawer.projectPath": "路径",
   "taskDrawer.scope": "范围",
   "taskDrawer.console": "任务控制台",
+  "taskDrawer.succeededSummary": "执行完成",
+  "taskDrawer.failedSummary": "执行失败",
+  "taskDrawer.succeededSubtitle": "任务已收束完成，如需核对可查看下方整理后的输出。",
+  "taskDrawer.failedSubtitle": "任务以错误结束，建议先查看下方聚焦错误的结果输出。",
+  "taskDrawer.outputStream": "执行流",
+  "taskDrawer.outputEntries": "条",
   "taskDrawer.idleTitle": "当前没有活动任务",
   "taskDrawer.idleDescription": "触发 Skills 或 MCP 写操作后，输出会持续显示在这里。",
   "dialog.confirm": "确认",
@@ -603,6 +631,8 @@ const zhCN: Record<TranslationKey, string> = {
   "resultPanel.stderr": "stderr",
   "resultPanel.error": "\u9519\u8BEF",
   "resultPanel.duration": "耗时",
+  "resultPanel.outputView": "结果视图",
+  "resultPanel.outputDescription": "在当前完成态中切换整理后输出与原始流，无需离开结果上下文。",
   "resultPanel.emptyOutput": "（无输出）",
   "resultPanel.emptyCleanOutput": "\u6682\u65E0\u53EF\u663E\u793A\u7684\u6E05\u7406\u540E\u8F93\u51FA\u3002",
   "resultPanel.emptyRawOutput": "\u6682\u65E0\u53EF\u663E\u793A\u7684\u539F\u59CB\u8F93\u51FA\u3002",
