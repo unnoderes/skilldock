@@ -192,8 +192,15 @@ export type TranslationKey =
   | "dialog.cancel"
   | "error.retry"
   | "common.operationFailed"
+  | "resultPanel.cleanOutput"
+  | "resultPanel.rawOutput"
+  | "resultPanel.stdout"
+  | "resultPanel.stderr"
+  | "resultPanel.error"
   | "resultPanel.duration"
   | "resultPanel.emptyOutput"
+  | "resultPanel.emptyCleanOutput"
+  | "resultPanel.emptyRawOutput"
   | "language.english"
   | "language.chinese"
   | "language.label"
@@ -387,8 +394,15 @@ const enUS: Record<TranslationKey, string> = {
   "dialog.cancel": "Cancel",
   "error.retry": "Retry",
   "common.operationFailed": "Operation failed. Please try again.",
+  "resultPanel.cleanOutput": "Clean Output",
+  "resultPanel.rawOutput": "Raw Output",
+  "resultPanel.stdout": "stdout",
+  "resultPanel.stderr": "stderr",
+  "resultPanel.error": "error",
   "resultPanel.duration": "duration",
   "resultPanel.emptyOutput": "(empty output)",
+  "resultPanel.emptyCleanOutput": "No cleaned output available.",
+  "resultPanel.emptyRawOutput": "No raw output available.",
   "language.english": "English",
   "language.chinese": "简体中文",
   "language.label": "Language",
@@ -583,8 +597,15 @@ const zhCN: Record<TranslationKey, string> = {
   "dialog.cancel": "取消",
   "error.retry": "重试",
   "common.operationFailed": "操作失败，请重试。",
+  "resultPanel.cleanOutput": "\u6E05\u7406\u8F93\u51FA",
+  "resultPanel.rawOutput": "\u539F\u59CB\u8F93\u51FA",
+  "resultPanel.stdout": "stdout",
+  "resultPanel.stderr": "stderr",
+  "resultPanel.error": "\u9519\u8BEF",
   "resultPanel.duration": "耗时",
   "resultPanel.emptyOutput": "（无输出）",
+  "resultPanel.emptyCleanOutput": "\u6682\u65E0\u53EF\u663E\u793A\u7684\u6E05\u7406\u540E\u8F93\u51FA\u3002",
+  "resultPanel.emptyRawOutput": "\u6682\u65E0\u53EF\u663E\u793A\u7684\u539F\u59CB\u8F93\u51FA\u3002",
   "language.english": "English",
   "language.chinese": "简体中文",
   "language.label": "语言",
