@@ -1,9 +1,13 @@
 appId: com.skilldock.desktop
 productName: SkillDock
-asar: false
 directories:
-  app: ../..
-  output: dist/packaged
+  output: apps/desktop/dist/packaged
+  buildResources: apps/desktop/build
+asar: true
+asarUnpack:
+  - apps/server/dist/**/*
+  - apps/web/dist/**/*
+  - apps/desktop/dist/preload.js
 files:
   - apps/desktop/dist/**/*
   - apps/server/dist/**/*
@@ -12,10 +16,13 @@ files:
   - package.json
 extraMetadata:
   main: apps/desktop/dist/main.js
+icon: apps/desktop/build/icon.png
 win:
   target:
     - nsis
+  icon: apps/desktop/build/icon.ico
 mac:
   target:
     - dmg
+  icon: apps/desktop/build/icon.iconset
 artifactName: skilldock-${version}-${os}-${arch}.${ext}

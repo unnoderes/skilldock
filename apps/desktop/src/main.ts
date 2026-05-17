@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, shell } from "electron";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -16,10 +17,20 @@ const DESKTOP_RENDERER_URL = process.env.SKILLDOCK_DESKTOP_RENDERER_URL?.trim();
 const isDevRenderer = Boolean(DESKTOP_RENDERER_URL);
 const desktopDir = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.resolve(desktopDir, "..", "..", "..");
+const resourcesPath = process.resourcesPath;
 
 let mainWindow: BrowserWindow | null = null;
 let embeddedServerModule: EmbeddedServerModule | null = null;
 let embeddedServerUrl: string | null = null;
+
+function resolvePackagedPath(...segments: string[]): string {
+  const unpacked = path.join(resourcesPath, "app.asar.unpacked", ...segments);
+  if (fs.existsSync(unpacked)) {
+    return unpacked;
+  }
+
+  return path.join(appRoot, ...segments);
+}
 
 function isAllowedExternalUrl(value: string): boolean {
   try {
@@ -41,8 +52,8 @@ async function openExternalUrl(url: string): Promise<void> {
 async function startEmbeddedServer(): Promise<string> {
   if (embeddedServerUrl) return embeddedServerUrl;
 
-  const serverEntry = path.join(appRoot, "apps", "server", "dist", "index.js");
-  const staticRoot = path.join(appRoot, "apps", "web", "dist");
+  const serverEntry = resolvePackagedPath("apps", "server", "dist", "index.js");
+  const staticRoot = resolvePackagedPath("apps", "web", "dist");
 
   embeddedServerModule = await import(pathToFileURL(serverEntry).href) as EmbeddedServerModule;
   embeddedServerUrl = await embeddedServerModule.startServer({
@@ -87,8 +98,9 @@ async function createMainWindow(): Promise<void> {
     show: false,
     autoHideMenuBar: true,
     backgroundColor: "#101418",
+    icon: resolvePackagedPath("apps", "desktop", "build", "icon.png"),
     webPreferences: {
-      preload: path.join(appRoot, "apps", "desktop", "dist", "preload.js"),
+      preload: resolvePackagedPath("apps", "desktop", "dist", "preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
