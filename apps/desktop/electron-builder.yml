@@ -1,6 +1,7 @@
 appId: com.skilldock.desktop
 productName: SkillDock
 directories:
+  app: .
   output: apps/desktop/dist/packaged
   buildResources: apps/desktop/build
 asar: true
