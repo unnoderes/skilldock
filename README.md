@@ -35,6 +35,7 @@ Notes:
 
 - `pnpm dev:desktop` keeps the existing Vite + Fastify workflow and opens an Electron shell around it.
 - Production desktop builds reuse `apps/server/dist` and `apps/web/dist`; the Electron main process still starts the local white-listed API server.
+- Desktop build assets are generated from `scripts/generate-desktop-icons.py` into `apps/desktop/build`.
 - Build Windows packages on Windows and macOS packages on macOS for the smoothest signing and packaging flow.
 
 ## npx Usage
