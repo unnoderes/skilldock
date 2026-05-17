@@ -31,6 +31,7 @@ const runningServices = services.map((service) => {
     reject: false,
     cleanup: true,
     detached: process.platform === "win32",
+    windowsHide: true,
   });
 
   pipeLines(child.stdout, `${service.name} dev: `);
