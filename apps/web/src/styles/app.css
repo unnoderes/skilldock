@@ -61,14 +61,14 @@ body { margin: 0; background: var(--color-surface-900); color: var(--color-text)
 
 [data-theme="light"] .app-shell {
   background-image:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0) 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(248, 250, 252, 0.04)),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0) 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(226, 232, 240, 0.1)),
     repeating-linear-gradient(
       132deg,
-      rgba(148, 163, 184, 0.09) 0,
-      rgba(148, 163, 184, 0.09) 1px,
+      rgba(100, 116, 139, 0.16) 0,
+      rgba(100, 116, 139, 0.16) 1px,
       transparent 1px,
-      transparent 32px
+      transparent 28px
     );
 }
 
