@@ -88,7 +88,7 @@ export function Pagination({
         <span className="font-bold text-text">{Math.max(totalPages, 1)}</span>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
         <button type="button" className={buttonClass()} onClick={() => onPageChange(1)} disabled={!hasPreviousPage} aria-label={labels.first} title={labels.first}>
           <ChevronsLeft size={14} />
         </button>
@@ -119,8 +119,8 @@ export function Pagination({
           <ChevronsRight size={14} />
         </button>
 
-        <form className="flex items-center gap-2 pl-1" onSubmit={submitTargetPage}>
-          <label className="text-xs text-text-muted" htmlFor="logs-page-jump">{labels.jumpTo}</label>
+        <form className="flex items-center gap-2 pl-1 shrink-0" onSubmit={submitTargetPage}>
+          <label className="text-xs text-text-muted whitespace-nowrap shrink-0" htmlFor="logs-page-jump">{labels.jumpTo}</label>
           <input
             id="logs-page-jump"
             type="number"
@@ -128,9 +128,9 @@ export function Pagination({
             max={Math.max(totalPages, 1)}
             value={targetPage}
             onChange={(event) => setTargetPage(event.target.value)}
-            className="h-8 w-16 rounded-lg bg-surface-900 border border-border px-2 text-xs outline-none focus:ring-1 focus:ring-accent"
+            className="h-8 w-16 !w-16 rounded-lg bg-surface-900 border border-border px-2 text-xs outline-none focus:ring-1 focus:ring-accent shrink-0"
           />
-          <button type="submit" className={buttonClass()}>{labels.go}</button>
+          <button type="submit" className={`${buttonClass()} shrink-0`}>{labels.go}</button>
         </form>
       </div>
     </div>

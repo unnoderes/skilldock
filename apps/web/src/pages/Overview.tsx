@@ -8,7 +8,7 @@ import { ProjectSelector } from "../components/ProjectSelector";
 
 export function Overview() {
   const { data: status, isLoading: isStatusLoading } = useStatus();
-  const { data: logsData, isLoading: isLogsLoading } = useLogs(5);
+  const { data: logsData, isLoading: isLogsLoading } = useLogs(10);
   const { t } = useLocale();
 
   return (

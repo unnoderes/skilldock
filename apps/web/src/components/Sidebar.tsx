@@ -58,19 +58,6 @@ export function Sidebar({ currentView, setView }: { currentView: string, setView
       </nav>
 
       <div className="p-6 border-t border-border space-y-4">
-        {status?.cli.map((cli: CliStatus) => (
-          <div key={cli.name} className="flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-text-muted">{cli.name}</span>
-              <span className={`text-[10px] font-mono ${cli.available ? "text-success" : "text-danger"}`}>
-                {cli.available ? cli.version : "OFF"}
-              </span>
-            </div>
-            {cli.error && (
-              <p className="text-[9px] text-danger/70 leading-tight truncate">{cli.error}</p>
-            )}
-          </div>
-        ))}
         <div className="pt-2 flex items-center gap-2 text-text-muted">
           <Activity size={12} />
           <span className="text-[10px]">v0.0.0 (MVP)</span>
