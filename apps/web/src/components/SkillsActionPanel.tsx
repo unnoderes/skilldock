@@ -12,6 +12,9 @@ export function SkillsActionPanel({
   projectWriteDisabled,
   selectedCount,
   filteredCount,
+  allFilteredSelected,
+  onSelectAllFiltered,
+  onClearSelection,
   onBulkUpdateRequest,
   onBulkRemoveRequest,
   onInstallRequest,
@@ -26,6 +29,9 @@ export function SkillsActionPanel({
   projectWriteDisabled: boolean;
   selectedCount: number;
   filteredCount: number;
+  allFilteredSelected: boolean;
+  onSelectAllFiltered: () => void;
+  onClearSelection: () => void;
   onBulkUpdateRequest: () => void;
   onBulkRemoveRequest: () => void;
   onInstallRequest: (packageName: string) => void;
@@ -37,6 +43,8 @@ export function SkillsActionPanel({
   const { t } = useLocale();
   const bulkActionsDisabled = selectedCount === 0 || projectWriteDisabled;
   const bulkActionsTitle = projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined;
+  const selectAllDisabled = filteredCount === 0 || allFilteredSelected;
+  const clearSelectionDisabled = selectedCount === 0;
 
   return (
     <div className="space-y-5 p-5">
@@ -68,34 +76,60 @@ export function SkillsActionPanel({
           {t("skills.bulkActions")}
         </label>
         <div className="space-y-3 rounded-xl border border-border bg-surface-900/50 p-3">
-          <p className="text-xs text-text-muted">
-            {t("skills.selectionCountWithTotal", {
-              count: String(selectedCount),
-              total: String(filteredCount),
-            })}
-          </p>
+          <div className="space-y-1">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+              {t("skills.selectionTitle")}
+            </p>
+            <p className="text-xs text-text-muted">
+              {t("skills.selectionCountWithTotal", {
+                count: String(selectedCount),
+                total: String(filteredCount),
+              })}
+            </p>
+          </div>
 
-          <button
-            type="button"
-            onClick={onBulkUpdateRequest}
-            disabled={bulkActionsDisabled || isBulkUpdatePending}
-            title={bulkActionsTitle}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-accent/10 hover:text-accent disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-text"
-          >
-            <RefreshCw size={14} className={isBulkUpdatePending ? "animate-spin" : ""} />
-            {t("skills.updateSelectedButton")}
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={onSelectAllFiltered}
+              disabled={selectAllDisabled}
+              className="rounded-lg border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-surface-600 disabled:opacity-50"
+            >
+              {t("skills.selectAllFiltered")}
+            </button>
+            <button
+              type="button"
+              onClick={onClearSelection}
+              disabled={clearSelectionDisabled}
+              className="rounded-lg border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-surface-600 disabled:opacity-50"
+            >
+              {t("skills.clearSelection")}
+            </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={onBulkRemoveRequest}
-            disabled={bulkActionsDisabled || isBulkRemovePending}
-            title={bulkActionsTitle}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-danger/10 hover:text-danger disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-text"
-          >
-            <Trash2 size={14} />
-            {t("skills.removeSelectedButton")}
-          </button>
+          <div className="space-y-2 border-t border-border/70 pt-3">
+            <button
+              type="button"
+              onClick={onBulkUpdateRequest}
+              disabled={bulkActionsDisabled || isBulkUpdatePending}
+              title={bulkActionsTitle}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-accent/10 hover:text-accent disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-text"
+            >
+              <RefreshCw size={14} className={isBulkUpdatePending ? "animate-spin" : ""} />
+              {t("skills.updateSelectedButton")}
+            </button>
+
+            <button
+              type="button"
+              onClick={onBulkRemoveRequest}
+              disabled={bulkActionsDisabled || isBulkRemovePending}
+              title={bulkActionsTitle}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-danger/10 hover:text-danger disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-text"
+            >
+              <Trash2 size={14} />
+              {t("skills.removeSelectedButton")}
+            </button>
+          </div>
         </div>
       </div>
 

@@ -276,41 +276,6 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           />
         </header>
 
-        {!isLoading && filteredSkills.length > 0 && (
-          <section className="flex flex-col gap-3 rounded-2xl border border-border bg-surface-800/70 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
-                {t("skills.selectionTitle")}
-              </p>
-              <p className="mt-1 text-sm text-text-muted">
-                {t("skills.selectionCountWithTotal", {
-                  count: String(selectedSkillNames.length),
-                  total: String(filteredSkills.length),
-                })}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={handleSelectAllFiltered}
-                disabled={allFilteredSelected}
-                className="rounded-lg border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-surface-600 disabled:opacity-50"
-              >
-                {t("skills.selectAllFiltered")}
-              </button>
-              <button
-                type="button"
-                onClick={handleClearSelection}
-                disabled={selectedSkillNames.length === 0}
-                className="rounded-lg border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-surface-600 disabled:opacity-50"
-              >
-                {t("skills.clearSelection")}
-              </button>
-            </div>
-          </section>
-        )}
-
         <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {isLoading ? (
             Array.from({ length: 6 }).map((_, index) => (
@@ -434,6 +399,9 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           projectWriteDisabled={projectWriteDisabled}
           selectedCount={selectedSkillNames.length}
           filteredCount={filteredSkills.length}
+          allFilteredSelected={allFilteredSelected}
+          onSelectAllFiltered={handleSelectAllFiltered}
+          onClearSelection={handleClearSelection}
           onBulkUpdateRequest={handleBulkUpdateRequest}
           onBulkRemoveRequest={handleBulkRemoveRequest}
           onInstallRequest={handleInstallRequest}
