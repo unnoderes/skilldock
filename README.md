@@ -25,6 +25,12 @@ pnpm dist:desktop:win
 pnpm dist:desktop:mac
 ```
 
+Desktop release automation:
+
+- `.github/workflows/release-desktop.yml`
+- `workflow_dispatch` builds Windows/macOS desktop installers as GitHub Actions artifacts
+- pushing a `v*` tag also uploads those installers to the matching GitHub Release
+
 Notes:
 
 - `pnpm dev:desktop` keeps the existing Vite + Fastify workflow and opens an Electron shell around it.
