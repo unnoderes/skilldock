@@ -1,12 +1,12 @@
+import { stripAnsi } from "./outputNormalization";
+
 export interface DiscoveryItem {
   skillId: string;
   installs?: string;
   url?: string;
 }
 
-export function stripAnsi(text: string): string {
-  return text.replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "");
-}
+export { stripAnsi } from "./outputNormalization";
 
 export function parseDiscoveryItems(stdout: string): DiscoveryItem[] | null {
   const cleaned = stripAnsi(stdout);
