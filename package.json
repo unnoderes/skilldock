@@ -1,6 +1,6 @@
 {
   "name": "skilldock",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "description": "Local graphical console for npx skills and npx add-mcp.",
   "private": false,
   "type": "module",
