@@ -1,6 +1,7 @@
 import React, { FormEvent, useMemo, useState } from "react";
 import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
 import type { LogsPagination } from "@skilldock/shared";
+import { useLocale } from "../../contexts/LocaleContext";
 
 type PaginationLabels = {
   first: string;
@@ -48,11 +49,13 @@ export function Pagination({
   labels: PaginationLabels;
   onPageChange: (page: number) => void;
 }) {
+  const { locale } = useLocale();
   const [targetPage, setTargetPage] = useState(String(pagination.page));
   const { page, pageSize, totalItems, totalPages, hasPreviousPage, hasNextPage } = pagination;
   const pages = useMemo(() => buildPageNumbers(page, totalPages), [page, totalPages]);
   const firstItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const lastItem = Math.min(page * pageSize, totalItems);
+  const safeTotalPages = Math.max(totalPages, 1);
 
   React.useEffect(() => {
     setTargetPage(String(page));
@@ -65,7 +68,7 @@ export function Pagination({
       setTargetPage(String(page));
       return;
     }
-    onPageChange(Math.min(Math.max(parsed, 1), Math.max(totalPages, 1)));
+    onPageChange(Math.min(Math.max(parsed, 1), safeTotalPages));
   };
 
   const buttonClass = (active = false) =>
@@ -84,8 +87,17 @@ export function Pagination({
         <span className="font-bold text-text">{lastItem}</span> {labels.of}{" "}
         <span className="font-bold text-text">{totalItems}</span> {labels.items}
         <span className="mx-2 text-border">|</span>
-        {labels.page} <span className="font-bold text-text">{page}</span> {labels.of}{" "}
-        <span className="font-bold text-text">{Math.max(totalPages, 1)}</span>
+        {locale === "zh-CN" ? (
+          <>
+            {labels.page} <span className="font-bold text-text">{page}</span> 页，{labels.of}{" "}
+            <span className="font-bold text-text">{safeTotalPages}</span> 页
+          </>
+        ) : (
+          <>
+            {labels.page} <span className="font-bold text-text">{page}</span> {labels.of}{" "}
+            <span className="font-bold text-text">{safeTotalPages}</span>
+          </>
+        )}
       </div>
 
       <div className="flex items-center gap-2 flex-wrap lg:flex-nowrap">
@@ -125,7 +137,7 @@ export function Pagination({
             id="logs-page-jump"
             type="number"
             min={1}
-            max={Math.max(totalPages, 1)}
+            max={safeTotalPages}
             value={targetPage}
             onChange={(event) => setTargetPage(event.target.value)}
             className="h-8 w-16 !w-16 rounded-lg bg-surface-900 border border-border px-2 text-xs outline-none focus:ring-1 focus:ring-accent shrink-0"
