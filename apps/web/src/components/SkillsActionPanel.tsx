@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertTriangle, RefreshCw, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
 import type { ProjectRecord, Scope } from "@skilldock/shared";
 import { ScopeToggle } from "./ui/ScopeToggle";
 import { SkillsInstall } from "./SkillsInstall";
@@ -18,7 +18,6 @@ export function SkillsActionPanel({
   onBulkUpdateRequest,
   onBulkRemoveRequest,
   onInstallRequest,
-  onDiscoverOpen,
   isPending,
   isBulkUpdatePending,
   isBulkRemovePending,
@@ -35,7 +34,6 @@ export function SkillsActionPanel({
   onBulkUpdateRequest: () => void;
   onBulkRemoveRequest: () => void;
   onInstallRequest: (packageName: string) => void;
-  onDiscoverOpen: () => void;
   isPending: boolean;
   isBulkUpdatePending: boolean;
   isBulkRemovePending: boolean;
@@ -143,21 +141,6 @@ export function SkillsActionPanel({
           onInstall={onInstallRequest}
           variant="plain"
         />
-      </div>
-
-      <div>
-        <label className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-text-muted">
-          {t("skills.discoverSkills")}
-        </label>
-        <button
-          onClick={onDiscoverOpen}
-          disabled={projectWriteDisabled}
-          title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
-          className="flex w-full items-center gap-2 whitespace-nowrap rounded-lg border border-border px-3 py-2 text-xs font-bold transition-colors hover:bg-surface-600 disabled:opacity-50"
-        >
-          <Search size={14} />
-          {t("skills.discoverSkills")}
-        </button>
       </div>
     </div>
   );
