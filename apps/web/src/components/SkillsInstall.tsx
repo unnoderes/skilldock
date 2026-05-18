@@ -24,18 +24,20 @@ export function SkillsInstall({ scope, isPending, onInstall, variant = "card" }:
   const isCard = variant === "card";
 
   return (
-    <div className={isCard ? "rounded-2xl bg-surface-800 border border-border p-6" : ""}>
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 rounded-lg bg-accent/10 border border-accent/20">
-          <Download size={16} className="text-accent" />
+    <div className={isCard ? "rounded-2xl border border-border bg-surface-800 p-6" : ""}>
+      {isCard ? (
+        <div className="mb-4 flex items-center gap-3">
+          <div className="rounded-lg border border-accent/20 bg-accent/10 p-2">
+            <Download size={16} className="text-accent" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold">{t("skills.install")}</h3>
+            <p className="text-xs text-text-muted">
+              {t("skills.installScope", { scope })}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-sm font-bold">{t("skills.install")}</h3>
-          <p className="text-xs text-text-muted">
-            {t("skills.installScope", { scope })}
-          </p>
-        </div>
-      </div>
+      ) : null}
 
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <div className="relative min-w-0 flex-1">
@@ -48,7 +50,7 @@ export function SkillsInstall({ scope, isPending, onInstall, variant = "card" }:
             placeholder={t("skills.packagePlaceholder")}
             value={packageName}
             onChange={(e) => setPackageName(e.target.value)}
-            className="h-10 w-full rounded-lg bg-surface-900 px-3 pl-11 pr-10 text-xs outline-none focus:ring-1 focus:ring-accent border-border"
+            className="h-10 w-full rounded-lg border border-border bg-surface-900 px-3 pl-11 pr-10 text-xs outline-none focus:ring-1 focus:ring-accent"
           />
           {packageName && (
             <button

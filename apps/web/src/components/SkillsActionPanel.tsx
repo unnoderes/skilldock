@@ -2,8 +2,9 @@ import React from "react";
 import { AlertTriangle, RefreshCw, Trash2 } from "lucide-react";
 import type { ProjectRecord, Scope } from "@skilldock/shared";
 import { ScopeToggle } from "./ui/ScopeToggle";
-import { SkillsInstall } from "./SkillsInstall";
 import { useLocale } from "../contexts/LocaleContext";
+
+type SkillsGridColumnCount = 3 | 4 | 5;
 
 export function SkillsActionPanel({
   scope,
@@ -17,8 +18,9 @@ export function SkillsActionPanel({
   onClearSelection,
   onBulkUpdateRequest,
   onBulkRemoveRequest,
-  onInstallRequest,
-  isPending,
+  skillsGridColumns,
+  skillsGridColumnOptions,
+  onSkillsGridColumnsChange,
   isBulkUpdatePending,
   isBulkRemovePending,
 }: {
@@ -33,8 +35,9 @@ export function SkillsActionPanel({
   onClearSelection: () => void;
   onBulkUpdateRequest: () => void;
   onBulkRemoveRequest: () => void;
-  onInstallRequest: (packageName: string) => void;
-  isPending: boolean;
+  skillsGridColumns: SkillsGridColumnCount;
+  skillsGridColumnOptions: readonly SkillsGridColumnCount[];
+  onSkillsGridColumnsChange: (value: SkillsGridColumnCount) => void;
   isBulkUpdatePending: boolean;
   isBulkRemovePending: boolean;
 }) {
@@ -67,6 +70,39 @@ export function SkillsActionPanel({
           {t("common.scope")}
         </label>
         <ScopeToggle label={t("common.scope")} value={scope} onChange={onScopeChange} />
+      </div>
+
+      <div>
+        <label className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-text-muted">
+          {t("skills.columnsLabel")}
+        </label>
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface-900/50 p-3">
+          <span className="text-xs text-text-muted">
+            {t("skills.columnsOption", { count: String(skillsGridColumns) })}
+          </span>
+          <div className="flex items-center gap-1">
+            {skillsGridColumnOptions.map((columnCount) => {
+              const isActive = columnCount === skillsGridColumns;
+
+              return (
+                <button
+                  key={columnCount}
+                  type="button"
+                  onClick={() => onSkillsGridColumnsChange(columnCount)}
+                  aria-pressed={isActive}
+                  aria-label={t("skills.columnsOption", { count: String(columnCount) })}
+                  className={`min-w-10 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                    isActive
+                      ? "bg-accent text-white shadow-sm"
+                      : "text-text-muted hover:bg-surface-700 hover:text-text"
+                  }`}
+                >
+                  {columnCount}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       <div>
@@ -131,17 +167,6 @@ export function SkillsActionPanel({
         </div>
       </div>
 
-      <div>
-        <label className="mb-2 block text-[10px] font-bold uppercase tracking-wider text-text-muted">
-          {t("skills.installFromPackage")}
-        </label>
-        <SkillsInstall
-          scope={scope}
-          isPending={isPending}
-          onInstall={onInstallRequest}
-          variant="plain"
-        />
-      </div>
     </div>
   );
 }

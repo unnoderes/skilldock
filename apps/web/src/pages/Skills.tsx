@@ -16,6 +16,7 @@ import { ApiError } from "../lib/api";
 import { useLocale } from "../contexts/LocaleContext";
 import { SkillsActionPanel } from "../components/SkillsActionPanel";
 import { SkillDiscoveryDialog } from "../components/SkillDiscoveryDialog";
+import { SkillsInstall } from "../components/SkillsInstall";
 
 const SKILL_SUMMARY_LIMIT = 3;
 const SKILLS_GRID_COLUMNS_KEY = "skilldock.skillsGridColumns";
@@ -313,34 +314,15 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
               placeholder={t("skills.searchPlaceholder")}
               value={search}
               onChange={setSearch}
-              className="w-full sm:min-w-[16rem] sm:flex-1 sm:max-w-md"
+              className="w-full sm:min-w-[14rem] sm:flex-1 sm:max-w-sm"
             />
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface-800 px-3 py-2 sm:justify-start">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-text-muted">
-                {t("skills.columnsLabel")}
-              </span>
-              <div className="flex items-center gap-1">
-                {SKILLS_GRID_COLUMN_OPTIONS.map((columnCount) => {
-                  const isActive = columnCount === skillsGridColumns;
-
-                  return (
-                    <button
-                      key={columnCount}
-                      type="button"
-                      onClick={() => handleSkillsGridColumnsChange(columnCount)}
-                      aria-pressed={isActive}
-                      aria-label={t("skills.columnsOption", { count: String(columnCount) })}
-                      className={`min-w-10 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-                        isActive
-                          ? "bg-accent text-white shadow-sm"
-                          : "text-text-muted hover:bg-surface-700 hover:text-text"
-                      }`}
-                    >
-                      {columnCount}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="w-full sm:min-w-[19rem] sm:flex-1 sm:max-w-md">
+              <SkillsInstall
+                scope={scope}
+                isPending={installMutation.isPending}
+                onInstall={handleInstallRequest}
+                variant="plain"
+              />
             </div>
             <button
               type="button"
@@ -483,8 +465,9 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           onClearSelection={handleClearSelection}
           onBulkUpdateRequest={handleBulkUpdateRequest}
           onBulkRemoveRequest={handleBulkRemoveRequest}
-          onInstallRequest={handleInstallRequest}
-          isPending={installMutation.isPending}
+          skillsGridColumns={skillsGridColumns}
+          skillsGridColumnOptions={SKILLS_GRID_COLUMN_OPTIONS}
+          onSkillsGridColumnsChange={handleSkillsGridColumnsChange}
           isBulkUpdatePending={updateMutation.isPending}
           isBulkRemovePending={removeMutation.isPending}
         />
