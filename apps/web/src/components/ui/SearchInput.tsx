@@ -15,18 +15,19 @@ export function SearchInput({
   inputClassName?: string;
 }) {
   return (
-    <div className={`relative group ${className}`}>
+    <div
+      className={`group relative rounded-xl border border-border bg-surface-800 transition-[border-color,box-shadow] focus-within:border-accent/70 focus-within:ring-1 focus-within:ring-accent/30 ${className}`}
+    >
       <Search
         size={14}
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-accent transition-colors pointer-events-none"
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-accent"
       />
       <input
         type="text"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full pl-10 pr-3 py-2 text-xs bg-surface-800 border-border focus:ring-1 focus:ring-accent outline-none rounded-xl ${inputClassName}`}
-        style={{ paddingLeft: "2.5rem" }}
+        className={`w-full rounded-xl border-0 bg-transparent py-2 pl-10 pr-3 text-xs outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 ${inputClassName}`}
       />
     </div>
   );

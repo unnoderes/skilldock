@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Check, Package, RefreshCw, Trash2, XCircle } from "lucide-react";
+import { Check, Package, RefreshCw, Search, Trash2, XCircle } from "lucide-react";
 import type { ProjectRecord, Scope, SkillRecord } from "@skilldock/shared";
 import { SearchInput } from "../components/ui/SearchInput";
 import {
@@ -266,14 +266,26 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           </div>
         )}
 
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+        <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
-          <SearchInput
-            placeholder={t("skills.searchPlaceholder")}
-            value={search}
-            onChange={setSearch}
-            className="sm:w-64"
-          />
+          <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center xl:justify-end">
+            <SearchInput
+              placeholder={t("skills.searchPlaceholder")}
+              value={search}
+              onChange={setSearch}
+              className="w-full sm:min-w-[16rem] sm:flex-1 sm:max-w-md"
+            />
+            <button
+              type="button"
+              onClick={() => setDiscoverDialogOpen(true)}
+              disabled={projectWriteDisabled}
+              title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
+              className="inline-flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-border bg-surface-800 px-4 py-2 text-xs font-bold transition-colors hover:bg-surface-600 disabled:opacity-50 sm:w-auto"
+            >
+              <Search size={14} />
+              {t("skills.discoverSkills")}
+            </button>
+          </div>
         </header>
 
         <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -405,7 +417,6 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           onBulkUpdateRequest={handleBulkUpdateRequest}
           onBulkRemoveRequest={handleBulkRemoveRequest}
           onInstallRequest={handleInstallRequest}
-          onDiscoverOpen={() => setDiscoverDialogOpen(true)}
           isPending={installMutation.isPending}
           isBulkUpdatePending={updateMutation.isPending}
           isBulkRemovePending={removeMutation.isPending}
