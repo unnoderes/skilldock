@@ -54,6 +54,7 @@ const ALLOWED_LOG_PAGE_SIZES = [10, 20, 50, 100] as const;
 const MAX_LOG_LIMIT = 100;
 const MAX_TASKS = 100;
 const MAX_TASK_OUTPUT_CHUNKS = 400;
+const MIN_SKILLS_PAGE_CARD_COLUMNS = 3;
 let staticAssetsRegistered = false;
 
 export type StartServerOptions = {
@@ -83,6 +84,7 @@ const DEFAULT_SETTINGS_CONFIG: SkillDockConfig = {
   defaultMcpScope: "project",
   defaultLogsLimit: DEFAULT_LOG_LIMIT,
   collapseRawOutput: true,
+  skillsPageCardColumns: MIN_SKILLS_PAGE_CARD_COLUMNS,
   desktopZoomFactor: 1,
 };
 const DEFAULT_DESKTOP_ZOOM_FACTOR = DEFAULT_SETTINGS_CONFIG.desktopZoomFactor ?? 1;
@@ -145,11 +147,19 @@ const settingsFileSchema = z.object({
   defaultMcpScope: scopeSchema.default(DEFAULT_SETTINGS_CONFIG.defaultMcpScope),
   defaultLogsLimit: z.number().int().min(1).max(MAX_LOG_LIMIT).default(DEFAULT_SETTINGS_CONFIG.defaultLogsLimit),
   collapseRawOutput: z.boolean().default(DEFAULT_SETTINGS_CONFIG.collapseRawOutput),
+  skillsPageCardColumns: z.number().int().min(MIN_SKILLS_PAGE_CARD_COLUMNS).default(DEFAULT_SETTINGS_CONFIG.skillsPageCardColumns),
   desktopZoomFactor: z.number().min(0.85).max(1.4).default(DEFAULT_DESKTOP_ZOOM_FACTOR),
   activeProjectId: z.string().trim().min(1).optional(),
 });
 
-const settingsUpdateBodySchema = settingsFileSchema.omit({ activeProjectId: true }).partial().refine(
+const settingsUpdateBodySchema = z.object({
+  defaultSkillsScope: scopeSchema.optional(),
+  defaultMcpScope: scopeSchema.optional(),
+  defaultLogsLimit: z.number().int().min(1).max(MAX_LOG_LIMIT).optional(),
+  collapseRawOutput: z.boolean().optional(),
+  skillsPageCardColumns: z.number().int().min(MIN_SKILLS_PAGE_CARD_COLUMNS).optional(),
+  desktopZoomFactor: z.number().min(0.85).max(1.4).optional(),
+}).refine(
   (value) => Object.keys(value).length > 0,
   { message: "provide at least one settings field" },
 );
