@@ -83,7 +83,9 @@ const DEFAULT_SETTINGS_CONFIG: SkillDockConfig = {
   defaultMcpScope: "project",
   defaultLogsLimit: DEFAULT_LOG_LIMIT,
   collapseRawOutput: true,
+  desktopZoomFactor: 1,
 };
+const DEFAULT_DESKTOP_ZOOM_FACTOR = DEFAULT_SETTINGS_CONFIG.desktopZoomFactor ?? 1;
 
 const scopeSchema = z.enum(["project", "global"]);
 const updateScopeSchema = z.enum(["project", "global", "auto"]);
@@ -143,6 +145,7 @@ const settingsFileSchema = z.object({
   defaultMcpScope: scopeSchema.default(DEFAULT_SETTINGS_CONFIG.defaultMcpScope),
   defaultLogsLimit: z.number().int().min(1).max(MAX_LOG_LIMIT).default(DEFAULT_SETTINGS_CONFIG.defaultLogsLimit),
   collapseRawOutput: z.boolean().default(DEFAULT_SETTINGS_CONFIG.collapseRawOutput),
+  desktopZoomFactor: z.number().min(0.85).max(1.4).default(DEFAULT_DESKTOP_ZOOM_FACTOR),
   activeProjectId: z.string().trim().min(1).optional(),
 });
 

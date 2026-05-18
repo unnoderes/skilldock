@@ -14,16 +14,35 @@ export function Settings() {
 
   const [formData, setFormData] = useState<Partial<SkillDockConfig>>({});
   const [activeTab, setActiveTab] = useState<"preferences" | "context">("preferences");
+  const [desktopZoomValue, setDesktopZoomValue] = useState("1.00");
 
   useEffect(() => {
     if (data?.config) {
       setFormData(data.config);
+      const zoomFactor = Number(data.config.desktopZoomFactor ?? 1);
+      setDesktopZoomValue(zoomFactor.toFixed(2));
     }
   }, [data]);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate(formData);
+    const normalizedZoom = Math.min(1.4, Math.max(0.85, Number(desktopZoomValue) || 1));
+    setDesktopZoomValue(normalizedZoom.toFixed(2));
+    const nextFormData = {
+      ...formData,
+      desktopZoomFactor: normalizedZoom,
+    };
+    setFormData(nextFormData);
+
+    if (window.skilldockDesktop) {
+      try {
+        await window.skilldockDesktop.setZoomFactor(normalizedZoom);
+      } catch {
+        // Ignore desktop zoom apply failures and still persist the preference.
+      }
+    }
+
+    mutation.mutate(nextFormData);
   };
 
   if (isLoading) {
@@ -124,6 +143,27 @@ export function Settings() {
               <div className="space-y-3 pt-6 border-t border-border/30">
                 <p className="text-xs uppercase font-bold text-text-muted tracking-widest">Workspace Style</p>
                 <div className="space-y-2">
+                  <label className="grid grid-cols-[1fr_auto] items-center gap-6 p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">Desktop Zoom</span>
+                      <span className="text-xs text-text-muted mt-0.5">
+                        Default scale for the desktop client on smaller or high-DPI displays.
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <input
+                        type="number"
+                        min={0.85}
+                        max={1.4}
+                        step={0.05}
+                        value={desktopZoomValue}
+                        onChange={e => setDesktopZoomValue(e.target.value)}
+                        className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-3 transition-shadow w-28 text-right"
+                      />
+                      <span className="text-xs text-text-muted w-10">x</span>
+                    </div>
+                  </label>
+
                   <div className="grid grid-cols-[1fr_auto] items-center p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">{t("settings.appearance")}</span>

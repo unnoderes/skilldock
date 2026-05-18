@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
-const { app, BrowserWindow, ipcMain, shell } = require("electron") as typeof import("electron");
+const { app, BrowserWindow, ipcMain, screen, shell } = require("electron") as typeof import("electron");
 
 type EmbeddedServerModule = {
   startServer(options?: {
@@ -15,6 +15,12 @@ type EmbeddedServerModule = {
     launchProjectPath?: string;
   }): Promise<string>;
   stopServer?(): Promise<void>;
+};
+
+type SettingsConfigResponse = {
+  config: {
+    desktopZoomFactor?: number;
+  };
 };
 
 const DESKTOP_RENDERER_URL = process.env.SKILLDOCK_DESKTOP_RENDERER_URL?.trim();
@@ -29,6 +35,66 @@ type BrowserWindowInstance = InstanceType<typeof BrowserWindow>;
 let mainWindow: BrowserWindowInstance | null = null;
 let embeddedServerModule: EmbeddedServerModule | null = null;
 let embeddedServerUrl: string | null = null;
+let currentZoomFactor = 1;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function resolveDefaultZoomFactor(): number {
+  const override = Number(process.env.SKILLDOCK_DESKTOP_ZOOM ?? "");
+  if (Number.isFinite(override) && override > 0) {
+    return clamp(override, 0.85, 1.4);
+  }
+
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+  const { scaleFactor } = primaryDisplay;
+  const effectiveWidth = width / Math.max(scaleFactor, 1);
+  const effectiveHeight = height / Math.max(scaleFactor, 1);
+
+  if (effectiveWidth <= 760 || effectiveHeight <= 520) {
+    return 1.24;
+  }
+
+  if (effectiveWidth <= 900 || effectiveHeight <= 620) {
+    return 1.16;
+  }
+
+  if (effectiveWidth <= 1100 || effectiveHeight <= 760) {
+    return 1.08;
+  }
+
+  return 1;
+}
+
+async function resolveConfiguredZoomFactor(rendererUrl: string): Promise<number> {
+  try {
+    const response = await fetch(new URL("/api/settings", rendererUrl));
+    if (!response.ok) {
+      logDesktop(`Failed to fetch settings for zoom factor: ${response.status}.`);
+      return resolveDefaultZoomFactor();
+    }
+
+    const data = await response.json() as SettingsConfigResponse;
+    const configured = Number(data.config.desktopZoomFactor);
+    if (Number.isFinite(configured) && configured > 0) {
+      return clamp(configured, 0.85, 1.4);
+    }
+  } catch (error) {
+    logDesktop("Failed to resolve configured zoom factor.", error);
+  }
+
+  return resolveDefaultZoomFactor();
+}
+
+function applyZoomFactor(value: number): number {
+  const zoomFactor = clamp(value, 0.85, 1.4);
+  currentZoomFactor = zoomFactor;
+  mainWindow?.webContents.setZoomFactor(zoomFactor);
+  logDesktop(`Applied zoom factor ${zoomFactor.toFixed(2)}.`);
+  return zoomFactor;
+}
 
 function resolvePackagedPath(...segments: string[]): string {
   const unpacked = path.join(resourcesPath, "app.asar.unpacked", ...segments);
@@ -123,6 +189,7 @@ async function createMainWindow(): Promise<void> {
   logDesktop("Creating main window.");
   const rendererUrl = await resolveRendererUrl();
   const rendererOrigin = new URL(rendererUrl).origin;
+  const configuredZoomFactor = await resolveConfiguredZoomFactor(rendererUrl);
 
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -188,6 +255,7 @@ async function createMainWindow(): Promise<void> {
 
   await mainWindow.loadURL(rendererUrl);
   logDesktop(`Main window loadURL resolved for ${rendererUrl}.`);
+  applyZoomFactor(configuredZoomFactor);
   clearTimeout(showFallbackTimer);
   revealWindow();
 }
@@ -196,6 +264,8 @@ ipcMain.handle("desktop:getVersion", () => app.getVersion());
 ipcMain.handle("desktop:openExternal", async (_event: unknown, url: string) => {
   await openExternalUrl(url);
 });
+ipcMain.handle("desktop:getZoomFactor", () => currentZoomFactor);
+ipcMain.handle("desktop:setZoomFactor", (_event: unknown, value: number) => applyZoomFactor(value));
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
