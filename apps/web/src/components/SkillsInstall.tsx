@@ -48,11 +48,7 @@ export function SkillsInstall({ scope, isPending, onInstall, variant = "card" }:
             placeholder={t("skills.packagePlaceholder")}
             value={packageName}
             onChange={(e) => setPackageName(e.target.value)}
-            className="h-10 w-full rounded-lg border border-border bg-surface-900 py-2 pl-10 pr-11 text-xs outline-none focus:ring-1 focus:ring-accent"
-            style={{
-              paddingLeft: "2.5rem",
-              paddingRight: "2.75rem",
-            }}
+            className="h-10 w-full rounded-lg bg-surface-900 px-3 pl-11 pr-10 text-xs outline-none focus:ring-1 focus:ring-accent border-border"
           />
           {packageName && (
             <button
