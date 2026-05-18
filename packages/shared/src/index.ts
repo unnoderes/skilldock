@@ -212,6 +212,7 @@ export type SkillDockConfig = {
   defaultMcpScope: Scope;
   defaultLogsLimit: number;
   collapseRawOutput: boolean;
+  desktopZoomFactor?: number;
   activeProjectId?: string;
 };
 
