@@ -6,19 +6,52 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useLocale } from "../contexts/LocaleContext";
 import { Languages } from "lucide-react";
 
+const SKILLS_GRID_COLUMNS_KEY = "skilldock.skillsGridColumns";
+const SKILLS_GRID_COLUMN_OPTIONS = [3, 4, 5] as const;
+const DEFAULT_SKILLS_GRID_COLUMNS = SKILLS_GRID_COLUMN_OPTIONS[0];
+
+type SkillsGridColumnCount = (typeof SKILLS_GRID_COLUMN_OPTIONS)[number];
+type SettingsFormData = Partial<SkillDockConfig> & { skillsGridColumns?: SkillsGridColumnCount };
+
+function normalizeSkillsGridColumns(value: number | null | undefined): SkillsGridColumnCount {
+  return SKILLS_GRID_COLUMN_OPTIONS.includes(value as SkillsGridColumnCount)
+    ? value as SkillsGridColumnCount
+    : DEFAULT_SKILLS_GRID_COLUMNS;
+}
+
+function readSkillsGridColumnsPreference(): SkillsGridColumnCount {
+  if (typeof window === "undefined") {
+    return DEFAULT_SKILLS_GRID_COLUMNS;
+  }
+
+  const rawValue = window.localStorage.getItem(SKILLS_GRID_COLUMNS_KEY);
+  return normalizeSkillsGridColumns(rawValue ? Number(rawValue) : undefined);
+}
+
+function persistSkillsGridColumnsPreference(value: SkillsGridColumnCount) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(SKILLS_GRID_COLUMNS_KEY, String(normalizeSkillsGridColumns(value)));
+}
+
 export function Settings() {
   const { query, mutation } = useSettings();
   const { data, isLoading } = query;
   const { theme, toggleTheme } = useTheme();
   const { locale, setLocale, t } = useLocale();
 
-  const [formData, setFormData] = useState<Partial<SkillDockConfig>>({});
+  const [formData, setFormData] = useState<SettingsFormData>({});
   const [activeTab, setActiveTab] = useState<"preferences" | "context">("preferences");
   const [desktopZoomValue, setDesktopZoomValue] = useState("1.00");
 
   useEffect(() => {
     if (data?.config) {
-      setFormData(data.config);
+      setFormData({
+        ...data.config,
+        skillsGridColumns: readSkillsGridColumnsPreference(),
+      });
       const zoomFactor = Number(data.config.desktopZoomFactor ?? 1);
       setDesktopZoomValue(zoomFactor.toFixed(2));
     }
@@ -27,12 +60,15 @@ export function Settings() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const normalizedZoom = Math.min(1.4, Math.max(0.85, Number(desktopZoomValue) || 1));
+    const normalizedSkillsGridColumns = normalizeSkillsGridColumns(formData.skillsGridColumns);
     setDesktopZoomValue(normalizedZoom.toFixed(2));
     const nextFormData = {
       ...formData,
       desktopZoomFactor: normalizedZoom,
+      skillsGridColumns: normalizedSkillsGridColumns,
     };
     setFormData(nextFormData);
+    persistSkillsGridColumnsPreference(normalizedSkillsGridColumns);
 
     if (window.skilldockDesktop) {
       try {
@@ -42,7 +78,8 @@ export function Settings() {
       }
     }
 
-    mutation.mutate(nextFormData);
+    const { skillsGridColumns: _skillsGridColumns, ...settingsPayload } = nextFormData;
+    mutation.mutate(settingsPayload);
   };
 
   if (isLoading) {
@@ -162,6 +199,27 @@ export function Settings() {
                       />
                       <span className="text-xs text-text-muted w-10">x</span>
                     </div>
+                  </label>
+
+                  <label className="grid grid-cols-[1fr_auto] items-center gap-6 p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all cursor-pointer">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">{t("settings.skillsGridColumns")}</span>
+                      <span className="text-xs text-text-muted mt-0.5">{t("settings.skillsGridColumnsDesc")}</span>
+                    </div>
+                    <select
+                      value={normalizeSkillsGridColumns(formData.skillsGridColumns)}
+                      onChange={e => setFormData((current) => ({
+                        ...current,
+                        skillsGridColumns: normalizeSkillsGridColumns(Number(e.target.value)),
+                      }))}
+                      className="bg-surface-700 border-border rounded-lg text-sm outline-none focus:ring-1 focus:ring-accent py-1.5 px-3 transition-shadow w-44 cursor-pointer shrink-0"
+                    >
+                      {SKILLS_GRID_COLUMN_OPTIONS.map((columnCount) => (
+                        <option key={columnCount} value={columnCount}>
+                          {t("skills.columnsOption", { count: String(columnCount) })}
+                        </option>
+                      ))}
+                    </select>
                   </label>
 
                   <div className="grid grid-cols-[1fr_auto] items-center p-4 px-6 rounded-lg bg-surface-900 border border-border hover:border-accent/30 transition-all">

@@ -92,6 +92,8 @@ export type TranslationKey =
   | "skills.bulkRemoveMessage"
   | "skills.selectedNamesSummary"
   | "skills.selectedNamesMore"
+  | "skills.columnsLabel"
+  | "skills.columnsOption"
   | "mcp.addServerTitle"
   | "mcp.addServerMessage"
   | "mcp.addServerName"
@@ -162,6 +164,8 @@ export type TranslationKey =
   | "settings.collapseRawOutput"
   | "settings.appearance"
   | "settings.appearanceDesc"
+  | "settings.skillsGridColumns"
+  | "settings.skillsGridColumnsDesc"
   | "settings.lightMode"
   | "settings.darkMode"
   | "settings.savePreferences"
@@ -304,6 +308,8 @@ const enUS: Record<TranslationKey, string> = {
   "skills.bulkRemoveMessage": "You are about to remove {{count}} selected skills.",
   "skills.selectedNamesSummary": "Selected skills: {{names}}",
   "skills.selectedNamesMore": "+{{count}} more",
+  "skills.columnsLabel": "Columns",
+  "skills.columnsOption": "{{count}} per row",
   "mcp.addServerTitle": "Add MCP Server",
   "mcp.addServerMessage": "You are about to add MCP server: {{target}}",
   "mcp.addServerName": "Name: {{name}}",
@@ -374,6 +380,8 @@ const enUS: Record<TranslationKey, string> = {
   "settings.collapseRawOutput": "Collapse raw output details by default",
   "settings.appearance": "Appearance",
   "settings.appearanceDesc": "Dark or light workspace theme",
+  "settings.skillsGridColumns": "Skills Grid Columns",
+  "settings.skillsGridColumnsDesc": "Choose how many cards appear per row on desktop. Minimum 3.",
   "settings.lightMode": "Light Mode",
   "settings.darkMode": "Dark Mode",
   "settings.savePreferences": "Save Security Preferences",
@@ -517,6 +525,8 @@ const zhCN: Record<TranslationKey, string> = {
   "skills.bulkRemoveMessage": "即将移除 {{count}} 个已选 Skill。",
   "skills.selectedNamesSummary": "已选 Skills：{{names}}",
   "skills.selectedNamesMore": "另 {{count}} 项",
+  "skills.columnsLabel": "每排卡片",
+  "skills.columnsOption": "每排 {{count}} 张",
   "mcp.addServerTitle": "添加 MCP Server",
   "mcp.addServerMessage": "即将添加 MCP Server：{{target}}",
   "mcp.addServerName": "名称：{{name}}",
@@ -587,6 +597,8 @@ const zhCN: Record<TranslationKey, string> = {
   "settings.collapseRawOutput": "默认折叠原始输出详情",
   "settings.appearance": "外观",
   "settings.appearanceDesc": "工作台明暗主题",
+  "settings.skillsGridColumns": "Skills 每排列数",
+  "settings.skillsGridColumnsDesc": "控制桌面端每排显示的技能卡数量，最少为 3。",
   "settings.lightMode": "浅色模式",
   "settings.darkMode": "深色模式",
   "settings.savePreferences": "保存安全偏好",
