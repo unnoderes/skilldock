@@ -41,26 +41,34 @@ export function SkillsInstall({ scope, isPending, onInstall, variant = "card" }:
 
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <div className="relative min-w-0 flex-1">
-          <Package
-            size={14}
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted"
-          />
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex w-11 items-center justify-center">
+            <Package
+              size={14}
+              className="text-text-muted"
+            />
+          </div>
           <input
             type="text"
             placeholder={t("skills.packagePlaceholder")}
             value={packageName}
             onChange={(e) => setPackageName(e.target.value)}
-            className="h-10 w-full rounded-lg border border-border bg-surface-900 px-3 pl-11 pr-10 text-xs outline-none focus:ring-1 focus:ring-accent"
+            className="h-10 w-full min-w-0 rounded-lg border border-border bg-surface-900 pl-11 pr-11 text-xs leading-5 outline-none placeholder:text-text-muted focus:ring-1 focus:ring-accent"
+            style={{
+              paddingLeft: "2.75rem",
+              paddingRight: "2.75rem",
+            }}
           />
           {packageName && (
-            <button
-              type="button"
-              onClick={() => setPackageName("")}
-              className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-800 hover:text-text"
-              tabIndex={-1}
-            >
-              <X size={12} />
-            </button>
+            <div className="absolute inset-y-0 right-0 flex w-10 items-center justify-center">
+              <button
+                type="button"
+                onClick={() => setPackageName("")}
+                className="flex h-7 w-7 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-800 hover:text-text"
+                tabIndex={-1}
+              >
+                <X size={12} />
+              </button>
+            </div>
           )}
         </div>
         <button
