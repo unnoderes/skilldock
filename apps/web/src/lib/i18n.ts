@@ -94,6 +94,9 @@ export type TranslationKey =
   | "skills.selectedNamesMore"
   | "skills.columnsLabel"
   | "skills.columnsOption"
+  | "skills.refresh"
+  | "skills.refreshing"
+  | "skills.refreshAriaLabel"
   | "mcp.addServerTitle"
   | "mcp.addServerMessage"
   | "mcp.addServerName"
@@ -116,6 +119,9 @@ export type TranslationKey =
   | "mcp.viewAgents"
   | "mcp.agentsDialogTitle"
   | "mcp.agentsDialogClose"
+  | "mcp.refresh"
+  | "mcp.refreshing"
+  | "mcp.refreshAriaLabel"
   | "logs.searchPlaceholder"
   | "logs.show"
   | "logs.records"
@@ -310,6 +316,9 @@ const enUS: Record<TranslationKey, string> = {
   "skills.selectedNamesMore": "+{{count}} more",
   "skills.columnsLabel": "Columns",
   "skills.columnsOption": "{{count}} per row",
+  "skills.refresh": "Refresh",
+  "skills.refreshing": "Refreshing...",
+  "skills.refreshAriaLabel": "Refresh skills list for {{scope}} scope",
   "mcp.addServerTitle": "Add MCP Server",
   "mcp.addServerMessage": "You are about to add MCP server: {{target}}",
   "mcp.addServerName": "Name: {{name}}",
@@ -332,6 +341,9 @@ const enUS: Record<TranslationKey, string> = {
   "mcp.viewAgents": "Available Agents",
   "mcp.agentsDialogTitle": "Available Agents",
   "mcp.agentsDialogClose": "Close",
+  "mcp.refresh": "Refresh",
+  "mcp.refreshing": "Refreshing...",
+  "mcp.refreshAriaLabel": "Refresh MCP list for {{scope}} scope",
   "logs.searchPlaceholder": "Search logs...",
   "logs.show": "Show",
   "logs.records": "records",
@@ -527,6 +539,9 @@ const zhCN: Record<TranslationKey, string> = {
   "skills.selectedNamesMore": "另 {{count}} 项",
   "skills.columnsLabel": "每排卡片",
   "skills.columnsOption": "每排 {{count}} 张",
+  "skills.refresh": "刷新",
+  "skills.refreshing": "刷新中...",
+  "skills.refreshAriaLabel": "刷新 {{scope}} 范围的 Skills 列表",
   "mcp.addServerTitle": "添加 MCP Server",
   "mcp.addServerMessage": "即将添加 MCP Server：{{target}}",
   "mcp.addServerName": "名称：{{name}}",
@@ -549,6 +564,9 @@ const zhCN: Record<TranslationKey, string> = {
   "mcp.viewAgents": "可用 Agents",
   "mcp.agentsDialogTitle": "可用 Agents",
   "mcp.agentsDialogClose": "关闭",
+  "mcp.refresh": "刷新",
+  "mcp.refreshing": "刷新中...",
+  "mcp.refreshAriaLabel": "刷新 {{scope}} 范围的 MCP 列表",
   "logs.searchPlaceholder": "搜索日志...",
   "logs.show": "显示",
   "logs.records": "条记录",
