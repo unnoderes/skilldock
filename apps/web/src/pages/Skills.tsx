@@ -18,6 +18,34 @@ import { SkillsActionPanel } from "../components/SkillsActionPanel";
 import { SkillDiscoveryDialog } from "../components/SkillDiscoveryDialog";
 
 const SKILL_SUMMARY_LIMIT = 3;
+const SKILLS_GRID_COLUMNS_KEY = "skilldock.skillsGridColumns";
+const SKILLS_GRID_COLUMN_OPTIONS = [3, 4, 5] as const;
+const DEFAULT_SKILLS_GRID_COLUMNS = SKILLS_GRID_COLUMN_OPTIONS[0];
+
+type SkillsGridColumnCount = (typeof SKILLS_GRID_COLUMN_OPTIONS)[number];
+
+function normalizeSkillsGridColumns(value: number | null | undefined): SkillsGridColumnCount {
+  return SKILLS_GRID_COLUMN_OPTIONS.includes(value as SkillsGridColumnCount)
+    ? value as SkillsGridColumnCount
+    : DEFAULT_SKILLS_GRID_COLUMNS;
+}
+
+function readSkillsGridColumnsPreference(): SkillsGridColumnCount {
+  if (typeof window === "undefined") {
+    return DEFAULT_SKILLS_GRID_COLUMNS;
+  }
+
+  const rawValue = window.localStorage.getItem(SKILLS_GRID_COLUMNS_KEY);
+  return normalizeSkillsGridColumns(rawValue ? Number(rawValue) : undefined);
+}
+
+function persistSkillsGridColumnsPreference(value: SkillsGridColumnCount) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(SKILLS_GRID_COLUMNS_KEY, String(normalizeSkillsGridColumns(value)));
+}
 
 export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
   const [scope, setScope] = useState<Scope>("project");
@@ -25,6 +53,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   const { data: skillsData, isLoading } = useSkillsList(scope, activeProjectId);
   const [search, setSearch] = useState("");
   const [selectedSkillNames, setSelectedSkillNames] = useState<string[]>([]);
+  const [skillsGridColumns, setSkillsGridColumns] = useState<SkillsGridColumnCount>(() => readSkillsGridColumnsPreference());
   const { t } = useLocale();
 
   const installMutation = useSkillInstall();
@@ -57,6 +86,11 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
 
   const mutationError = installMutation.error || removeMutation.error || updateMutation.error;
   const projectWriteDisabled = scope === "project" && activeProject?.status !== "valid";
+  const desktopGridClass = skillsGridColumns === 5
+    ? "xl:grid-cols-5"
+    : skillsGridColumns === 4
+      ? "xl:grid-cols-4"
+      : "xl:grid-cols-3";
 
   useEffect(() => {
     setSelectedSkillNames([]);
@@ -256,6 +290,12 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
     });
   };
 
+  const handleSkillsGridColumnsChange = (nextValue: SkillsGridColumnCount) => {
+    const normalizedValue = normalizeSkillsGridColumns(nextValue);
+    setSkillsGridColumns(normalizedValue);
+    persistSkillsGridColumnsPreference(normalizedValue);
+  };
+
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500 lg:h-[calc(100vh-13rem)] lg:min-h-[36rem] lg:flex-row lg:overflow-hidden">
       <div className="flex min-w-0 flex-1 flex-col gap-6 lg:overflow-y-auto lg:pr-1">
@@ -275,6 +315,33 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
               onChange={setSearch}
               className="w-full sm:min-w-[16rem] sm:flex-1 sm:max-w-md"
             />
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface-800 px-3 py-2 sm:justify-start">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-text-muted">
+                {t("skills.columnsLabel")}
+              </span>
+              <div className="flex items-center gap-1">
+                {SKILLS_GRID_COLUMN_OPTIONS.map((columnCount) => {
+                  const isActive = columnCount === skillsGridColumns;
+
+                  return (
+                    <button
+                      key={columnCount}
+                      type="button"
+                      onClick={() => handleSkillsGridColumnsChange(columnCount)}
+                      aria-pressed={isActive}
+                      aria-label={t("skills.columnsOption", { count: String(columnCount) })}
+                      className={`min-w-10 rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+                        isActive
+                          ? "bg-accent text-white shadow-sm"
+                          : "text-text-muted hover:bg-surface-700 hover:text-text"
+                      }`}
+                    >
+                      {columnCount}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <button
               type="button"
               onClick={() => setDiscoverDialogOpen(true)}
@@ -288,7 +355,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           </div>
         </header>
 
-        <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <section className={`grid grid-cols-1 gap-6 md:grid-cols-2 ${desktopGridClass}`}>
           {isLoading ? (
             Array.from({ length: 6 }).map((_, index) => (
               <div key={index} className="h-40 animate-pulse rounded-2xl border border-border bg-surface-800" />
