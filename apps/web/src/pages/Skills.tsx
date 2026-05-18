@@ -51,7 +51,12 @@ function persistSkillsGridColumnsPreference(value: SkillsGridColumnCount) {
 export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: string) => void }) {
   const [scope, setScope] = useState<Scope>("project");
   const { activeProject, activeProjectId } = useProjects();
-  const { data: skillsData, isLoading } = useSkillsList(scope, activeProjectId);
+  const {
+    data: skillsData,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useSkillsList(scope, activeProjectId);
   const [search, setSearch] = useState("");
   const [selectedSkillNames, setSelectedSkillNames] = useState<string[]>([]);
   const [skillsGridColumns, setSkillsGridColumns] = useState<SkillsGridColumnCount>(() => readSkillsGridColumnsPreference());
@@ -307,9 +312,21 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           </div>
         )}
 
-        <header className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
-          <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center xl:justify-end">
+        <header className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <ScopeToggle label={t("common.scope")} value={scope} onChange={setScope} />
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              disabled={isFetching}
+              aria-label={t("skills.refreshAriaLabel", { scope })}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-border bg-surface-800 px-4 py-2 text-xs font-bold transition-colors hover:bg-surface-600 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshCw size={14} className={isFetching ? "animate-spin" : ""} />
+              {isFetching ? t("skills.refreshing") : t("skills.refresh")}
+            </button>
+          </div>
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
             <SearchInput
               placeholder={t("skills.searchPlaceholder")}
               value={search}
