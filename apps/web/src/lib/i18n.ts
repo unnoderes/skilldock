@@ -81,6 +81,15 @@ export type TranslationKey =
   | "skills.discoveryMonorepoBadge"
   | "skills.discoveryMonorepoHint"
   | "skills.discoverySingleSkillHint"
+  | "skills.installPreviewLoading"
+  | "skills.installPreviewFailed"
+  | "skills.installPreviewDirectPackage"
+  | "skills.installPreviewSingleSkill"
+  | "skills.installPreviewSingleHint"
+  | "skills.installPreviewMonorepo"
+  | "skills.installPreviewMonorepoHint"
+  | "skills.installPreviewMoreSkills"
+  | "skills.installPreviewSubmitHint"
   | "skills.searching"
   | "skills.searchError"
   | "skills.installSelectedTitle"
@@ -311,6 +320,15 @@ const enUS: Record<TranslationKey, string> = {
   "skills.discoveryMonorepoBadge": "{{count}} matching skills",
   "skills.discoveryMonorepoHint": "This repository contains multiple matching skills. Install the whole package or choose specific skills.",
   "skills.discoverySingleSkillHint": "Install the package directly, or select the matched skill below to install it explicitly.",
+  "skills.installPreviewLoading": "Checking package contents...",
+  "skills.installPreviewFailed": "Could not inspect this package before install.",
+  "skills.installPreviewDirectPackage": "No selectable skill list was returned. This package will install through the normal package flow.",
+  "skills.installPreviewSingleSkill": "This package exposes a single skill: {{name}}",
+  "skills.installPreviewSingleHint": "Submitting now will install this specific skill instead of defaulting to the whole package.",
+  "skills.installPreviewMonorepo": "This package exposes {{count}} installable skills.",
+  "skills.installPreviewMonorepoHint": "Submitting opens a selection step first, so you can choose install all or install selected skills.",
+  "skills.installPreviewMoreSkills": "+{{count}} more",
+  "skills.installPreviewSubmitHint": "Press Install to continue into the selection step.",
   "skills.searching": "Searching for \"{{query}}\"...",
   "skills.searchError": "Search failed. Please try again.",
   "skills.installSelectedTitle": "Install Selected Skills",
@@ -460,7 +478,7 @@ const enUS: Record<TranslationKey, string> = {
   "resultPanel.emptyCleanOutput": "No cleaned output available.",
   "resultPanel.emptyRawOutput": "No raw output available.",
   "language.english": "English",
-  "language.chinese": "简体中文",
+  "language.chinese": "Chinese (Simplified)",
   "language.label": "Language",
   "language.description": "Interface language",
 };
@@ -690,6 +708,15 @@ const zhCN: Record<TranslationKey, string> = {
   "resultPanel.emptyOutput": "（无输出）",
   "resultPanel.emptyCleanOutput": "\u6682\u65E0\u53EF\u663E\u793A\u7684\u6E05\u7406\u540E\u8F93\u51FA\u3002",
   "resultPanel.emptyRawOutput": "\u6682\u65E0\u53EF\u663E\u793A\u7684\u539F\u59CB\u8F93\u51FA\u3002",
+  "skills.installPreviewLoading": "\u6b63\u5728\u68c0\u67e5\u5305\u5185 skills \u5217\u8868...",
+  "skills.installPreviewFailed": "\u5b89\u88c5\u524d\u65e0\u6cd5\u9884\u89c8\u8fd9\u4e2a\u5305\u7684 skills \u5217\u8868\u3002",
+  "skills.installPreviewDirectPackage": "\u6ca1\u6709\u8fd4\u56de\u53ef\u9009\u62e9\u7684 skill \u5217\u8868\uff0c\u5c06\u6309\u666e\u901a\u5305\u5b89\u88c5\u6d41\u7a0b\u5904\u7406\u3002",
+  "skills.installPreviewSingleSkill": "\u8fd9\u4e2a\u5305\u53ea\u66b4\u9732 1 \u4e2a skill\uff1a{{name}}",
+  "skills.installPreviewSingleHint": "\u76f4\u63a5\u63d0\u4ea4\u65f6\u4f1a\u663e\u5f0f\u5b89\u88c5\u8fd9\u4e2a skill\uff0c\u800c\u4e0d\u662f\u9ed8\u8ba4\u6574\u5305\u5b89\u88c5\u3002",
+  "skills.installPreviewMonorepo": "\u8fd9\u4e2a\u5305\u5305\u542b {{count}} \u4e2a\u53ef\u5b89\u88c5 skills\u3002",
+  "skills.installPreviewMonorepoHint": "\u70b9\u51fb\u5b89\u88c5\u540e\u4f1a\u5148\u8fdb\u5165\u52fe\u9009\u6b65\u9aa4\uff0c\u518d\u51b3\u5b9a\u5b89\u88c5\u5168\u90e8\u6216\u5b89\u88c5\u9009\u4e2d skills\u3002",
+  "skills.installPreviewMoreSkills": "\u53e6\u5916\u8fd8\u6709 {{count}} \u4e2a",
+  "skills.installPreviewSubmitHint": "\u70b9\u51fb\u5b89\u88c5\u7ee7\u7eed\u8fdb\u5165\u52fe\u9009\u6b65\u9aa4\u3002",
   "language.english": "English",
   "language.chinese": "简体中文",
   "language.label": "语言",

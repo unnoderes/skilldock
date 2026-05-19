@@ -13,6 +13,7 @@ import type {
   SettingsUpdateRequest,
   SkillsFindResponse,
   SkillsInstallRequest,
+  SkillsInstallPreviewResponse,
   SkillsListResponse,
   SkillsRemoveRequest,
   SkillsUpdateRequest,
@@ -140,6 +141,14 @@ export function fetchSkillsFind(
 ): Promise<SkillsFindResponse> {
   return request<SkillsFindResponse>(
     `/api/skills/find?q=${encodeURIComponent(query)}`,
+  );
+}
+
+export function fetchSkillsInstallPreview(
+  packageName: string,
+): Promise<SkillsInstallPreviewResponse> {
+  return request<SkillsInstallPreviewResponse>(
+    `/api/skills/install-preview?q=${encodeURIComponent(packageName)}`,
   );
 }
 

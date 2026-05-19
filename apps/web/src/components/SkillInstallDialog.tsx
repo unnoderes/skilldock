@@ -4,16 +4,19 @@ import { X } from "lucide-react";
 import type { Scope } from "@skilldock/shared";
 import { useLocale } from "../contexts/LocaleContext";
 import { SkillsInstall } from "./SkillsInstall";
+import type { DiscoveryInstallRequest, InstallPreviewPackageItem } from "../lib/skillsDiscovery";
 
 export function SkillInstallDialog({
   scope,
   isPending,
-  onInstall,
+  onInstallRequest,
+  onOpenPreviewSelection,
   onClose,
 }: {
   scope: Scope;
   isPending: boolean;
-  onInstall: (packageName: string) => void;
+  onInstallRequest: (request: DiscoveryInstallRequest) => void;
+  onOpenPreviewSelection: (previewPackage: InstallPreviewPackageItem) => void;
   onClose: () => void;
 }) {
   const { t } = useLocale();
@@ -34,10 +37,11 @@ export function SkillInstallDialog({
           <SkillsInstall
             scope={scope}
             isPending={isPending}
-            onInstall={(name) => {
-              onInstall(name);
+            onInstallRequest={(request) => {
+              onInstallRequest(request);
               onClose();
             }}
+            onOpenPreviewSelection={onOpenPreviewSelection}
             variant="plain"
           />
         </div>
