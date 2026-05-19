@@ -60,7 +60,7 @@ export function Sidebar({ currentView, setView }: { currentView: string, setView
       <div className="p-6 border-t border-border space-y-4">
         <div className="pt-2 flex items-center gap-2 text-text-muted">
           <Activity size={12} />
-          <span className="text-[10px]">v1.0.3</span>
+          <span className="text-[10px]">v1.0.4</span>
         </div>
       </div>
     </aside>
