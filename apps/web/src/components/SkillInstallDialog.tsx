@@ -43,6 +43,7 @@ export function SkillInstallDialog({
             }}
             onOpenPreviewSelection={onOpenPreviewSelection}
             variant="plain"
+            showInlinePreview={false}
           />
         </div>
       </div>

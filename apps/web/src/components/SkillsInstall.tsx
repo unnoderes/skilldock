@@ -16,6 +16,7 @@ interface SkillsInstallProps {
   onInstallRequest: (request: DiscoveryInstallRequest) => void;
   onOpenPreviewSelection: (previewPackage: InstallPreviewPackageItem) => void;
   variant?: "card" | "plain";
+  showInlinePreview?: boolean;
 }
 
 export function SkillsInstall({
@@ -24,6 +25,7 @@ export function SkillsInstall({
   onInstallRequest,
   onOpenPreviewSelection,
   variant = "card",
+  showInlinePreview = variant === "card",
 }: SkillsInstallProps) {
   const { t } = useLocale();
   const [packageName, setPackageName] = useState("");
@@ -63,7 +65,7 @@ export function SkillsInstall({
   };
 
   const isCard = variant === "card";
-  const showInlinePreview = normalizedPackageName.length > 0;
+  const shouldShowInlinePreview = showInlinePreview && normalizedPackageName.length > 0;
   const isPreviewLoading = previewQuery.isFetching;
 
   return (
@@ -128,7 +130,7 @@ export function SkillsInstall({
         </button>
       </form>
 
-      {showInlinePreview && (
+      {shouldShowInlinePreview && (
         <div className="mt-3 rounded-xl border border-border bg-surface-900/50 p-3">
           {previewFailed ? (
             <div className="space-y-2">
