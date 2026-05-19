@@ -107,6 +107,7 @@ export type TaskStreamEvent =
 export type SkillRecord = {
   name: string;
   path?: string;
+  removeKey?: string;
   scope?: Scope | string;
   agents?: string[];
 };

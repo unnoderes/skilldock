@@ -315,6 +315,16 @@ function deriveProjectName(projectPath: string): string {
   return path.basename(projectPath) || projectPath;
 }
 
+function deriveSkillRemoveKey(skill: SkillRecord): string {
+  const normalizedPath = skill.path?.trim();
+  if (!normalizedPath) {
+    return skill.name;
+  }
+
+  const pathBasename = path.basename(normalizedPath);
+  return pathBasename || skill.name;
+}
+
 function compareProjects(a: ProjectRecord, b: ProjectRecord): number {
   if (a.isLaunchProject !== b.isLaunchProject) {
     return a.isLaunchProject ? -1 : 1;
@@ -1110,7 +1120,10 @@ server.get("/api/skills/list", async (request): Promise<SkillsListResponse> => {
   });
   let skills: SkillRecord[] = [];
   if (result.exitCode === 0 && result.stdout.trim()) {
-    skills = JSON.parse(result.stdout) as SkillRecord[];
+    skills = (JSON.parse(result.stdout) as SkillRecord[]).map((skill) => ({
+      ...skill,
+      removeKey: deriveSkillRemoveKey(skill),
+    }));
   }
   return { result, skills };
 });
