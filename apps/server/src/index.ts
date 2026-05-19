@@ -92,7 +92,7 @@ const scopeSchema = z.enum(["project", "global"]);
 const updateScopeSchema = z.enum(["project", "global", "auto"]);
 const projectStatusSchema = z.enum(["valid", "missing", "not-directory", "inaccessible"]);
 const packageNameSchema = z.string().trim().min(1).max(200).regex(/^[A-Za-z0-9._/@:+-]+$/, "invalid package name");
-const simpleValueSchema = z.string().trim().min(1).max(120).regex(/^[A-Za-z0-9._:@+/-]+$/, "invalid value");
+const simpleValueSchema = z.string().trim().min(1).max(120).regex(/^[^\r\n]+$/, "invalid value");
 const mcpTargetSchema = z.string().trim().min(1).max(500).refine((value) => !/[\r\n]/.test(value), "target must be a single line");
 const serverNameSchema = z.string().trim().min(1).max(120).regex(/^[A-Za-z0-9._-]+$/, "invalid name");
 const headerSchema = z.string().trim().min(3).max(500).refine((value) => /^[^:\s][^:]*:\s*.+$/.test(value), "header must match 'Key: Value'");

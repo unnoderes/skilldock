@@ -136,12 +136,6 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
       .map((skill: SkillRecord) => skill.name);
   };
 
-  const buildSelectedRemoveKeysSnapshot = () => {
-    return filteredSkills
-      .filter((skill: SkillRecord) => selectedSkillNameSet.has(skill.name))
-      .map((skill: SkillRecord) => skill.removeKey || skill.name);
-  };
-
   const executeInstall = async ({
     packageName,
     skillNames,
@@ -238,7 +232,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
       confirmLabel: t("skills.removeButton"),
       onConfirm: async () => {
         const res = await removeMutation.mutateAsync({
-          names: [skill.removeKey || skill.name],
+          skillNames: [skill.name],
           scope,
           projectId: activeProjectId ?? undefined,
         });
@@ -303,7 +297,6 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
 
   const handleBulkRemoveRequest = () => {
     const selectedNames = buildSelectedNamesSnapshot();
-    const selectedRemoveKeys = buildSelectedRemoveKeysSnapshot();
     if (selectedNames.length === 0 || projectWriteDisabled) return;
 
     setConfirmState({
@@ -323,7 +316,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
       confirmLabel: t("skills.removeSelectedButton"),
       onConfirm: async () => {
         const res = await removeMutation.mutateAsync({
-          names: selectedRemoveKeys,
+          skillNames: selectedNames,
           scope,
           projectId: activeProjectId ?? undefined,
         });
