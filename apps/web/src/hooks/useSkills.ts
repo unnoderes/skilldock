@@ -8,6 +8,7 @@ import type {
 } from "@skilldock/shared";
 import {
   fetchSkillsFind,
+  fetchSkillsInstallPreview,
   installSkill,
   removeSkill,
   updateSkill,
@@ -40,6 +41,15 @@ export function useSkillsFind(query: string) {
     queryKey: ["skills", "find", query],
     queryFn: () => fetchSkillsFind(query),
     enabled: query.trim().length > 0,
+    staleTime: 30_000,
+  });
+}
+
+export function useSkillsInstallPreview(packageName: string) {
+  return useQuery({
+    queryKey: ["skills", "install-preview", packageName],
+    queryFn: () => fetchSkillsInstallPreview(packageName),
+    enabled: packageName.trim().length > 0,
     staleTime: 30_000,
   });
 }

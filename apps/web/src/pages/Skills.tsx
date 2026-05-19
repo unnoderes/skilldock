@@ -17,7 +17,7 @@ import { useLocale } from "../contexts/LocaleContext";
 import { SkillsActionPanel } from "../components/SkillsActionPanel";
 import { SkillDiscoveryDialog } from "../components/SkillDiscoveryDialog";
 import { SkillsInstall } from "../components/SkillsInstall";
-import type { DiscoveryInstallRequest } from "../lib/skillsDiscovery";
+import type { DiscoveryInstallRequest, InstallPreviewPackageItem } from "../lib/skillsDiscovery";
 
 const SKILL_SUMMARY_LIMIT = 3;
 const SKILLS_GRID_COLUMNS_KEY = "skilldock.skillsGridColumns";
@@ -77,6 +77,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   } | null>(null);
 
   const [discoverDialogOpen, setDiscoverDialogOpen] = useState(false);
+  const [installPreviewPackage, setInstallPreviewPackage] = useState<InstallPreviewPackageItem | null>(null);
 
   const skills: SkillRecord[] = skillsData?.skills ?? [];
   const normalizedSearch = search.trim().toLowerCase();
@@ -152,6 +153,8 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         ? `${t("skills.install")} ${packageName} (${skillNames.join(", ")})`
         : `${t("skills.install")} ${packageName}`,
     );
+    setDiscoverDialogOpen(false);
+    setInstallPreviewPackage(null);
     setConfirmState(null);
   };
 
@@ -229,7 +232,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
       confirmLabel: t("skills.removeButton"),
       onConfirm: async () => {
         const res = await removeMutation.mutateAsync({
-          names: [skill.name],
+          skillNames: [skill.name],
           scope,
           projectId: activeProjectId ?? undefined,
         });
@@ -313,7 +316,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
       confirmLabel: t("skills.removeSelectedButton"),
       onConfirm: async () => {
         const res = await removeMutation.mutateAsync({
-          names: selectedNames,
+          skillNames: selectedNames,
           scope,
           projectId: activeProjectId ?? undefined,
         });
@@ -322,6 +325,11 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         setConfirmState(null);
       },
     });
+  };
+
+  const handleTopLevelInstallPreview = (previewPackage: InstallPreviewPackageItem) => {
+    setInstallPreviewPackage(previewPackage);
+    setDiscoverDialogOpen(true);
   };
 
   const handleSkillsGridColumnsChange = (nextValue: SkillsGridColumnCount) => {
@@ -365,17 +373,17 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
               <SkillsInstall
                 scope={scope}
                 isPending={installMutation.isPending}
-                onInstall={(packageName) =>
-                  handleInstallRequest({
-                    packageName,
-                    installMode: "package",
-                  })}
+                onInstallRequest={handleInstallRequest}
+                onOpenPreviewSelection={handleTopLevelInstallPreview}
                 variant="plain"
               />
             </div>
             <button
               type="button"
-              onClick={() => setDiscoverDialogOpen(true)}
+              onClick={() => {
+                setInstallPreviewPackage(null);
+                setDiscoverDialogOpen(true);
+              }}
               disabled={projectWriteDisabled}
               title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
               className="inline-flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-border bg-surface-800 px-4 py-2 text-xs font-bold transition-colors hover:bg-surface-600 disabled:opacity-50 sm:w-auto"
@@ -398,7 +406,10 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
                 message={search ? t("skills.noSearchMatch", { search, scope }) : t("skills.noSkillsInstalled", { scope })}
                 action={!search && (
                   <button
-                    onClick={() => setDiscoverDialogOpen(true)}
+                    onClick={() => {
+                      setInstallPreviewPackage(null);
+                      setDiscoverDialogOpen(true);
+                    }}
                     disabled={projectWriteDisabled}
                     title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
                     className="whitespace-nowrap rounded-lg border border-border px-4 py-2 text-xs font-bold transition-colors hover:bg-surface-600 disabled:opacity-50"
@@ -538,7 +549,11 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
         <SkillDiscoveryDialog
           scope={scope}
           onRequestInstall={handleInstallRequest}
-          onClose={() => setDiscoverDialogOpen(false)}
+          previewPackage={installPreviewPackage}
+          onClose={() => {
+            setInstallPreviewPackage(null);
+            setDiscoverDialogOpen(false);
+          }}
         />
       )}
     </div>

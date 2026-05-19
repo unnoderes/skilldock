@@ -27,6 +27,7 @@ import type {
   SkillDockConfig,
   SkillRecord,
   SkillsFindResponse,
+  SkillsInstallPreviewResponse,
   SkillsListResponse,
   Scope,
   TaskGetResponse,
@@ -1120,6 +1121,12 @@ server.get("/api/skills/find", async (request): Promise<SkillsFindResponse> => {
   return { result };
 });
 
+server.get("/api/skills/install-preview", async (request): Promise<SkillsInstallPreviewResponse> => {
+  const { q } = skillsFindQuerySchema.parse(request.query);
+  const result = await runCli("npx", ["skills", "add", q, "--list"], "GET /api/skills/install-preview");
+  return { result };
+});
+
 server.post("/api/skills/install", async (request): Promise<TaskStartResponse> => {
   const body = skillsInstallBodySchema.parse(request.body);
   const project = await resolveProjectContext(body.projectId);
@@ -1146,9 +1153,12 @@ server.post("/api/skills/remove", async (request): Promise<TaskStartResponse> =>
 
   if (body.scope === "global") args.push("--global");
   if (body.all) args.push("--all");
-  args.push(...body.names);
+  if (body.skillNames.length > 0) {
+    pushRepeatedFlag(args, "--skill", body.skillNames);
+  } else {
+    args.push(...body.names);
+  }
   pushRepeatedFlag(args, "--agent", body.agents);
-  pushRepeatedFlag(args, "--skill", body.skillNames);
 
   return startTask("npx", args, "POST /api/skills/remove", {
     cwd: project.projectPath,

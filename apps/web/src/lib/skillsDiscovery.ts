@@ -12,6 +12,14 @@ export interface DiscoveryPackageItem {
   matchedSkills: DiscoverySkillItem[];
 }
 
+export interface InstallPreviewPackageItem {
+  packageName: string;
+  availableSkills: {
+    skillName: string;
+    description?: string;
+  }[];
+}
+
 export interface DiscoveryInstallRequest {
   packageName: string;
   skillNames?: string[];
@@ -74,4 +82,54 @@ export function parseDiscoveryItems(stdout: string): DiscoveryPackageItem[] | nu
   }
 
   return packages.size > 0 ? Array.from(packages.values()) : null;
+}
+
+export function parseInstallPreview(stdout: string, packageName: string): InstallPreviewPackageItem | null {
+  const cleaned = stripAnsi(stdout);
+  const lines = cleaned
+    .split("\n")
+    .map((line) => line.replace(/^[\s|oO0•x\-—]+/, "").trim())
+    .filter(Boolean);
+
+  const headerIndex = lines.findIndex((line) => /^Available Skills$/i.test(line));
+  if (headerIndex < 0) {
+    return null;
+  }
+
+  const availableSkills: InstallPreviewPackageItem["availableSkills"] = [];
+
+  for (let i = headerIndex + 1; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (/^Use --skill <name> to install specific skills$/i.test(line)) {
+      break;
+    }
+
+    if (
+      /^Found \d+ skills$/i.test(line) ||
+      /^Source:/i.test(line) ||
+      /^(Agent detected|Fetching skills|Cloning repository|Repository cloned|Installation failed|Canceled|Done!)/i.test(line)
+    ) {
+      continue;
+    }
+
+    if (availableSkills.length > 0 && !/^[a-z0-9][a-z0-9-]*$/i.test(line)) {
+      const previous = availableSkills[availableSkills.length - 1];
+      previous.description = previous.description
+        ? `${previous.description} ${line}`.trim()
+        : line;
+      continue;
+    }
+
+    if (/^[a-z0-9][a-z0-9-]*$/i.test(line)) {
+      availableSkills.push({ skillName: line });
+    }
+  }
+
+  return availableSkills.length > 0
+    ? {
+        packageName,
+        availableSkills,
+      }
+    : null;
 }
