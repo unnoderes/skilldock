@@ -28,6 +28,28 @@ export interface DiscoveryInstallRequest {
 
 export { stripAnsi } from "./outputNormalization";
 
+const DISCOVERY_RESULT_RE = /^(\S+)\s+([\d.,]+[KMB]?\s+installs)$/i;
+const DISCOVERY_URL_RE = /^└\s+(https?:\/\/\S+)$/i;
+const SKILL_NAME_RE = /^[a-z0-9][a-z0-9._-]*$/i;
+
+function normalizeCliOutput(text: string): string[] {
+  return stripAnsi(text)
+    .replace(/\r\n?/g, "\n")
+    .split("\n");
+}
+
+function stripCliPrefix(line: string): string {
+  if (/^\s*\|\s?/.test(line)) {
+    return line.replace(/^\s*\|\s?/, "");
+  }
+
+  if (/^\s*[•oxO0×✔✖—-]\s{2,}/u.test(line)) {
+    return line.replace(/^\s*[•oxO0×✔✖—-]\s{2,}/u, "");
+  }
+
+  return line;
+}
+
 function parseSkillReference(skillId: string): { packageName: string; skillName?: string } {
   const separatorIndex = skillId.lastIndexOf("@");
   if (separatorIndex <= 0) {
@@ -41,15 +63,16 @@ function parseSkillReference(skillId: string): { packageName: string; skillName?
 }
 
 export function parseDiscoveryItems(stdout: string): DiscoveryPackageItem[] | null {
-  const cleaned = stripAnsi(stdout);
-  const lines = cleaned.split("\n").map((line) => line.trim()).filter(Boolean);
+  const lines = normalizeCliOutput(stdout)
+    .map((line) => stripCliPrefix(line).trim())
+    .filter(Boolean);
   const packages = new Map<string, DiscoveryPackageItem>();
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (line.toLowerCase().startsWith("install with")) continue;
 
-    const match = line.match(/^(\S+)\s+([\d.,]+[KMB]?\s+installs)$/i);
+    const match = line.match(DISCOVERY_RESULT_RE);
     if (!match) continue;
 
     const skillId = match[1];
@@ -58,7 +81,7 @@ export function parseDiscoveryItems(stdout: string): DiscoveryPackageItem[] | nu
 
     if (i + 1 < lines.length) {
       const next = lines[i + 1];
-      const urlMatch = next.match(/[└•]?\s*(https?:\/\/\S+)/);
+      const urlMatch = next.match(DISCOVERY_URL_RE);
       if (urlMatch) {
         url = urlMatch[1];
         i++;
@@ -85,44 +108,45 @@ export function parseDiscoveryItems(stdout: string): DiscoveryPackageItem[] | nu
 }
 
 export function parseInstallPreview(stdout: string, packageName: string): InstallPreviewPackageItem | null {
-  const cleaned = stripAnsi(stdout);
-  const lines = cleaned
-    .split("\n")
-    .map((line) => line.replace(/^[\s|oO0•x\-—]+/, "").trim())
-    .filter(Boolean);
-
-  const headerIndex = lines.findIndex((line) => /^Available Skills$/i.test(line));
-  if (headerIndex < 0) {
-    return null;
-  }
-
   const availableSkills: InstallPreviewPackageItem["availableSkills"] = [];
+  let inAvailableSkills = false;
 
-  for (let i = headerIndex + 1; i < lines.length; i++) {
-    const line = lines[i];
+  for (const rawLine of normalizeCliOutput(stdout)) {
+    const lineWithoutPrefix = stripCliPrefix(rawLine);
+    const trimmed = lineWithoutPrefix.trim();
+    if (!trimmed) continue;
 
-    if (/^Use --skill <name> to install specific skills$/i.test(line)) {
+    if (!inAvailableSkills) {
+      if (/^Available Skills$/i.test(trimmed)) {
+        inAvailableSkills = true;
+      }
+      continue;
+    }
+
+    if (/^Use --skill <name> to install specific skills$/i.test(trimmed)) {
       break;
     }
 
     if (
-      /^Found \d+ skills$/i.test(line) ||
-      /^Source:/i.test(line) ||
-      /^(Agent detected|Fetching skills|Cloning repository|Repository cloned|Installation failed|Canceled|Done!)/i.test(line)
+      /^Found \d+ skills$/i.test(trimmed) ||
+      /^Source:/i.test(trimmed) ||
+      /^(Agent detected|Fetching skills|Discovering skills|Cloning repository|Repository cloned|Installation failed|Canceled|Done!)/i.test(trimmed)
     ) {
       continue;
     }
 
-    if (availableSkills.length > 0 && !/^[a-z0-9][a-z0-9-]*$/i.test(line)) {
-      const previous = availableSkills[availableSkills.length - 1];
-      previous.description = previous.description
-        ? `${previous.description} ${line}`.trim()
-        : line;
+    const indent = lineWithoutPrefix.length - lineWithoutPrefix.trimStart().length;
+
+    if (indent >= 2 && SKILL_NAME_RE.test(trimmed)) {
+      availableSkills.push({ skillName: trimmed });
       continue;
     }
 
-    if (/^[a-z0-9][a-z0-9-]*$/i.test(line)) {
-      availableSkills.push({ skillName: line });
+    if (availableSkills.length > 0 && indent >= 4) {
+      const previous = availableSkills[availableSkills.length - 1];
+      previous.description = previous.description
+        ? `${previous.description} ${trimmed}`.trim()
+        : trimmed;
     }
   }
 

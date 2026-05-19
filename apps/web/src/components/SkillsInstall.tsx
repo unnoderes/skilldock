@@ -30,12 +30,13 @@ export function SkillsInstall({
   const normalizedPackageName = packageName.trim();
   const previewQuery = useSkillsInstallPreview(normalizedPackageName);
   const previewResult = normalizedPackageName ? previewQuery.data?.result : undefined;
+  const previewOutput = previewResult?.stdout || previewResult?.stderr || "";
   const previewItem = previewResult
-    ? parseInstallPreview(previewResult.stdout, normalizedPackageName)
+    ? parseInstallPreview(previewOutput, normalizedPackageName)
     : null;
   const availableSkills = previewItem?.availableSkills ?? [];
   const selectedSkillCount = availableSkills.length;
-  const cleanedPreviewOutput = previewResult ? stripAnsi(previewResult.stdout || previewResult.stderr) : "";
+  const cleanedPreviewOutput = previewResult ? stripAnsi(previewOutput) : "";
   const previewFailed = Boolean(previewResult && previewResult.exitCode !== 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,8 +44,8 @@ export function SkillsInstall({
     if (!normalizedPackageName) return;
 
     const result = await previewQuery.refetch();
-    const stdout = result.data?.result.stdout ?? "";
-    const installPreview = parseInstallPreview(stdout, normalizedPackageName);
+    const output = result.data?.result.stdout || result.data?.result.stderr || "";
+    const installPreview = parseInstallPreview(output, normalizedPackageName);
     const skills = installPreview?.availableSkills ?? [];
 
     if (installPreview && skills.length > 1) {
