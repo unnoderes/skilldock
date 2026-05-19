@@ -16,7 +16,7 @@ import { ApiError } from "../lib/api";
 import { useLocale } from "../contexts/LocaleContext";
 import { SkillsActionPanel } from "../components/SkillsActionPanel";
 import { SkillDiscoveryDialog } from "../components/SkillDiscoveryDialog";
-import { SkillsInstall } from "../components/SkillsInstall";
+import { SkillInstallDialog } from "../components/SkillInstallDialog";
 import type { DiscoveryInstallRequest, InstallPreviewPackageItem } from "../lib/skillsDiscovery";
 
 const SKILL_SUMMARY_LIMIT = 3;
@@ -77,6 +77,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   } | null>(null);
 
   const [discoverDialogOpen, setDiscoverDialogOpen] = useState(false);
+  const [installDialogOpen, setInstallDialogOpen] = useState(false);
   const [installPreviewPackage, setInstallPreviewPackage] = useState<InstallPreviewPackageItem | null>(null);
 
   const skills: SkillRecord[] = skillsData?.skills ?? [];
@@ -328,6 +329,7 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
   };
 
   const handleTopLevelInstallPreview = (previewPackage: InstallPreviewPackageItem) => {
+    setInstallDialogOpen(false);
     setInstallPreviewPackage(previewPackage);
     setDiscoverDialogOpen(true);
   };
@@ -369,15 +371,16 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
               onChange={setSearch}
               className="w-full sm:min-w-[14rem] sm:flex-1 sm:max-w-sm"
             />
-            <div className="w-full sm:min-w-[19rem] sm:flex-1 sm:max-w-md">
-              <SkillsInstall
-                scope={scope}
-                isPending={installMutation.isPending}
-                onInstallRequest={handleInstallRequest}
-                onOpenPreviewSelection={handleTopLevelInstallPreview}
-                variant="plain"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={() => setInstallDialogOpen(true)}
+              disabled={projectWriteDisabled}
+              title={projectWriteDisabled ? t("projects.invalidWriteDisabled") : undefined}
+              className="inline-flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-border bg-surface-800 px-4 py-2 text-xs font-bold transition-colors hover:bg-surface-600 disabled:opacity-50 sm:w-auto"
+            >
+              <Package size={14} />
+              {t("skills.installFromPackage")}
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -542,6 +545,16 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
           onConfirm={confirmState.onConfirm}
           onCancel={() => setConfirmState(null)}
           isDangerous={confirmState.isDangerous}
+        />
+      )}
+
+      {installDialogOpen && (
+        <SkillInstallDialog
+          scope={scope}
+          isPending={installMutation.isPending}
+          onInstallRequest={handleInstallRequest}
+          onOpenPreviewSelection={handleTopLevelInstallPreview}
+          onClose={() => setInstallDialogOpen(false)}
         />
       )}
 
