@@ -25,7 +25,26 @@ function pipeLines(stream, prefix) {
   });
 }
 
-const runningServices = services.map((service) => {
+async function waitForUrl(url, timeoutMs = 30000) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetch(url);
+      if (response.ok || response.status < 500) {
+        return;
+      }
+    } catch {
+      // The service is still starting up.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error(`Timed out waiting for ${url}`);
+}
+
+function startService(service) {
   const child = execa(pnpmCommand, service.args, {
     cwd: rootDir,
     reject: false,
@@ -38,7 +57,17 @@ const runningServices = services.map((service) => {
   pipeLines(child.stderr, `${service.name} dev: `);
 
   return { ...service, child };
-});
+}
+
+const runningServices = [];
+const serverService = startService(services[0]);
+runningServices.push(serverService);
+
+await waitForUrl("http://127.0.0.1:3301/healthz");
+
+for (const service of services.slice(1)) {
+  runningServices.push(startService(service));
+}
 
 let shuttingDown = false;
 
