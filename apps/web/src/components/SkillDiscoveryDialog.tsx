@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import type { Scope } from "@skilldock/shared";
 import { useLocale } from "../contexts/LocaleContext";
 import { SkillsDiscovery } from "./SkillsDiscovery";
+import type { DiscoveryInstallRequest } from "../lib/skillsDiscovery";
 
 export function SkillDiscoveryDialog({
   scope,
@@ -11,7 +12,7 @@ export function SkillDiscoveryDialog({
   onClose,
 }: {
   scope: Scope;
-  onRequestInstall: (packageName: string) => void;
+  onRequestInstall: (request: DiscoveryInstallRequest) => void;
   onClose: () => void;
 }) {
   const { t } = useLocale();

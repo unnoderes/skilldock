@@ -102,6 +102,10 @@ Scope: project
 
 这样写操作目标不会含糊。
 
+- Skills Discovery 需要把 `npx skills find` 返回的 `owner/repo@skill` 结果按仓库聚合展示。
+- 当同一个仓库命中多个 skills 时，UI 需要同时提供 “安装全部” 和 “安装指定 skills” 两条路径。
+- “安装指定 skills” 必须沿用现有 `POST /api/skills/install` 固定业务 API，并通过 `skillNames` 传递用户勾选的 skill 名称，由 server 映射到 CLI `--skill` 参数。
+
 ## MCP 页面行为
 
 Header 展示：

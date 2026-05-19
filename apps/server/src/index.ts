@@ -188,6 +188,13 @@ const skillsInstallBodySchema = z.object({
       message: "all cannot be combined with agents or skillNames",
     });
   }
+  if (value.skillNames.some((skillName) => skillName === "*")) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["skillNames"],
+      message: "use all=true instead of skillNames=['*']",
+    });
+  }
 });
 
 const skillsRemoveBodySchema = z.object({
