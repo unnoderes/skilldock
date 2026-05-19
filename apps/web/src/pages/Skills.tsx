@@ -17,6 +17,7 @@ import { useLocale } from "../contexts/LocaleContext";
 import { SkillsActionPanel } from "../components/SkillsActionPanel";
 import { SkillDiscoveryDialog } from "../components/SkillDiscoveryDialog";
 import { SkillsInstall } from "../components/SkillsInstall";
+import type { DiscoveryInstallRequest } from "../lib/skillsDiscovery";
 
 const SKILL_SUMMARY_LIMIT = 3;
 const SKILLS_GRID_COLUMNS_KEY = "skilldock.skillsGridColumns";
@@ -129,30 +130,57 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
       .map((skill: SkillRecord) => skill.name);
   };
 
-  const executeInstall = async (packageName: string) => {
+  const executeInstall = async ({
+    packageName,
+    skillNames,
+    installMode,
+  }: DiscoveryInstallRequest) => {
     const res = await installMutation.mutateAsync({
       packageName,
+      skillNames,
       scope,
       projectId: activeProjectId ?? undefined,
     });
-    onTaskStart(res.taskId, `${t("skills.install")} ${packageName}`);
+    onTaskStart(
+      res.taskId,
+      installMode === "selected-skills" && skillNames && skillNames.length > 0
+        ? `${t("skills.install")} ${packageName} (${skillNames.join(", ")})`
+        : `${t("skills.install")} ${packageName}`,
+    );
     setConfirmState(null);
   };
 
-  const handleInstallRequest = (packageName: string) => {
+  const handleInstallRequest = ({
+    packageName,
+    skillNames,
+    installMode,
+  }: DiscoveryInstallRequest) => {
     if (projectWriteDisabled) return;
+
+    const selectedSkillCount = skillNames?.length ?? 0;
+    const isSelectedSkillsInstall = installMode === "selected-skills" && selectedSkillCount > 0;
+    const selectedSkillNames = skillNames ?? [];
 
     setConfirmState({
       isOpen: true,
-      title: t("skills.installTitle"),
+      title: isSelectedSkillsInstall ? t("skills.installSelectedTitle") : t("skills.installTitle"),
       message: [
         t("skills.installMessage", { package: packageName }),
         projectContextMessage(activeProject),
         t("skills.installScope", { scope }),
-        t("skills.installDescription"),
+        isSelectedSkillsInstall
+          ? t("skills.installSelectedMessage", { count: String(selectedSkillCount) })
+          : t("skills.installDescription"),
+        ...(isSelectedSkillsInstall
+          ? [
+              t("skills.selectedNamesSummary", {
+                names: summarizeSelectedSkills(selectedSkillNames),
+              }),
+            ]
+          : []),
       ],
-      confirmLabel: t("skills.install"),
-      onConfirm: () => executeInstall(packageName),
+      confirmLabel: isSelectedSkillsInstall ? t("skills.discoveryInstallSelected") : t("skills.install"),
+      onConfirm: () => executeInstall({ packageName, skillNames, installMode }),
     });
   };
 
@@ -320,7 +348,11 @@ export function Skills({ onTaskStart }: { onTaskStart: (tid: string, title: stri
               <SkillsInstall
                 scope={scope}
                 isPending={installMutation.isPending}
-                onInstall={handleInstallRequest}
+                onInstall={(packageName) =>
+                  handleInstallRequest({
+                    packageName,
+                    installMode: "package",
+                  })}
                 variant="plain"
               />
             </div>

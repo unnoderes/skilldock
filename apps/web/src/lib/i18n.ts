@@ -75,8 +75,16 @@ export type TranslationKey =
   | "skills.discoverInstallHint"
   | "skills.discoveryEmpty"
   | "skills.discoveryInstall"
+  | "skills.discoveryInstallAll"
+  | "skills.discoveryInstallSelected"
+  | "skills.discoverySelectedCount"
+  | "skills.discoveryMonorepoBadge"
+  | "skills.discoveryMonorepoHint"
+  | "skills.discoverySingleSkillHint"
   | "skills.searching"
   | "skills.searchError"
+  | "skills.installSelectedTitle"
+  | "skills.installSelectedMessage"
   | "skills.selectionTitle"
   | "skills.selectionCount"
   | "skills.selectionCountWithTotal"
@@ -291,8 +299,16 @@ const enUS: Record<TranslationKey, string> = {
   "skills.discoverInstallHint": "Click a package name to install it:",
   "skills.discoveryEmpty": "No skills found. Try another query.",
   "skills.discoveryInstall": "Install",
+  "skills.discoveryInstallAll": "Install all",
+  "skills.discoveryInstallSelected": "Install selected",
+  "skills.discoverySelectedCount": "{{count}} selected in this package",
+  "skills.discoveryMonorepoBadge": "{{count}} matching skills",
+  "skills.discoveryMonorepoHint": "This repository contains multiple matching skills. Install the whole package or choose specific skills.",
+  "skills.discoverySingleSkillHint": "Install the package directly, or select the matched skill below to install it explicitly.",
   "skills.searching": "Searching for \"{{query}}\"...",
   "skills.searchError": "Search failed. Please try again.",
+  "skills.installSelectedTitle": "Install Selected Skills",
+  "skills.installSelectedMessage": "You are about to install {{count}} selected skills from this package.",
   "skills.selectionTitle": "Selection",
   "skills.selectionCount": "{{count}} selected",
   "skills.selectionCountWithTotal": "{{count}} selected of {{total}} current results",
@@ -508,8 +524,16 @@ const zhCN: Record<TranslationKey, string> = {
   "skills.discoverInstallHint": "点击包名进行安装：",
   "skills.discoveryEmpty": "未找到 Skills，尝试其他关键词。",
   "skills.discoveryInstall": "安装",
+  "skills.discoveryInstallAll": "安装全部",
+  "skills.discoveryInstallSelected": "安装所选 skills",
+  "skills.discoverySelectedCount": "当前仓库已选择 {{count}} 个",
+  "skills.discoveryMonorepoBadge": "命中 {{count}} 个 skills",
+  "skills.discoveryMonorepoHint": "这个仓库包含多个匹配的 skills。你可以安装整个仓库，或只安装指定 skills。",
+  "skills.discoverySingleSkillHint": "你可以直接安装整个包，也可以明确选择下面这个 skill 进行安装。",
   "skills.searching": "正在搜索 \"{{query}}\"...",
   "skills.searchError": "搜索失败，请重试。",
+  "skills.installSelectedTitle": "安装指定 Skills",
+  "skills.installSelectedMessage": "即将从该仓库安装 {{count}} 个选中的 skills。",
   "skills.selectionTitle": "选择",
   "skills.selectionCount": "已选择 {{count}} 项",
   "skills.selectionCountWithTotal": "当前筛选结果共 {{total}} 项，已选择 {{count}} 项",

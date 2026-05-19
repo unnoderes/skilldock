@@ -160,6 +160,8 @@ export type SkillsFindResponse = {
   result: CommandResult;
 };
 
+export type SkillsDiscoveryInstallMode = "package" | "selected-skills";
+
 export type SkillsCommandResponse = {
   result: CommandResult;
 };
